@@ -75,6 +75,7 @@ bblayers_conf_header:
 local_conf_header:
   standard: |
     CONF_VERSION = "1"
+    IRMA6_DISTRO_VERSION = "1.1.26-dev"
 
   default_cache_dirs: |
     DL_DIR ?= "${TOPDIR}/dl_dir"
