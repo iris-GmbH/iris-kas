@@ -32,6 +32,7 @@ repos:
     refspec: "dunfell"
     layers:
       meta-ros-backports-gatesgarth:
+      meta-ros-backports-hardknott:
       meta-ros-common:
 
   # repos relevant for testing
