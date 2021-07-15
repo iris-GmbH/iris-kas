@@ -35,13 +35,13 @@ For a detailed documentation, please visit [https://kas.readthedocs.io/en/latest
 ### As an IRIS developer
 
 #### Building the current gen6 deploy firmware for the ADSP-SC573 using the developer specific config
-`kas shell -c "bitbake mc:sc573-gen6:irma-six-deploy" kas-irma6-base.yml:kas-irma6-pa.yml:kas-developer.yml`
+`kas shell -c "bitbake mc:sc573-gen6:irma6-deploy" kas-irma6-base.yml:kas-irma6-pa.yml:kas-developer.yml`
 
 #### Building all the gen6 firmwares for the ADSP-SC573
-`kas shell -c "bitbake mc:sc573-gen6:irma-six-maintenance mc:sc573-gen6:irma-six-dev mc:sc573-gen6:irma-six-deploy" kas-irma6-base.yml:kas-irma6-pa.yml:kas-developer.yml`
+`kas shell -c "bitbake mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev mc:sc573-gen6:irma6-deploy" kas-irma6-base.yml:kas-irma6-pa.yml:kas-developer.yml`
 
 #### Building for other machine configs
-Replace the multiconfig string in your build command (e.g. `mc:sc573-gen6:irma-six-maintenance` -> `mc:imx8mp-evk:irma-six-maintenance`).
+Replace the multiconfig string in your build command (e.g. `mc:sc573-gen6:irma6-maintenance` -> `mc:imx8mp-evk:irma6-maintenance`).
 Available multiconfigs are listed in the *target* section of the `kas-irma6-base.yml` file.
 
 
@@ -50,12 +50,12 @@ Available multiconfigs are listed in the *target* section of the `kas-irma6-base
 #### Build our current base Linux distribution
 As an IRIS customer you might be interested in building our base Linux distribution, which is configured for running our proprietary platform application (not included). This can be done by running the following command:
 
-`kas shell -c "bitbake mc:sc573-gen6:irma-six-base" kas-irma6-base.yml`
+`kas shell -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml`
 
 #### Build our base Linux distribution from a source dump
 As an IRIS customer you might want to build the base Linux image belonging to a specific firmware version using a provided source code dump. This can be done using the following from within the source code dump command:
 
-`kas shell -c "bitbake mc:sc573-gen6:irma-six-base" kas-irma6-base.yml:kas-offline-build.yml`
+`kas shell -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml:kas-offline-build.yml`
 
 
 ### Using Docker
