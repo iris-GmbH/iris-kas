@@ -1,14 +1,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
-#
-#
-# Define target configurations
 
 header:
   version: 9
 
 target:
-  - multiconfig:qemux86-64
   - multiconfig:qemuarm64
-  - multiconfig:sc573-gen6
-  - multiconfig:imx8mp-evk
