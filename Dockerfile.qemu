@@ -1,5 +1,8 @@
 FROM ghcr.io/siemens/kas/kas:next
 
+ENV VERSION=v4.12.2
+ENV BINARY=yq_linux_amd64
+
 RUN set -ex \
     # Add buster-backports to repos
     && echo 'deb http://deb.debian.org/debian buster-backports main' >> /etc/apt/sources.list \
@@ -9,6 +12,10 @@ RUN set -ex \
         iptables \
     # Install QEMU from backports (more recent version for bugfixes)
     && apt-get install --no-install-recommends -y -t buster-backports qemu-system \
+    # Install yq (used during release process)
+    && curl -sSfL "https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz" | tar -xz \
+    && mv ${BINARY} /usr/bin/yq \
+    && chmod +x /usr/bin/yq \
     && rm -rf /var/lib/apt/lists
 # Print QEMU version
 RUN qemu-system-aarch64 --version
