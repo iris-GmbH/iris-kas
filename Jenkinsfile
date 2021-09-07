@@ -27,6 +27,8 @@ pipeline {
                 script {
                     env.GIT_TAG = sh(script: 'git describe --tag --exact-match 2> /dev/null || true', returnStdout: true).trim()
                     env.ARTIFACT_NAME = sh(script: "if [ -n \"${GIT_TAG}\" ]; then echo \"${GIT_TAG}\"; else echo \"${GIT_COMMIT}\"; fi", returnStdout: true).trim()
+                    // if this is a PR branch, the env variable "CHANGE_BRANCH" will contain the real branch name, which we need for checkout later on
+                    env.REAL_GIT_BRANCH = sh(script: "if [ -n \"${CHANGE_BRANCH}\" ]; then echo \"${CHANGE_BRANCH}\"; else echo \"${GIT_BRANCH}\"; fi", returnStdout: true).trim()
                 }
                 // manually upload kas sources to S3, as to prevent upload conflicts in parallel steps
                 zip dir: '', zipFile: 'iris-kas-sources.zip'
@@ -69,7 +71,7 @@ pipeline {
                                 sourceControlType: 'project',
                                 sourceTypeOverride: 'S3',
                                 sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
-                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { IMAGES, $IMAGES }, { SDK_IMAGE, $SDK_IMAGE }, { HOME, /home/builder }, { JOB_NAME, $JOB_NAME }, { GIT_BRANCH, $GIT_BRANCH } ]"
+                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { IMAGES, $IMAGES }, { SDK_IMAGE, $SDK_IMAGE }, { HOME, /home/builder }, { JOB_NAME, $JOB_NAME }, { GIT_BRANCH, $REAL_GIT_BRANCH } ]"
                         }
                     }
                 }
@@ -214,7 +216,7 @@ pipeline {
                             sourceControlType: 'project',
                             sourceTypeOverride: 'S3',
                             sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
-                            envVariables: "[ { GIT_BRANCH, $GIT_BRANCH } ]"
+                            envVariables: "[ { GIT_BRANCH, $REAL_GIT_BRANCH } ]"
                     }
                 }
 
