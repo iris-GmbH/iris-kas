@@ -28,7 +28,12 @@ pipeline {
                     env.GIT_TAG = sh(script: 'git describe --tag --exact-match 2> /dev/null || true', returnStdout: true).trim()
                     env.ARTIFACT_NAME = sh(script: "if [ -n \"${GIT_TAG}\" ]; then echo \"${GIT_TAG}\"; else echo \"${GIT_COMMIT}\"; fi", returnStdout: true).trim()
                     // if this is a PR branch, the env variable "CHANGE_BRANCH" will contain the real branch name, which we need for checkout later on
-                    env.REAL_GIT_BRANCH = sh(script: "if [ -n \"${CHANGE_BRANCH}\" ]; then echo \"${CHANGE_BRANCH}\"; else echo \"${GIT_BRANCH}\"; fi", returnStdout: true).trim()
+                    if (env.CHANGE_BRANCH) {
+                        env.REAL_GIT_BRANCH = env.CHANGE_BRANCH
+                    }
+                    else {
+                        env.REAL_GIT_BRANCH = env.GIT_BRANCH
+                    }
                 }
                 // manually upload kas sources to S3, as to prevent upload conflicts in parallel steps
                 zip dir: '', zipFile: 'iris-kas-sources.zip'
