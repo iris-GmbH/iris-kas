@@ -37,6 +37,9 @@ repos:
     layers:
       meta:
       meta-poky:
+    patches:
+      fixup-repo-fetcher:
+        path: "patches/0001-Fixup-for-the-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
     refspec: "dunfell"
@@ -44,6 +47,9 @@ repos:
       meta-oe:
       meta-python:
       meta-networking:
+    patches:
+      add-repo-recipe:
+        path: "patches/0001-Add-recipe-for-repo-2.16.7.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
     refspec: "dunfell"

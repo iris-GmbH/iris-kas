@@ -1,0 +1,305 @@
+From 93e881159b97ef17dbc4c616e64171da8d324cb9 Mon Sep 17 00:00:00 2001
+From: Martin Koppehel <martin@mko.dev>
+Date: Tue, 21 Sep 2021 22:02:53 +0200
+Subject: [PATCH] Fixup for the repo fetcher
+
+- Implement AUTOINC and submodule support for REPO provider
+- Implement srcrev support fully
+- Add comments and fixup empty DL_DIR initialization
+- Distinguish between artificial and plain rev
+- Comments/documentation
+---
+ bitbake/lib/bb/fetch2/repo.py | 209 +++++++++++++++++++++++++++++-----
+ meta/classes/base.bbclass     |   9 +-
+ 2 files changed, 188 insertions(+), 30 deletions(-)
+
+diff --git a/bitbake/lib/bb/fetch2/repo.py b/bitbake/lib/bb/fetch2/repo.py
+index 2bdbbd4097..9f99552454 100644
+--- a/bitbake/lib/bb/fetch2/repo.py
++++ b/bitbake/lib/bb/fetch2/repo.py
+@@ -13,6 +13,8 @@ BitBake "Fetch" repo (git) implementation
+ 
+ import os
+ import bb
++import hashlib
++import xml.etree.ElementTree as ET
+ from   bb.fetch2 import FetchMethod
+ from   bb.fetch2 import runfetchcmd
+ from   bb.fetch2 import logger
+@@ -27,46 +29,73 @@ class Repo(FetchMethod):
+ 
+     def urldata_init(self, ud, d):
+         """
+-        We don"t care about the git rev of the manifests repository, but
+-        we do care about the manifest to use.  The default is "default".
+-        We also care about the branch or tag to be used.  The default is
+-        "master".
++        We do care about the rev of the manifests repository, as well as the
++        manifest file. However, when SRCREV=AUTOINC, then we use the specified
++        branch in SRC_URI, with a fallback to master.
++        use sm=fetch to fetch possibly referenced submodules in repositories.
+         """
+ 
+         ud.basecmd = d.getVar("FETCHCMD_repo") or "/usr/bin/env repo"
++        ud.gitcmd = d.getVar("FETCHCMD_git") or "git -c core.fsyncobjectfiles=0"
+ 
+         ud.proto = ud.parm.get('protocol', 'git')
+         ud.branch = ud.parm.get('branch', 'master')
++
++        ud.submodules = ud.parm.get('sm', 'fetch')
+         ud.manifest = ud.parm.get('manifest', 'default.xml')
+         if not ud.manifest.endswith('.xml'):
+             ud.manifest += '.xml'
+ 
+-        ud.localfile = d.expand("repo_%s%s_%s_%s.tar.gz" % (ud.host, ud.path.replace("/", "."), ud.manifest, ud.branch))
++        repodir = d.getVar("REPODIR") or (d.getVar("DL_DIR") + "/repo")
++        gitsrcname = "%s%s.%s" % (ud.host, ud.path.replace("/", "."), ud.manifest)
++        ud.codir = os.path.join(repodir, d.getVar("PN"), gitsrcname)
++
++        if ud.user:
++            ud.username = ud.user + "@"
++        else:
++            ud.username = ""
++        ud.remoteRepo = "%s://%s%s%s" % (ud.proto, ud.username, ud.host, ud.path)
++
++        ud.repodir = os.path.join(ud.codir, "repo")
++        # a temporary directory to compute _latest_revision
++        ud.tempdir = os.path.join(ud.codir, "temp")
++        ud.setup_revisions(d)
++
++        # ud.localfile is used to fill localpath, where the downloaded tarball is stored.
++        # in our case, we want something like repo_$GIT_URL_$MANIFEST_$SRCREV
++        # todo: do we want the packagename?
++        ud.localfile = "repo_%s%s_%s_%s.tar.gz" % (ud.host, ud.path.replace("/", "."), ud.manifest, d.getVar("SRCREV"))
++
++    def need_update(self, ud, d):
++        if d.getVar("SRCREV") == "AUTOINC":
++          return True
++        return os.path.exists(ud.localfile)
+ 
+     def download(self, ud, d):
+         """Fetch url"""
+ 
+-        if os.access(os.path.join(d.getVar("DL_DIR"), ud.localfile), os.R_OK):
+-            logger.debug(1, "%s already exists (or was stashed). Skipping repo init / sync.", ud.localpath)
+-            return
+-
+-        repodir = d.getVar("REPODIR") or (d.getVar("DL_DIR") + "/repo")
+-        gitsrcname = "%s%s" % (ud.host, ud.path.replace("/", "."))
+-        codir = os.path.join(repodir, gitsrcname, ud.manifest)
++        bb.utils.mkdirhier(ud.repodir)
+ 
+-        if ud.user:
+-            username = ud.user + "@"
++        # we want to run a repo init *always* in case the branch or manifest name changes.
++        # if not os.path.exists(os.path.join(repodir, ".repo")):
++        if ud.submodules == "fetch":
++            submodules = "--fetch-submodules"
+         else:
+-            username = ""
++            submodules = ""
++
++        # fixup the revision -> when it starts with underscore, it's an artificial one
++        # therefore we then use the specified remote branch used to generate
++        # the artificial revision in _latest_revision
++        realRevision = ud.revision
++        if ud.revision.startswith("_"):
++            realRevision = ud.branch
+ 
+-        repodir = os.path.join(codir, "repo")
+-        bb.utils.mkdirhier(repodir)
+-        if not os.path.exists(os.path.join(repodir, ".repo")):
+-            bb.fetch2.check_network_access(d, "%s init -m %s -b %s -u %s://%s%s%s" % (ud.basecmd, ud.manifest, ud.branch, ud.proto, username, ud.host, ud.path), ud.url)
+-            runfetchcmd("%s init -m %s -b %s -u %s://%s%s%s" % (ud.basecmd, ud.manifest, ud.branch, ud.proto, username, ud.host, ud.path), d, workdir=repodir)
++        # always run repo init, because we might want to switch branch or manifests.
++        bb.fetch2.check_network_access(d, "%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), ud.url)
++        runfetchcmd("%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), d, workdir=ud.repodir)
+ 
+-        bb.fetch2.check_network_access(d, "%s sync %s" % (ud.basecmd, ud.url), ud.url)
+-        runfetchcmd("%s sync" % ud.basecmd, d, workdir=repodir)
++        bb.fetch2.check_network_access(d, "%s sync %s %s" % (ud.basecmd, submodules, ud.url), ud.url)
++        runfetchcmd("%s sync %s" % (ud.basecmd, submodules), d, workdir=ud.repodir)
+ 
+         scmdata = ud.parm.get("scmdata", "")
+         if scmdata == "keep":
+@@ -75,13 +104,137 @@ class Repo(FetchMethod):
+             tar_flags = "--exclude='.repo' --exclude='.git'"
+ 
+         # Create a cache
+-        runfetchcmd("tar %s -czf %s %s" % (tar_flags, ud.localpath, os.path.join(".", "*") ), d, workdir=codir)
++        runfetchcmd("tar %s -czf %s %s" % (tar_flags, ud.localpath, os.path.join(".", "*") ), d, workdir=ud.codir)
+ 
+     def supports_srcrev(self):
+-        return False
++        return True
++
++    # this is taken from the git fetcher
++    def _lsremote(self, ud, d, search, repo):
++        """
++        Run git ls-remote with the specified search string
++        """
++        # Prevent recursion e.g. in OE if SRCPV is in PV, PV is in WORKDIR,
++        # and WORKDIR is in PATH (as a result of RSS), our call to
++        # runfetchcmd() exports PATH so this function will get called again (!)
++        # In this scenario the return call of the function isn't actually
++        # important - WORKDIR isn't needed in PATH to call git ls-remote
++        # anyway.
++        if d.getVar('_BB_REPO_IN_LSREMOTE', False):
++            return ''
++        d.setVar('_BB_REPO_IN_LSREMOTE', '1')
++        try:
++            cmd = "%s ls-remote \"%s\" %s" % \
++                (ud.gitcmd, repo, search)
++            if ud.proto.lower() != 'file':
++                bb.fetch2.check_network_access(d, cmd, ud.remoteRepo)
++            output = runfetchcmd(cmd, d, True)
++            if not output:
++                raise bb.fetch2.FetchError("The command %s gave empty output unexpectedly" % cmd, ud.url)
++        finally:
++            d.delVar('_BB_REPO_IN_LSREMOTE')
++        return output
++
++    def _checkBranch(self, ud, d, name, repo):
++        output = self._lsremote(ud, d, name, repo)
++        searchstring = "refs/heads/%s" % name
++        found = False
++        for l in output.strip().split('\n'):
++            sha1, ref = l.split()
++            if searchstring == ref:
++                logger.debug(1, "resolved %s@%s to %s", repo, name, sha1)
++                return sha1
++                break
++
++        if not found:
++            raise bb.fetch2.FetchError("Could not determine remote ref!")
++
++    def _build_revision(self, ud, d, name):
++      return ud.revisions[name]
++
++    def _revision_key(self, ud, d, name):
++      return name
++
++    def _latest_revision(self, ud, d, name):
++        """
++        Computes an artificial revision from the manifest repository and all
++        referenced repositories and their remote revisions.
++        name is ignored because we can only have a single branch/name
++        """
++
++        if d.getVar('_BB_REPO_IN_LATEST_REV', False):
++            return ''
++        d.setVar('_BB_REPO_IN_LATEST_REV', '1')
++
++        # we use a sha256 to mixup all the hashes we have
++        hashCalc = hashlib.sha256()
++
++        # first, add the hash of the repo itself
++        sha1 = self._checkBranch(ud, d, ud.branch, ud.remoteRepo)
++        hashCalc.update(bytes(sha1, 'utf-8'))
++
++        # Parse the repo XML files, remove things
++        try:
++            # create/cleanup temporary dir where to clone the repo-manifest URL
++            if os.path.isdir(ud.tempdir):
++                bb.utils.prunedir(ud.tempdir)
++            bb.utils.mkdirhier(ud.tempdir)
++
++            # clone the manifest repo to the temporary dir we just set up
++            bb.fetch2.check_network_access(d, "%s clone -b %s --depth 1 --single-branch %s ." % (ud.gitcmd, ud.branch, ud.remoteRepo), ud.url)
++            runfetchcmd("%s clone -b %s --depth 1 --single-branch %s %s" % (ud.gitcmd, ud.branch, ud.remoteRepo, ud.tempdir), d, workdir=ud.tempdir)
++
++            # parse the specified XML manifest
++            xml = ET.parse("%s/%s" % (ud.tempdir, ud.manifest))
++
++            # repo manifest *may* specify a <default> element, specifying fallback remotes and revisions
++            defaultObject = xml.find('default')
++
++            # parse all remotes and their corresponding default revisions
++            remotes = {}
++            remoteRevisions = {}
++            for remote in xml.findall('remote'):
++              remotes[remote.get('name')] = remote.get('fetch')
++              remoteRevisions[remote.get('name')] = remote.get('revision')
++
++            # iterate through the <project> elements, resolving the correct remote
++            # and revision
++            for project in xml.findall('project'):
++
++              # resolve the remote of the project
++              # when no remote is specified in the project take the one from <default>
++              # when both aren't specified, throw
++              remoteName = project.get('remote')
++              if remoteName is None and defaultObject is not None:
++                remoteName = defaultObject.get('remote')
++              if remoteName is None:
++                raise bb.fetch2.FetchError("repo manifest specifies no remote for %s" % project.get('name'))
++
++              # resolve the remoteName to a git remote URL and optionally
++              # the revision if it was specified in <remote>
++              if remotes[remoteName] is not None:
++                remoteRev = remoteRevisions[remoteName]
++                remote = remotes[remoteName]
++
++              # use revision in the project, when not specified use the one from <remote>
++              # when that is not specified use <default> and when we not have anything specified
++              # throw an exception
++              revision = project.get('revision') or remoteRev
++              if revision is None and defaultObject is not None:
++                revision = defaultObject.get('revision')
++              if revision is None:
++                raise bb.fetch2.FetchError("repo manifest specifies no revision for %s" % project.get('name'))
++
++              # perform an ls-remote on the branch, update the checksum with the commit hash
++              gitRemotePath = "%s/%s" % (remote, project.get('name'))
++              logger.debug(1, "Discovered subproject %s at %s (rev %s)", project.get('path'), gitRemotePath, revision)
++
++              sha1 = self._checkBranch(ud, d, revision, gitRemotePath)
++              hashCalc.update(bytes(sha1, 'utf-8'))
++
++        finally:
++            d.delVar('_BB_REPO_IN_LATEST_REV')
++        digest = "_" + hashCalc.hexdigest()
++        return digest
+ 
+-    def _build_revision(self, ud, d):
+-        return ud.manifest
+ 
+-    def _want_sortable_revision(self, ud, d):
+-        return False
+diff --git a/meta/classes/base.bbclass b/meta/classes/base.bbclass
+index 8a1b5f79c1..7466898ef4 100644
+--- a/meta/classes/base.bbclass
++++ b/meta/classes/base.bbclass
+@@ -269,7 +269,7 @@ python base_eventhandler() {
+         if statusheader:
+             bb.plain('\n%s\n%s\n' % (statusheader, '\n'.join(statuslines)))
+ 
+-    # This code is to silence warnings where the SDK variables overwrite the 
++    # This code is to silence warnings where the SDK variables overwrite the
+     # target ones and we'd see dulpicate key names overwriting each other
+     # for various PREFERRED_PROVIDERS
+     if isinstance(e, bb.event.RecipePreFinalise):
+@@ -283,7 +283,7 @@ python base_eventhandler() {
+         #
+         # If we have multiple providers of virtual/X and a PREFERRED_PROVIDER_virtual/X is set
+         # skip parsing for all the other providers which will mean they get uninstalled from the
+-        # sysroot since they're now "unreachable". This makes switching virtual/kernel work in 
++        # sysroot since they're now "unreachable". This makes switching virtual/kernel work in
+         # particular.
+         #
+         pn = d.getVar('PN')
+@@ -626,6 +626,11 @@ python () {
+         elif scheme == "npm":
+             d.appendVarFlag('do_fetch', 'depends', ' nodejs-native:do_populate_sysroot')
+ 
++        elif scheme == "repo":
++            needsrcrev = True
++            d.appendVarFlag('do_fetch', 'depends', ' repo-native:do_populate_sysroot')
++            d.appendVarFlag('do_fetch', 'depends', ' git-native:do_populate_sysroot')
++
+         # *.lz4 should DEPEND on lz4-native for unpacking
+         if path.endswith('.lz4'):
+             d.appendVarFlag('do_unpack', 'depends', ' lz4-native:do_populate_sysroot')
+-- 
+2.33.0
+
