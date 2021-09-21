@@ -17,7 +17,15 @@ local_conf_header:
     # adjust on release and reintegrate
     IRMA6_DISTRO_VERSION = "2.0.0-dev"
 
+defaults:
+  repos:
+    patches:
+      repo: "this"
+
 repos:
+  # the iris-kas repo
+  this:
+    path: ""
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
