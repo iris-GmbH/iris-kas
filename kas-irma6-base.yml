@@ -38,8 +38,8 @@ repos:
       meta:
       meta-poky:
     patches:
-      fixup-repo-fetcher:
-        path: "patches/0001-Fixup-for-the-repo-fetcher.patch"
+      001-fixup-repo-fetcher:
+        path: "patches/0001-Implement-AUTOREV-for-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
     refspec: "dunfell"

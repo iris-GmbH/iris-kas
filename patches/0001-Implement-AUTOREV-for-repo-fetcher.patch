@@ -1,20 +1,38 @@
-From 93e881159b97ef17dbc4c616e64171da8d324cb9 Mon Sep 17 00:00:00 2001
+From e8d04e6c379cacd4fd93cc739d52effcabfed29b Mon Sep 17 00:00:00 2001
 From: Martin Koppehel <martin@mko.dev>
-Date: Tue, 21 Sep 2021 22:02:53 +0200
-Subject: [PATCH] Fixup for the repo fetcher
+Date: Mon, 4 Oct 2021 08:36:05 +0000
+Subject: [PATCH] Implement AUTOREV for repo fetcher
 
 - Implement AUTOINC and submodule support for REPO provider
 - Implement srcrev support fully
 - Add comments and fixup empty DL_DIR initialization
 - Distinguish between artificial and plain rev
 - Comments/documentation
----
- bitbake/lib/bb/fetch2/repo.py | 209 +++++++++++++++++++++++++++++-----
- meta/classes/base.bbclass     |   9 +-
- 2 files changed, 188 insertions(+), 30 deletions(-)
 
+Signed-off-by: Jasper Orschulko Jasper.Orschulko@iris-sensing.com
+---
+ bitbake/lib/bb/fetch2/__init__.py |   4 +-
+ bitbake/lib/bb/fetch2/repo.py     | 224 ++++++++++++++++++++++++++----
+ meta/classes/base.bbclass         |   9 +-
+ 3 files changed, 206 insertions(+), 31 deletions(-)
+
+diff --git a/bitbake/lib/bb/fetch2/__init__.py b/bitbake/lib/bb/fetch2/__init__.py
+index dc99914cd9..8c104a48c0 100644
+--- a/bitbake/lib/bb/fetch2/__init__.py
++++ b/bitbake/lib/bb/fetch2/__init__.py
+@@ -1584,7 +1584,9 @@ class FetchMethod(object):
+         try:
+             return revs[key]
+         except KeyError:
+-            revs[key] = rev = self._latest_revision(ud, d, name)
++            rev = self._latest_revision(ud, d, name)
++            if rev != '':
++              revs[key] = rev
+             return rev
+ 
+     def sortable_revision(self, ud, d, name):
 diff --git a/bitbake/lib/bb/fetch2/repo.py b/bitbake/lib/bb/fetch2/repo.py
-index 2bdbbd4097..9f99552454 100644
+index 2bdbbd4097..60af8275cc 100644
 --- a/bitbake/lib/bb/fetch2/repo.py
 +++ b/bitbake/lib/bb/fetch2/repo.py
 @@ -13,6 +13,8 @@ BitBake "Fetch" repo (git) implementation
@@ -26,7 +44,7 @@ index 2bdbbd4097..9f99552454 100644
  from   bb.fetch2 import FetchMethod
  from   bb.fetch2 import runfetchcmd
  from   bb.fetch2 import logger
-@@ -27,46 +29,73 @@ class Repo(FetchMethod):
+@@ -27,46 +29,74 @@ class Repo(FetchMethod):
  
      def urldata_init(self, ud, d):
          """
@@ -65,6 +83,7 @@ index 2bdbbd4097..9f99552454 100644
 +        ud.repodir = os.path.join(ud.codir, "repo")
 +        # a temporary directory to compute _latest_revision
 +        ud.tempdir = os.path.join(ud.codir, "temp")
++        ud.stampfile = os.path.join(ud.codir, "__hash.txt")
 +        ud.setup_revisions(d)
 +
 +        # ud.localfile is used to fill localpath, where the downloaded tarball is stored.
@@ -122,7 +141,7 @@ index 2bdbbd4097..9f99552454 100644
  
          scmdata = ud.parm.get("scmdata", "")
          if scmdata == "keep":
-@@ -75,13 +104,137 @@ class Repo(FetchMethod):
+@@ -75,13 +105,151 @@ class Repo(FetchMethod):
              tar_flags = "--exclude='.repo' --exclude='.git'"
  
          # Create a cache
@@ -132,6 +151,20 @@ index 2bdbbd4097..9f99552454 100644
      def supports_srcrev(self):
 -        return False
 +        return True
++
++    def clean(self, ud, d):
++        """ clean the repo directory """
++
++        to_remove = [ud.localpath, ud.repodir, ud.tempdir, ud.stampfile]
++        # The localpath is a symlink to clonedir when it is cloned from a
++        # mirror, so remove both of them.
++        if os.path.islink(ud.localpath):
++            clonedir = os.path.realpath(ud.localpath)
++            to_remove.append(clonedir)
++
++        for r in to_remove:
++            if os.path.exists(r):
++                bb.utils.remove(r, True)
 +
 +    # this is taken from the git fetcher
 +    def _lsremote(self, ud, d, search, repo):
@@ -177,7 +210,7 @@ index 2bdbbd4097..9f99552454 100644
 +      return ud.revisions[name]
 +
 +    def _revision_key(self, ud, d, name):
-+      return name
++      return "%s-%s" % (d.getVar("PN"), name)
 +
 +    def _latest_revision(self, ud, d, name):
 +        """
@@ -185,7 +218,6 @@ index 2bdbbd4097..9f99552454 100644
 +        referenced repositories and their remote revisions.
 +        name is ignored because we can only have a single branch/name
 +        """
-+
 +        if d.getVar('_BB_REPO_IN_LATEST_REV', False):
 +            return ''
 +        d.setVar('_BB_REPO_IN_LATEST_REV', '1')
@@ -195,7 +227,8 @@ index 2bdbbd4097..9f99552454 100644
 +
 +        # first, add the hash of the repo itself
 +        sha1 = self._checkBranch(ud, d, ud.branch, ud.remoteRepo)
-+        hashCalc.update(bytes(sha1, 'utf-8'))
++        hashUpdate = bytes(sha1, 'utf-8')
++        hashCalc.update(hashUpdate)
 +
 +        # Parse the repo XML files, remove things
 +        try:
@@ -251,10 +284,10 @@ index 2bdbbd4097..9f99552454 100644
 +
 +              # perform an ls-remote on the branch, update the checksum with the commit hash
 +              gitRemotePath = "%s/%s" % (remote, project.get('name'))
-+              logger.debug(1, "Discovered subproject %s at %s (rev %s)", project.get('path'), gitRemotePath, revision)
 +
 +              sha1 = self._checkBranch(ud, d, revision, gitRemotePath)
-+              hashCalc.update(bytes(sha1, 'utf-8'))
++              hashUpdate = bytes(sha1, 'utf-8')
++              hashCalc.update(hashUpdate)
 +
 +        finally:
 +            d.delVar('_BB_REPO_IN_LATEST_REV')
@@ -301,5 +334,4 @@ index 8a1b5f79c1..7466898ef4 100644
          if path.endswith('.lz4'):
              d.appendVarFlag('do_unpack', 'depends', ' lz4-native:do_populate_sysroot')
 -- 
-2.33.0
-
+2.20.1
