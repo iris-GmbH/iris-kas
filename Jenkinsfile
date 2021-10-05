@@ -13,8 +13,6 @@ pipeline {
 
         // S3 bucket for temporary artifacts
         S3_TEMP_BUCKET = 'iris-devops-tempartifacts-693612562064'
-
-        SDK_IMAGE = 'irma6-maintenance'
     }
     stages {
         stage('Preparation Stage') {
@@ -49,42 +47,6 @@ pipeline {
                     payloadSigningEnabled: true,
                     sseAlgorithm: 'AES256'
                 sh 'printenv | sort'
-            }
-        }
-
-        stage('Develop: Build Firmware Artifacts') {
-            // we assume releases are always tagged
-            when {
-                expression {
-                    env.GIT_TAG == ''
-                }
-            }
-            matrix {
-                axes {
-                    axis {
-                        name 'MULTI_CONF'
-                        values 'sc573-gen6', 'imx8mp-evk'
-                    }
-                    axis {
-                        name 'IMAGES'
-                        values 'irma6-deploy irma6-maintenance irma6-dev'
-                    }
-                }
-                stages {
-                    stage('Develop: Build Firmware Artifacts') {
-                        steps {
-                            awsCodeBuild buildSpecFile: 'buildspecs/build_firmware_images_develop.yml',
-                                projectName: 'iris-devops-kas-large-amd-codebuild',
-                                credentialsType: 'keys',
-                                downloadArtifacts: 'false',
-                                region: 'eu-central-1',
-                                sourceControlType: 'project',
-                                sourceTypeOverride: 'S3',
-                                sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
-                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { IMAGES, $IMAGES }, { SDK_IMAGE, $SDK_IMAGE }, { HOME, /home/builder }, { JOB_NAME, $JOB_NAME }, { GIT_BRANCH, $REAL_GIT_BRANCH } ]"
-                        }
-                    }
-                }
             }
         }
 
@@ -176,11 +138,73 @@ pipeline {
                 axes {
                     axis {
                         name 'MULTI_CONF'
-                        values 'sc573-gen6', 'imx8mp-evk'
+                        values 'sc573-gen6', 'imx8mp-evk', 'qemux86-64-r1', 'qemux86-64-r2'
                     }
                     axis {
                         name 'IMAGES'
-                        values 'irma6-deploy irma6-maintenance irma6-dev'
+                        values 'irma6-deploy irma6-maintenance irma6-dev', 'irma6-test'
+                    }
+                    axis {
+                        name 'SDK_IMAGE'
+                        values 'irma6-maintenance', 'irma6-test'
+                    }
+                }
+                excludes {
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'sc573-gen6', 'imx8mp-evk'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-test'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-maintenance', 'irma6-test'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'sc573-gen6', 'imx8mp-evk'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-deploy irma6-maintenance irma6-dev'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-test'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'qemux86-64-r1', 'qemux86-64-r2'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-deploy irma6-maintenance irma6-dev', 'irma6-test'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-maintenance'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'qemux86-64-r1', 'qemux86-64-r2'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-deploy irma6-maintenance irma6-dev'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-test'
+                        }
                     }
                 }
                 stages {
@@ -201,7 +225,106 @@ pipeline {
                                 artifactNamespaceOverride: 'NONE',
                                 artifactNameOverride: "${MULTI_CONF}-firmware.zip",
                                 artifactPackagingOverride: 'ZIP',
-                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { HOME, /home/builder }, { IMAGES, $IMAGES }, { SDK_IMAGE, $SDK_IMAGE } ]"
+                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { HOME, /home/builder }, { IMAGES, $IMAGES } ]"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Develop: Build Firmware Artifacts') {
+            // we assume releases are always tagged
+            when {
+                expression {
+                    env.GIT_TAG == ''
+                }
+            }
+            matrix {
+                axes {
+                    axis {
+                        name 'MULTI_CONF'
+                        values 'sc573-gen6', 'imx8mp-evk', 'qemux86-64-r1', 'qemux86-64-r2'
+                    }
+                    axis {
+                        name 'IMAGES'
+                        values 'irma6-deploy irma6-maintenance irma6-dev', 'irma6-test'
+                    }
+                    axis {
+                        name 'SDK_IMAGE'
+                        values 'irma6-maintenance', 'irma6-test'
+                    }
+                }
+                excludes {
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'sc573-gen6', 'imx8mp-evk'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-test'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-maintenance', 'irma6-test'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'sc573-gen6', 'imx8mp-evk'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-deploy irma6-maintenance irma6-dev'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-test'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'qemux86-64-r1', 'qemux86-64-r2'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-deploy irma6-maintenance irma6-dev', 'irma6-test'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-maintenance'
+                        }
+                    }
+                    exclude {
+                        axis {
+                            name 'MULTI_CONF'
+                            values 'qemux86-64-r1', 'qemux86-64-r2'
+                        }
+                        axis {
+                            name 'IMAGES'
+                            values 'irma6-deploy irma6-maintenance irma6-dev'
+                        }
+                        axis {
+                            name 'SDK_IMAGE'
+                            values 'irma6-test'
+                        }
+                    }
+                }
+                stages {
+                    stage('Develop: Build Firmware Artifacts') {
+                        steps {
+                            awsCodeBuild buildSpecFile: 'buildspecs/build_firmware_images_develop.yml',
+                                projectName: 'iris-devops-kas-large-amd-codebuild',
+                                credentialsType: 'keys',
+                                downloadArtifacts: 'false',
+                                region: 'eu-central-1',
+                                sourceControlType: 'project',
+                                sourceTypeOverride: 'S3',
+                                sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
+                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { IMAGES, $IMAGES }, { HOME, /home/builder }, { JOB_NAME, $JOB_NAME }, { GIT_BRANCH, $REAL_GIT_BRANCH } ]"
+
                         }
                     }
                 }
