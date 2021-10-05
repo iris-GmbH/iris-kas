@@ -14,12 +14,17 @@ phases:
       # set target images
       - export images="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
       # populate sstate on daily builds of iris-kas-develop
-      - "if [ \"${JOB_NAME}\" = \"iris-kas-develop\" ]; then echo \"Info: Populating caches...\" && export POPULATE_CACHES=\":include/kas-irma6-jenkins-populate-caches.yml\"; fi"
+      - >
+          if [ "${JOB_NAME}" = "iris-kas-develop" ]; then
+            echo "Info: Populating caches..." && export POPULATE_CACHES=":include/kas-irma6-jenkins-populate-caches.yml";
+          fi
       # clone layer repos
       - kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}
       # try to checkout the current feature/bugfix/... branch in all iris meta layers
-      - "if [ \"$(basename ${GIT_BRANCH})\" != \"develop\" ] && [ \"$(basename ${GIT_BRANCH})\" != \"master\" ]; then kas for-all-repos kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES} \"if echo \\${KAS_REPO_NAME} | grep -qE '.*iris.*'; then echo \\\"Info: Trying to checkout ${GIT_BRANCH} in \\${KAS_REPO_NAME}\\\"; git checkout ${GIT_BRANCH} 2>/dev/null && echo \\\"Info: Branch ${GIT_BRANCH} has been checked out in \\${KAS_REPO_NAME}\\\" || echo \\\"Info: Branch ${GIT_BRANCH} not found in \\${KAS_REPO_NAME}\\\"; fi\"; fi"
-
+      - >
+          if [ "$(basename ${GIT_BRANCH})" != "develop" ] && [ "$(basename ${GIT_BRANCH})" != "master" ]; then
+            kas for-all-repos kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES} "if echo \${KAS_REPO_NAME} | grep -qE '.*iris.*'; then echo \"Info: Trying to checkout ${GIT_BRANCH} in \${KAS_REPO_NAME}\"; git checkout ${GIT_BRANCH} 2>/dev/null && echo \"Info: Branch ${GIT_BRANCH} has been checked out in \${KAS_REPO_NAME}\" || echo \"Info: Branch ${GIT_BRANCH} not found in \${KAS_REPO_NAME}\"; fi";
+          fi
   build:
     on-failure: ABORT
     commands:
