@@ -6,3 +6,7 @@ header:
   includes:
     - "kas-dl-mirror.yml"
     - "kas-sstate-mirror.yml"
+
+local_conf_header:
+  bb_threads_number: |
+    BB_NUMBER_THREADS = "4"

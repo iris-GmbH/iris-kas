@@ -14,3 +14,6 @@ local_conf_header:
   build_history: |
     INHERIT += "buildhistory"
     BUILDHISTORY_COMMIT = "1"
+
+  bb_threads_number: |
+    BB_NUMBER_THREADS = "4"
