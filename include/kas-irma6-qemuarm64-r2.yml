@@ -5,4 +5,4 @@ header:
   version: 9
 
 target:
-  - multiconfig:qemuarm64
+  - multiconfig:qemuarm64-r2

@@ -71,7 +71,9 @@ pipeline {
                                 sourceControlType: 'project',
                                 sourceTypeOverride: 'S3',
                                 sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
-                                envVariables: "[{ TARGETS, 'sc573-gen6:irma6-dev imx8mp-evk:irma6-dev' }, { HOME, /home/builder }]"
+                                envVariables: """[
+                                    { TARGETS, 'sc573-gen6:irma6-dev imx8mp-evk:irma6-dev' }
+                                ]"""
                         }
                     }
                 }
@@ -122,7 +124,9 @@ pipeline {
                                 artifactNamespaceOverride: 'NONE',
                                 artifactNameOverride: "${MULTI_CONF}-base-sources.zip",
                                 artifactPackagingOverride: 'ZIP',
-                                envVariables: "[{ MULTI_CONF, $MULTI_CONF }, { HOME, /home/builder }]"
+                                envVariables: """[
+                                    { MULTI_CONF, $MULTI_CONF }
+                                ]"""
                         }
                     }
                 }
@@ -225,9 +229,25 @@ pipeline {
                                 artifactLocationOverride: "${S3_TEMP_BUCKET}",
                                 artifactPathOverride: "${JOB_NAME}/${GIT_COMMIT}",
                                 artifactNamespaceOverride: 'NONE',
-                                artifactNameOverride: "${MULTI_CONF}-firmware.zip",
+                                artifactNameOverride: "${MULTI_CONF}-deploy.zip",
                                 artifactPackagingOverride: 'ZIP',
-                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { HOME, /home/builder }, { IMAGES, $IMAGES } ]"
+                                secondaryArtifactsOverride: """[
+                                    {
+                                        "artifactIdentifier": "sources",
+                                        "type": "S3",
+                                        "location": "${S3_TEMP_BUCKET}",
+                                        "path": "${JOB_NAME}/${GIT_COMMIT}",
+                                        "namespaceType": "NONE",
+                                        "name": "${MULTI_CONF}-sources.zip",
+                                        "overrideArtifactName": "true",
+                                        "packaging": "ZIP"
+                                    }
+                                ]""",
+                                envVariables: """[
+                                    { MULTI_CONF, $MULTI_CONF },
+                                    { IMAGES, $IMAGES },
+                                    { SDK_IMAGE, $SDK_IMAGE }
+                                ]"""
                         }
                     }
                 }
@@ -235,7 +255,7 @@ pipeline {
         }
 
         stage('Develop: Build Firmware Artifacts') {
-            // we assume releases are always tagged
+            // we assume develop builds are never tagged
             when {
                 expression {
                     env.GIT_TAG == ''
@@ -325,8 +345,106 @@ pipeline {
                                 sourceControlType: 'project',
                                 sourceTypeOverride: 'S3',
                                 sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
-                                envVariables: "[ { MULTI_CONF, $MULTI_CONF }, { IMAGES, $IMAGES }, { HOME, /home/builder }, { JOB_NAME, $JOB_NAME }, { GIT_BRANCH, $REAL_GIT_BRANCH } ]"
+                                artifactTypeOverride: 'S3',
+                                artifactLocationOverride: "${S3_TEMP_BUCKET}",
+                                artifactPathOverride: "${JOB_NAME}/${GIT_COMMIT}",
+                                artifactNamespaceOverride: 'NONE',
+                                artifactNameOverride: "${MULTI_CONF}-deploy.zip",
+                                artifactPackagingOverride: 'ZIP',
+                                secondaryArtifactsOverride: """[
+                                    {
+                                        "artifactIdentifier": "sources",
+                                        "type": "S3",
+                                        "location": "${S3_TEMP_BUCKET}",
+                                        "path": "${JOB_NAME}/${GIT_COMMIT}",
+                                        "namespaceType": "NONE",
+                                        "name": "${MULTI_CONF}-sources.zip",
+                                        "overrideArtifactName": "true",
+                                        "packaging": "ZIP"
+                                    }
+                                ]""",
+                                envVariables: """[
+                                    { MULTI_CONF, $MULTI_CONF },
+                                    { IMAGES, $IMAGES },
+                                    { JOB_NAME, $JOB_NAME },
+                                    { GIT_BRANCH, $REAL_GIT_BRANCH },
+                                    { SDK_IMAGE, $SDK_IMAGE }
+                                ]"""
+                        }
+                        post {
+                            success {
+                                // temporary archive build within Jenkins after successful build
+                                s3Download bucket: "${S3_TEMP_BUCKET}",
+                                    path: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-deploy.zip",
+                                    file: "${MULTI_CONF}-deploy.zip",
+                                    payloadSigningEnabled: true
+                                unzip zipFile: "${MULTI_CONF}-deploy.zip", dir: "${MULTI_CONF}-deploy"
+                                archiveArtifacts artifacts: "${MULTI_CONF}-deploy/**/${MULTI_CONF}-deploy.tar", fingerprint: true
 
+                                script {
+                                    // upload latest daily develop deploy artifacts as basis for other pipelines
+                                    if (env.JOB_NAME == 'iris-kas-develop') {
+                                        s3Copy acl: 'Private',
+                                            cacheControl: '',
+                                            fromBucket: "${S3_TEMP_BUCKET}",
+                                            fromPath: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-deploy.zip",
+                                            metadatas: [''],
+                                            payloadSigningEnabled: true,
+                                            sseAlgorithm: 'AES256',
+                                            toBucket: "${S3_BUCKET}",
+                                            toPath: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Run QEMU Tests') {
+            matrix {
+                axes {
+                    axis {
+                        name 'MULTI_CONF'
+                        values 'qemux86-64-r1', 'qemux86-64-r2'
+                    }
+                }
+                stages {
+                    stage('Run QEMU Tests') {
+                        steps {
+                            awsCodeBuild buildSpecFile: 'buildspecs/qemu_tests.yml',
+                                projectName: 'iris-devops-kas-large-amd-qemu-codebuild',
+                                credentialsType: 'keys',
+                                region: 'eu-central-1',
+                                sourceControlType: 'project',
+                                sourceTypeOverride: 'S3',
+                                sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
+                                secondarySourcesOverride: """[
+                                    {
+                                        "type": "S3",
+                                        "location": "${S3_TEMP_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-deploy.zip",
+                                        "sourceIdentifier": "deploy"
+                                    }
+                                ]""",
+                                artifactTypeOverride: 'S3',
+                                artifactLocationOverride: "${S3_TEMP_BUCKET}",
+                                artifactPathOverride: "${JOB_NAME}/${GIT_COMMIT}",
+                                artifactNamespaceOverride: 'NONE',
+                                artifactNameOverride: "${MULTI_CONF}-reports.zip",
+                                artifactPackagingOverride: 'ZIP',
+                                downloadArtifacts: 'true',
+                                envVariables: """[
+                                    { MULTI_CONF, $MULTI_CONF },
+                                    { GIT_TAG, $GIT_TAG }
+                                ]"""
+                        }
+                        post {
+                            always {
+                                // add test reports to pipeline run
+                                unzip zipFile: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-reports.zip", dir: "${MULTI_CONF}-reports"
+                                junit testResults: "${MULTI_CONF}-reports/**/*.xml", skipPublishingChecks: true
+                            }
                         }
                     }
                 }
@@ -351,7 +469,9 @@ pipeline {
                             sourceControlType: 'project',
                             sourceTypeOverride: 'S3',
                             sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
-                            envVariables: "[ { GIT_BRANCH, $REAL_GIT_BRANCH } ]"
+                            envVariables: """[
+                                { GIT_BRANCH, $REAL_GIT_BRANCH }
+                            ]"""
                     }
                 }
 
@@ -372,10 +492,16 @@ pipeline {
                                     file: "${MULTI_CONFS[i]}-base-sources.zip",
                                     payloadSigningEnabled: true
 
-                                // download firmware files
+                                // download deploy files
                                 s3Download bucket: "${S3_TEMP_BUCKET}",
-                                    path: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONFS[i]}-firmware.zip",
-                                    file: "${MULTI_CONFS[i]}-firmware.zip",
+                                    path: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONFS[i]}-deploy.zip",
+                                    file: "${MULTI_CONFS[i]}-deploy.zip",
+                                    payloadSigningEnabled: true
+
+                                // download source files
+                                s3Download bucket: "${S3_TEMP_BUCKET}",
+                                    path: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONFS[i]}-sources.zip",
+                                    file: "${MULTI_CONFS[i]}-sources.zip",
                                     payloadSigningEnabled: true
 
                                 // extract base sources
@@ -385,15 +511,15 @@ pipeline {
                                     targetLocation: "release-${ARTIFACT_NAME}/${MULTI_CONFS[i]}/external/base-sources")])
 
                                 // extract firmware files
-                                unzip zipFile: "${MULTI_CONFS[i]}-firmware.zip", dir: "${MULTI_CONFS[i]}-firmware"
-                                fileOperations([fileUnTarOperation(filePath: "${MULTI_CONFS[i]}-firmware/${MULTI_CONFS[i]}-deploy.tar",
+                                unzip zipFile: "${MULTI_CONFS[i]}-deploy.zip", dir: "${MULTI_CONFS[i]}-deploy"
+                                fileOperations([fileUnTarOperation(filePath: "${MULTI_CONFS[i]}-deploy/${MULTI_CONFS[i]}-deploy.tar",
                                     isGZIP: false,
                                     targetLocation: "release-${ARTIFACT_NAME}/${MULTI_CONFS[i]}/internal")])
                                 fileOperations([fileUnTarOperation(filePath: "${MULTI_CONFS[i]}-firmware/${MULTI_CONFS[i]}-sources.tar",
                                     isGZIP: false,
                                     targetLocation: "release-${ARTIFACT_NAME}/${MULTI_CONFS[i]}/internal")])
 
-                                // this will need to change with swupdate
+                                // TODO: this will need to change with swupdate
                                 sh "mkdir release-${ARTIFACT_NAME}/${MULTI_CONFS[i]}/external/update_files"
                                 sh "mv release-${ARTIFACT_NAME}/${MULTI_CONFS[i]}/internal/deploy/images/*/update_files/*deploy* release-${ARTIFACT_NAME}/${MULTI_CONFS[i]}/external/update_files"
 
@@ -420,8 +546,8 @@ pipeline {
     }
 
     post {
-        // Clean after build
-        always {
+        cleanup {
+            // Clean after build
             cleanWs(cleanWhenNotBuilt: false,
                     deleteDirs: true,
                     disableDeferredWipeout: true,
