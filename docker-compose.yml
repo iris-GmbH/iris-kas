@@ -6,13 +6,8 @@ version: '3'
 services:
   kas:
     build:
-      dockerfile: Dockerfile.qemu
+      dockerfile: Dockerfile
       context: .
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-      - /dev/kvm
     working_dir: /mnt/yocto-kas
     environment:
       - USER_ID=${USER_ID:-1000}
@@ -20,3 +15,6 @@ services:
     volumes:
       - ./:/mnt/yocto-kas
       - ${SSH_DIR:-~/.ssh}:/etc/skel/.ssh
+    ports:
+      # expose QEMU SSH port to host
+      - "127.0.0.1:2222:2222"
