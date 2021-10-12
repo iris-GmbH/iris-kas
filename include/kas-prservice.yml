@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 9
+
+local_conf_header:
+  prservice: |
+    PRSERV_HOST = "ip-10-5-9-73.eu-central-1.compute.internal:8585"

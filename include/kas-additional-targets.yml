@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+#
+#
+# Additional target configurations
+
+header:
+  version: 9
+
+target:
+  - multiconfig:sc572-gen6
+  - multiconfig:sc573-ezkit
+  - multiconfig:sc573-gen6-4dvein

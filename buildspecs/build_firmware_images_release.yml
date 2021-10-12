@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+version: 0.2
+
+run-as: builder
+
+phases:
+  pre_build:
+    on-failure: ABORT
+    commands:
+      # make sure ownership of mounted EFS volumes is correct
+      - sudo chown builder:builder /mnt/yocto_cache/dl_dir /mnt/yocto_cache/sstate_cache /mnt/yocto_cache/sstate_release_cache
+      - "echo Info: Making sure fixed refspecs are set..."
+      - "kas for-all-repos kas-irma6-pa.yml 'if [ \"${KAS_REPO_NAME}\" != \"this\" ]; then git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" || { echo \"Error: Non-fixed refspec detected in repo ${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi'"
+      # set target images
+      - export images="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+
+  build:
+    on-failure: ABORT
+    commands:
+      # build images
+      - kas shell -c "bitbake ${images}" kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-release.yml
+      # build SDK
+      - >
+        if [ -n "${SDK_IMAGE}" ]; then
+          kas shell -c "bitbake mc:${MULTI_CONF}:${SDK_IMAGE} -c populate_sdk" kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-release.yml
+        fi
+  post_build:
+    on-failure: ABORT
+    commands:
+      # create a tar for archiving the deploy artifacts
+      - tar -C build/tmp -cf ${MULTI_CONF}-deploy.tar deploy
+      # create a tar archive containing the complete build environment while preserving file permissions for reproducibility purpose
+      - touch ${MULTI_CONF}-sources.tar
+      - tar --exclude=${MULTI_CONF}-sources.tar --exclude=build/tmp --exclude=build/dl_dir/git2 --exclude=${MULTI_CONF}-deploy.tar -cf ${MULTI_CONF}-sources.tar .
+
+artifacts:
+  files:
+    - "${MULTI_CONF}-deploy.tar"
+    - "${MULTI_CONF}-sources.tar"

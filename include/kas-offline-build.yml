@@ -5,7 +5,7 @@ header:
   version: 9
 
 local_conf_header:
-  offline_build: |
-    SOURCE_MIRROR_URL ?= "file://${TOPDIR}/dl_dir"
-    INHERIT += "own-mirrors"
+  dl_mirror: |
     BB_NO_NETWORK = "1"
+    SOURCE_MIRROR_URL = "file://${DL_DIR}"
+    INHERIT += "own-mirrors"

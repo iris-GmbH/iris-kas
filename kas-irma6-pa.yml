@@ -4,8 +4,10 @@
 # this config adds the necessary layers for building the propriatary platform-application
 header:
   version: 9
+  includes:
+    - "kas-irma6-base.yml"
 
 repos:
   meta-iris:
     url: "ssh://git@bitbucket.iris-sensing.net:7999/gen6/meta-iris.git"
-    refspec: "1.1.26"
+    refspec: "2.0.0"

@@ -5,7 +5,9 @@ version: '3'
 
 services:
   kas:
-    build: .
+    build:
+      dockerfile: Dockerfile.qemu
+      context: .
     cap_add:
       - NET_ADMIN
     devices:

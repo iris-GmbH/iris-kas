@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+version: 0.2
+
+run-as: root
+
+phases:
+  build:
+    on-failure: ABORT
+    commands:
+      # overwrite previous sstate cache used for develop builds
+      - >
+          if echo "${GIT_BRANCH}" | grep -qviE '^support\\/.*'; then
+            rsync -avh --delete /mnt/yocto_cache/sstate_release_cache/ /mnt/yocto_cache/sstate_cache/;
+          fi
+    finally:
+      # wipe release sstate cache
+      - find /mnt/yocto_cache/sstate_release_cache/ -mindepth 1 -delete

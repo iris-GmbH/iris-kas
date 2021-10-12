@@ -1,0 +1,10 @@
+FROM ghcr.io/siemens/kas/kas:next
+
+RUN set -ex \
+    && adduser --gecos '' --uid=1000 --disabled-password builder
+
+ENTRYPOINT []
+
+VOLUME /var/lib/docker
+
+USER builder

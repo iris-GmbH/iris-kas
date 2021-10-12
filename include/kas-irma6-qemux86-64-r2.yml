@@ -5,6 +5,4 @@ header:
   version: 9
 
 target:
-  - multiconfig:sc572-gen6
-  - multiconfig:sc573-ezkit
-  - multiconfig:sc573-gen6-4dvein
+  - multiconfig:qemux86-64-r2

@@ -1,35 +1,58 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+#
+#
+# The KAS base configuration file for the irma6
 
 header:
   version: 9
+  includes:
+    - "include/kas-irma6-base-config.yml"
+    - "include/kas-targets.yml"
 
 distro: "poky-iris"
 
-target:
-  - multiconfig:qemux86-64
-  - multiconfig:sc573-gen6
-  - multiconfig:imx8mp-evk
+local_conf_header:
+  distro_version: |
+    # adjust on release and reintegrate
+    IRMA6_DISTRO_VERSION = "2.0.0"
+
+defaults:
+  repos:
+    patches:
+      repo: "this"
 
 repos:
-  
+  # the iris-kas repo
+  this:
+    path: ""
+  # iris-specific repos
+  meta-iris-base:
+    url: "https://github.com/iris-GmbH/meta-iris-base.git"
+    refspec: "2.0.1"
   # general repos
   poky:
-    url: "git://git.yoctoproject.org/poky.git"
-    refspec: "12725e44c1f6217f9d1b337e2d7c0094bd96017b"
+    url: "https://git.yoctoproject.org/git/poky"
+    refspec: "28f080629b5151ffaedc6ea493063eb8480c3664"
     layers:
       meta:
       meta-poky:
-  meta-oe:
-    url: "git://git.openembedded.org/meta-openembedded"
-    refspec: "7bd47ef6c98323c95a9e527129dca98c9a65ee08"
+    patches:
+      001-fixup-repo-fetcher:
+        path: "patches/0001-Implement-AUTOREV-for-repo-fetcher.patch"
+  meta-openembedded:
+    url: "https://git.openembedded.org/meta-openembedded"
+    refspec: "3cf22d15885cf0e3e16078705e9a20f3d21f12db"
     layers:
       meta-oe:
       meta-python:
       meta-networking:
+    patches:
+      add-repo-recipe:
+        path: "patches/0001-Add-recipe-for-repo-2.16.7.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
-    refspec: "2f761ae70f51a5a2860bbbe93e3253395cdc800e"
+    refspec: "b8e15561d21aef03dc4359d20b96fd4cc2f5351d"
     layers:
       meta-ros-backports-gatesgarth:
       meta-ros-backports-hardknott:
@@ -41,8 +64,8 @@ repos:
     refspec: "6e84638d77ac921aac46649095bca5ddbde94d2a"
   meta-clang:
     url: "https://github.com/kraj/meta-clang.git"
-    refspec: "e63d6f9abba5348e2183089d6ef5ea384d7ae8d8"
-  
+    refspec: "52c7b51ab9ebe426a77559802333d8479864912e"
+
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
@@ -54,70 +77,10 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "0173d3f8d0cbf7844a4d23bc3fb30144abc914bb" #dunfell
+    refspec: "dunfell"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "a7b96dc91bb2818d8ed8210654db10d08d4d7890" #dunfell
+    refspec: "dunfell"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    refspec: "5d882cdf079b3bde0bd9869ce3ca3db411acbf3b" #dunfell
-
-  # iris-specific repos
-  meta-iris-base:
-    url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "2.0.0"
-
-bblayers_conf_header:
-  standard: |
-    POKY_BBLAYERS_CONF_VERSION = "2"
-    BBPATH = "${TOPDIR}"
-    BBFILES ?= ""
-
-local_conf_header:
-  standard: |
-    CONF_VERSION = "1"
-    IRMA6_DISTRO_VERSION = "1.1.26"
-
-  default_cache_dirs: |
-    DL_DIR ?= "${TOPDIR}/dl_dir"
-    SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
-
-  accept_eulas: |
-    ACCEPT_FSL_EULA = "1"
-
-  cve_scanning: |
-    INHERIT += "cve-check"
-
-  build_reproducibility: |
-    BB_GIT_SHALLOW = "1"
-    BB_GENERATE_SHALLOW_TARBALLS = "1"
-
-  # we only want to cherry-pick u-boot and kernel recipes from the adi upstream. ignore everything else
-  ignore-adi-packages: |
-    BBMASK += "meta-adi-adsp-sc5xx\/(?!(recipes-bsp\/u-boot)|(recipes-kernel\/linux)|(recipes-kernel\/linux-firmware)).+\/.+"
-
-  package_ipk: |
-    PACKAGE_CLASSES ?= "package_ipk"
-
-  image_features: |
-    EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
-    USER_CLASSES ?= "buildstats image-mklibs image-prelink"
-
-  qemu_conf: |
-    PACKAGECONFIG_append_pn-qemu-native = " sdl"
-    PACKAGECONFIG_append_pn-nativesdk-qemu = " sdl"
-
-  diskmon: |
-    BB_DISKMON_DIRS = "\
-      STOPTASKS,${TMPDIR},1G,100K \
-      STOPTASKS,${DL_DIR},1G,100K \
-      STOPTASKS,${SSTATE_DIR},1G,100K \
-      STOPTASKS,/tmp,100M,100K \
-      ABORT,${TMPDIR},100M,1K \
-      ABORT,${DL_DIR},100M,1K \
-      ABORT,${SSTATE_DIR},100M,1K \
-      ABORT,/tmp,10M,1K"
-
-  preferred_providers: |
-    PREFERRED_PROVIDER_virtual/java-initial-native = "cacao-initial-native"
-    PREFERRED_PROVIDER_virtual/java-native = "cacao-native"
+    refspec: "dunfell"
