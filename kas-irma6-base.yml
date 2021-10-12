@@ -15,7 +15,7 @@ distro: "poky-iris"
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.0.0-dev"
+    IRMA6_DISTRO_VERSION = "2.0.0"
 
 defaults:
   repos:
@@ -29,11 +29,11 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "2.0.1"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "dunfell"
+    refspec: "28f080629b5151ffaedc6ea493063eb8480c3664"
     layers:
       meta:
       meta-poky:
@@ -42,7 +42,7 @@ repos:
         path: "patches/0001-Implement-AUTOREV-for-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "dunfell"
+    refspec: "3cf22d15885cf0e3e16078705e9a20f3d21f12db"
     layers:
       meta-oe:
       meta-python:
@@ -52,7 +52,7 @@ repos:
         path: "patches/0001-Add-recipe-for-repo-2.16.7.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
-    refspec: "dunfell"
+    refspec: "b8e15561d21aef03dc4359d20b96fd4cc2f5351d"
     layers:
       meta-ros-backports-gatesgarth:
       meta-ros-backports-hardknott:
@@ -61,15 +61,15 @@ repos:
   # repos relevant for testing
   meta-java:
     url: "https://git.yoctoproject.org/git/meta-java"
-    refspec: "dunfell"
+    refspec: "6e84638d77ac921aac46649095bca5ddbde94d2a"
   meta-clang:
     url: "https://github.com/kraj/meta-clang.git"
-    refspec: "dunfell"
+    refspec: "52c7b51ab9ebe426a77559802333d8479864912e"
 
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    refspec: "release/yocto-1.0.0"
+    refspec: "ad2203c11723b07727589a8eebe33f3129cc236a"
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
