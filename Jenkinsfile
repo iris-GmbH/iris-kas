@@ -330,17 +330,15 @@ pipeline {
                             success {
                                 script {
                                     // upload latest daily develop deploy artifacts as basis for other pipelines
-                                    if (env.JOB_NAME == 'iris-kas-develop') {
-                                        s3Copy acl: 'Private',
-                                            cacheControl: '',
-                                            fromBucket: "${S3_TEMP_BUCKET}",
-                                            fromPath: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-deploy.zip",
-                                            metadatas: [''],
-                                            payloadSigningEnabled: true,
-                                            sseAlgorithm: 'AES256',
-                                            toBucket: "${S3_BUCKET}",
-                                            toPath: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip"
-                                    }
+                                    s3Copy acl: 'Private',
+                                        cacheControl: '',
+                                        fromBucket: "${S3_TEMP_BUCKET}",
+                                        fromPath: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-deploy.zip",
+                                        metadatas: [''],
+                                        payloadSigningEnabled: true,
+                                        sseAlgorithm: 'AES256',
+                                        toBucket: "${S3_BUCKET}",
+                                        toPath: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip"
                                 }
                             }
                         }
