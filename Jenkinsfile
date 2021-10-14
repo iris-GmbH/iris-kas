@@ -23,7 +23,9 @@ pipeline {
                 checkout scm
                 // set dynamic environment variables
                 script {
-                    env.GIT_TAG = sh(script: 'git describe --tag --exact-match 2> /dev/null || true', returnStdout: true).trim()
+                    env.GIT_TAG = sh(script: """
+                        git ls-remote --tags  https://github.com/iris-GmbH/iris-kas.git | grep ${GIT_COMMIT} | awk '{ print \$2 }' | sed 's%refs/tags/%%g' | head -n 1
+                    """, returnStdout: true).trim()
                     if (env.GIT_TAG) {
                         env.ARTIFACT_NAME = env.GIT_TAG
                     }
