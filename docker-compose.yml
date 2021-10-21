@@ -13,7 +13,7 @@ services:
       - USER_ID=${USER_ID:-1000}
       - GROUP_ID=${GROUP_ID:-1000}
     volumes:
-      - ./:/mnt/yocto-kas
+      - ./:/mnt/yocto-kas:z
       - ${SSH_DIR:-~/.ssh}:/etc/skel/.ssh
     ports:
       # expose QEMU SSH port to host
