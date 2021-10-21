@@ -29,8 +29,20 @@ For a detailed documentation on KAS, please visit [https://kas.readthedocs.io/en
 - [installed docker-compose](https://docs.docker.com/compose/install/)
 - installed GNU make
 - as IRIS developer: SSH folder containing a SSH key (without password protection) configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature
+- using Docker on a host with SELinux enabled requires additional steps, as described below.
 
-*We currently don't provide SELinux support within container builds (see [issue #11](https://github.com/iris-GmbH/iris-kas/issues/11) for details)*
+#### Docker and SELinux
+
+The container described in `docker-compose.yml` will mount two directories of the host system. The current directory, the iris-kas repository, is mounted with the `:z` flag. This will relabel everything inside the current directory as `container_file_t`, making it read/writeable by any container process.
+
+To access the `SSHDIR` from within the container, you need to apply a SELinux policy that allows `container_t` processes to read from the `.ssh` directory of the current user. First, install the selinux-policy-devel package, which provides the Makefile to compile custom policies.
+
+```
+$ make -f /usr/share/selinux/devel/Makefile container_read_sshdir.pp
+$ sudo semodule -i container_read_sshdir.pp  # to remove run: semodule -r container_read_sshdir
+```
+
+Afterwards you can run the `docker-compose` commands as described above.
 
 ## Usage (general)
 
