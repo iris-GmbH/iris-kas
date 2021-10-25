@@ -543,6 +543,39 @@ pipeline {
                 }
             }
         }
+
+        stage('Release: Test firmware update process') {
+            agent {
+                docker {
+                    label 'fwupd'
+                    image '693612562064.dkr.ecr.eu-central-1.amazonaws.com/gen6-tools:v1.15.0'
+                }
+            }
+            // we assume releases are always tagged
+            when {
+                expression {
+                    env.JOB_NAME == 'iris-kas-develop'
+                }
+            }
+            matrix {
+                axes {
+                    axis {
+                        name 'MULTI_CONF'
+                        values 'sc573-gen6'
+                        // ADD gen6r2 when hardware is available
+                    }
+                    axis {
+                        name 'IMAGES'
+                        values 'irma6-deploy' 'irma6-test'
+                    }
+                }
+                stages {
+                    stage {
+                        shell("echo FIRMWARE_UPDATE STEP")
+                    }
+                }
+            }
+        }
     }
 
     post {
