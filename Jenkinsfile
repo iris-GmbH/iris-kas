@@ -586,7 +586,12 @@ pipeline {
                                 payloadSigningEnabled: true
                             // extract deploy image
                             unzip zipFile: "${MULTI_CONF}-deploy.zip", dir: "${MULTI_CONF}-deploy"
-                            sh "python Gen6Tools/Gen6_Update.py -s ${SENSOR_IP} -f ${MULTI_CONF}-deploy/images/${MULTI_CONF}/update_files/firmware-${IMAGE}.zip"
+
+                            // extract inner file
+                            fileOperations([fileUnTarOperation(filePath: "${MULTI_CONF}-deploy/${MULTI_CONF}-deploy.tar",
+                                isGZIP: false,
+                                targetLocation: "${MULTI_CONF}-internal")])
+                            sh "python Gen6Tools/Gen6_Update.py -s ${SENSOR_IP} -f ${MULTI_CONF}-internal/images/${MULTI_CONF}/update_files/firmware-${IMAGE}.zip"
                         }
                     }
                 }
