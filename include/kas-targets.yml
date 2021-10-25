@@ -10,5 +10,7 @@ header:
 target:
   - multiconfig:qemux86-64-r1
   - multiconfig:qemux86-64-r2
+  - multiconfig:qemuarm64-r1
+  - multiconfig:qemuarm64-r2
   - multiconfig:sc573-gen6
   - multiconfig:imx8mp-evk

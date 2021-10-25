@@ -38,4 +38,9 @@ phases:
 artifacts:
   files:
     - "${MULTI_CONF}-deploy.tar"
-    - "${MULTI_CONF}-sources.tar"
+  secondary-artifacts:
+    sources:
+      # currently, overriding the sources name does not work: https://github.com/awslabs/aws-codebuild-jenkins-plugin/issues/115
+      name: "${MULTI_CONF}-sources.zip"
+      files:
+        - "${MULTI_CONF}-sources.tar"

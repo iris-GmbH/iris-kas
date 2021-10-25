@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+version: 0.2
+
+run-as: builder
+
+phases:
+  pre_build:
+    on-failure: ABORT
+    commands:
+      # prepare kas environment for qemu testing
+      # we need to rebuild the qemu-native parts here due to absolute paths in the linked libraries. As we can use the sstate-cache, this won't take long though.
+      - "[ -n \"$GIT_TAG\" ] && export BUILD_CONF=\"include/kas-irma6-jenkins-release.yml\" || export BUILD_CONF=\"include/kas-irma6-jenkins-develop.yml\""
+      - kas shell -c "bitbake qemu-helper-native" kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:${BUILD_CONF}
+      # extract QEMU artifacts from build step
+      - mkdir -p build/tmp/
+      - tar -xf ${CODEBUILD_SRC_DIR_deploy}/${MULTI_CONF}-deploy.tar -C build/tmp/
+      - tar -xf ${CODEBUILD_SRC_DIR_pa}/${MULTI_CONF}-pa.tar
+      - "echo Info: Booting firmware in QEMU VM..."
+      # start QEMU in background, use 70% of total RAM and use slirp networking, which does not require root
+      - kas shell -c "runqemu qemux86-64 qemuparams=\"-m $(($(free -m | awk '/Mem:/ {print $2}') /100 *70))\" slirp" kas-irma6-pa.yml &
+      # wait for SSH to become available in QEMU
+      - "echo Info: Waiting for SSH to become available..."
+      - export TIMEOUT=0;
+      - >
+          while true; do
+            if ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "cat /dev/null"; then
+              break;
+            else
+              [ $TIMEOUT -le 600 ] || { echo Error: Timeout waiting for SSH server; exit 1; }
+              echo Info: SSH not available yet. Waiting 5 seconds...;
+              TIMEOUT=$((TIMEOUT+5));
+              sleep 5;
+            fi;
+          done
+      # copy newly built PA and unittests into QEMU
+      - ${BIN_DIR}="$(ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 dirname $(which count_von_count))"
+      - scp -P 2222 -o "StrictHostKeyChecking=no" count_von_count root@127.0.0.1:${BIN_DIR}/count_von_count
+      - scp -P 2222 -o "StrictHostKeyChecking=no" test_von_count root@127.0.0.1:${BIN_DIR}/test_von_count
+  build:
+    commands:
+      # run unittest
+      - ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "test_von_count --gtest_repeat=30 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
+    finally:
+      - scp -P 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml ${MULTI_CONF}-gtest_results.xml
+
+artifacts:
+  files:
+    - "${MULTI_CONF}-gtest_results.xml"

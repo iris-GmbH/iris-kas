@@ -1,0 +1,47 @@
+version: 0.2
+
+run-as: builder
+
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      # extract and install latest SDK artifacts from daily build pipeline
+      - tar -xf ${CODEBUILD_SRC_DIR_deploy}/${MULTI_CONF}-deploy.tar
+      - find deploy/sdk/ -name '*.sh' -exec {} -d sdk -y \;
+
+  pre_build:
+    on-failure: ABORT
+      # clone PA repos
+      - ssh-add <(echo "${SSH_PRIVATE_KEY}")
+      - mkdir pa
+      - cd pa
+      # checkout feature, bugfix,... branches on versioning repo
+      - >
+          if [ "$(basename ${GIT_BRANCH})" != "develop" ] && [ "$(basename ${GIT_BRANCH})" != "master" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*') && git ls-remote ssh://git@bitbucket.iris-sensing.net:7999/comp/component-versioning.git | grep -q "${BRANCH_NAME}"; then
+            repo init -u ssh://git@bitbucket.iris-sensing.net:7999/comp/component-versioning.git -b ${GIT_BRANCH};
+          else
+            repo init -u ssh://git@bitbucket.iris-sensing.net:7999/comp/component-versioning.git;
+          fi
+      - repo sync
+      # checkout feature, bugfix,... branches on component repos
+      - >
+          if [ "$(basename ${GIT_BRANCH})" != "develop" ] && [ "$(basename ${GIT_BRANCH})" != "master" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
+            repo forall $(repo list -n) -c "cd \${REPO_PATH} && git checkout ${GIT_BRANCH} || true"
+      - mkdir build
+      - cd build
+      # setup SDK environment
+      - source sdk/environment-setup-*
+
+  build:
+    on-failure: ABORT
+      - cmake ..
+      - make -j $(nproc)
+
+  post_build:
+    on-failure: ABORT
+      - tar -C ${CODEBUILD_SRC_DIR}/the-count/ -cf ${MULTI_CONF}-pa.tar count_von_count test_von_count
+
+artifacts:
+  files:
+    - ${MULTI_CONF}-pa.tar

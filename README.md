@@ -14,64 +14,172 @@ It minimises build setup steps and repository management.
 - The file `kas-irma6-base.yml` is the main configuration file for our custom Linux distribution and describes how KAS should prepare our build environment. It is also used to generate various config files, such as yocto's `local.conf`.
 - The file `kas-irma6-pa.yml` contains the recipes and configuration for building our proprietary platform application on top of the iris Linux distribution.
 
-For a detailed documentation, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/)
+For a detailed documentation on KAS, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/)
 
 ## Prerequisites
+
 ### Native Installation
 - [native KAS installation](https://kas.readthedocs.io/en/latest/userguide.html#dependencies-installation) on a [supported host system prepared for yocto builds](https://www.yoctoproject.org/docs/3.1/mega-manual/mega-manual.html#brief-compatible-distro)
 - as IRIS developer: SSH key (without password protection) configured for accessing our private git repositories
+- for release preparation: [yq installed](https://github.com/mikefarah/yq#install)
 
-### Docker
+### Docker (default & recommended)
 - Linux, Mac or WSL in Windows (officially we only support Linux)
-- [installed and running docker daemon](https://docs.docker.com/engine/install/)
+- [installed and active docker daemon](https://docs.docker.com/engine/install/)
 - [installed docker-compose](https://docs.docker.com/compose/install/)
-- as IRIS developer: SSH folder containing a SSH key (without password protection) configured for accessing our private git repositories, as well as a known_host file containing our private git server
-- currently no SELinux support
+- installed GNU make
+- as IRIS developer: SSH folder containing a SSH key (without password protection) configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature
+
+*We currently don't provide SELinux support within container builds (see [issue #11](https://github.com/iris-GmbH/iris-kas/issues/11) for details)*
+
+## Usage (general)
+
+### Supported environment variables
+
+Environment variables can be passed to the make command (e.g. `RELEASE=r2 make build`).
+
+We currently support the following variables:
+
+| Variable    | Description                                                                                                                                                                                                        | Default value                                                                                            |
+|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| KAS_COMMAND | The command for running the KAS executable. By default, KAS will run in a docker container (recommended). Set this to `kas` if you want to use a host installation of KAS                                          | `USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) SSH_DIR=$(SSH_DIR) docker-compose run --service-ports --rm kas` |
+| USER_ID     | Sets the user ID of the KAS user within a docker build. This will affect the ownership of the generated files                                                                                                      | `id -u`                                                                                                  |
+| GROUP_ID    | Sets the primary group ID of the KAS user within a docker build. This will affect the ownership of the generated files                                                                                             | `id -g`                                                                                                  |
+| SSH_DIR     | Sets the path to a directory containing an authorized SSH key (e.g.: id_rsa, id_ed25519, ...) as well as a known_hosts file containing our private git server. This path will be mounted into the docker container | `~/.ssh`                                                                                                 |
+| RELEASE     | Sets the release you wish to build (currently `r1` for sc573-gen6 or `r2` for imx8mp-evk)                                                                                                                          | `r1`                                                                                                     |
+| TAG         | Sets the tag to use during the release or support release process (e.g. `2.3.0`, `2.3.0-custom`)                                                                                                                   | None                                                                                                     |
 
 
-## Example usages
+**Optional variable overrides for all make commands:**
+- `KAS_COMMAND`
+- `USER_ID`
+- `GROUP_ID`
+- `SSH_DIR`
 
-### As an IRIS developer
+## Usage (IRIS developers)
 
-#### Building the current gen6 deploy firmware for the ADSP-SC573 using the developer specific config
-`kas shell -c "bitbake mc:sc573-gen6:irma6-deploy" kas-irma6-pa.yml`
+### Build all images
 
-#### Building all the gen6 firmwares for the ADSP-SC573
-`kas shell -c "bitbake mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev mc:sc573-gen6:irma6-deploy" kas-irma6-pa.yml`
+Required variables:
+- None
 
-#### Building for other machine configs
-Replace the multiconfig string in your build command (e.g. `mc:sc573-gen6:irma6-maintenance` -> `mc:imx8mp-evk:irma6-maintenance`).
-Available multiconfigs are listed in the *target* section of the `kas-irma6-base.yml` file.
+Additional, optional variable overrides:
+- `RELEASE`
 
-
-### As an IRIS customer
-
-#### Build our current base Linux distribution
-As an IRIS customer you might be interested in building our base Linux distribution, which is configured for running our proprietary platform application (not included). This can be done by running the following command:
-
-`kas shell -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml`
-
-#### Build our base Linux distribution from a source dump
-As an IRIS customer you might want to build the base Linux image belonging to a specific firmware version using a provided source code dump. This can be done using the following from within the source code dump command:
-
-`kas shell -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml:kas-offline-build.yml`
+Commands:
+- `[ENV_VARS] make build`
 
 
-### Using Docker
+### Run interactive QEMU VM
 
-Make sure your setup meets the [docker prerequisites](#prerequisites), then simply prepend the desired command with the following:
-`docker-compose run --rm `
+*Will also expose a SSH server reachable on host machine via localhost:2222*
 
-#### Environment variables understood by docker-compose
+Required variables:
+- None
 
-Currently the following environment variables can be prepended to the `docker-compose` command:
+**Additional, optional variable overrides:**
+- `RELEASE`
 
-- `USER_ID` should be set to the `$id -u` value of the host user (defaults to `1000`).
-- `GROUP_ID` should be set to the `$id -g` value of the host user (defaults to `1000`).
-- `SSH_DIR` should be set to a path containing an `id_rsa` and `known_hosts` file on the host system (defaults to `~/.ssh`).
+Commands:
+- `[ENV_VARS] make build-qemu` *(run at least 1x after initial clone, re-run regularly for updates)*
+- `[ENV_VARS] make run-qemu`
 
-For users in a single user Linux setup with default SSH settings, the default values will work just fine.
 
-##### Example with changed variables
+### Update all repos
 
-`USER_ID=$(id -u) GROUP_ID=$(id -g) SSH_DIR=/my/ssh/folder docker-compose run --rm [...]` 
+*Will update repos and checkout refspecs as defined in the manifest files. WARNING: Will skip dirty repos*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make pull`
+
+
+### Force update all repos
+
+*Will force update repos and checkout refspecs as defined in the manifest files. WARNING: Will discard any uncommitted changes in repos*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make force-pull`
+
+
+### Prepare a firmware release
+
+*Will create a release branch, set and commit fixed refspecs in the manifest files*
+
+Required variables:
+- `TAG`
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make start-release`
+
+
+### Prepare a firmware support release
+
+*Will create a support branch, set and commit fixed refspecs in the manifest files*
+
+Required variables:
+- `TAG`
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make start-support`
+
+
+### Cleanup all artifacts
+
+*Will delete the content of the build directory*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make clean`
+
+
+## Usage (IRIS customers)
+
+### Build our current base Linux distribution
+
+*As an IRIS customer you might be interested in building our base Linux distribution, which is configured for running our proprietary platform application (not included)*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- `RELEASE`
+
+Commands:
+- `[ENV_VARS] make build-base`
+
+
+### Build our base Linux distribution from a source-code dump
+
+*As an IRIS customer you might want to build the base Linux image belonging to a specific firmware version using a provided source code dump*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- `RELEASE`
+
+Commands:
+- `[ENV_VARS] make build-base-dump`
