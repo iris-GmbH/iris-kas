@@ -13,6 +13,9 @@ pipeline {
 
         // S3 bucket for temporary artifacts
         S3_TEMP_BUCKET = 'iris-devops-tempartifacts-693612562064'
+
+        // IP Address for the sensor to update the firmware.
+        SENSOR_IP = '192.168.122.100'
     }
     stages {
         stage('Preparation Stage') {
@@ -565,13 +568,26 @@ pipeline {
                         // ADD gen6r2 when hardware is available
                     }
                     axis {
-                        name 'IMAGES'
+                        name 'IMAGE'
                         values 'irma6-deploy' 'irma6-test'
                     }
                 }
                 stages {
-                    stage {
-                        shell("echo FIRMWARE_UPDATE STEP")
+                    stage('Update firmware') {
+                        options {
+                            // currently we can only run one FWUpdate at a time.
+                            lock('sensor-fwupd')
+                        }
+                        steps {
+                            // download base sources
+                            s3Download bucket: "${S3_BUCKET}",
+                                path: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip"
+                                file: "${MULTI_CONF}-deploy.zip",
+                                payloadSigningEnabled: true
+                            // extract deploy image
+                            unzip zipFile: "${MULTI_CONF}-deploy.zip", dir: "${MULTI_CONF}-deploy"
+                            sh "python Gen6Tools/Gen6_Update.py -s ${SENSOR_IP} -f ${MULTI_CONF}-deploy/images/${MULTI_CONF}/update_files/firmware-${IMAGE}.zip"
+                        }
                     }
                 }
             }
