@@ -581,7 +581,7 @@ pipeline {
                         steps {
                             // download base sources
                             s3Download bucket: "${S3_BUCKET}",
-                                path: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip"
+                                path: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip",
                                 file: "${MULTI_CONF}-deploy.zip",
                                 payloadSigningEnabled: true
                             // extract deploy image
