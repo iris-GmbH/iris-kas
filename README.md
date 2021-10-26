@@ -14,8 +14,6 @@ It minimises build setup steps and repository management.
 - The file `kas-irma6-base.yml` is the main configuration file for our custom Linux distribution and describes how KAS should prepare our build environment. It is also used to generate various config files, such as yocto's `local.conf`.
 - The file `kas-irma6-pa.yml` contains the recipes and configuration for building our proprietary platform application on top of the iris Linux distribution.
 
-For a detailed documentation on KAS, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/)
-
 ## Prerequisites
 
 ### Native Installation
@@ -195,3 +193,18 @@ Additional, optional variable overrides:
 
 Commands:
 - `[ENV_VARS] make build-base-dump`
+
+
+## Running arbitrary KAS commands
+
+In advanced use cases, it might become necessary to call KAS directly, e.g. when running custom bitbake commands.
+
+In the case of a local KAS installation, this can be done by calling the `kas` binary directly, e.g.:
+
+`kas shell -c "bitbake foo" kas-irma6-pa.yml`.
+
+When using the docker based setup, the following needs to be added as a prefix to the command ("[]" marks optional Variables):
+
+`[USER_ID=$(id -u) GROUP_ID=$(id -g) SSH_DIR=~/.ssh] docker-compose run --rm ` 
+
+For a detailed documentation on using KAS, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/).
