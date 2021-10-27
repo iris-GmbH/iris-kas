@@ -569,7 +569,7 @@ pipeline {
                     }
                     axis {
                         name 'IMAGE'
-                        values 'irma6-deploy' 'irma6-test'
+                        values 'irma6-deploy', 'irma6-test'
                     }
                 }
                 stages {
