@@ -12,6 +12,7 @@ phases:
 
   pre_build:
     on-failure: ABORT
+    commands:
       # clone PA repos
       - ssh-add <(echo "${SSH_PRIVATE_KEY}")
       - mkdir pa
@@ -35,11 +36,13 @@ phases:
 
   build:
     on-failure: ABORT
+    commands:
       - cmake ..
       - make -j $(nproc)
 
   post_build:
     on-failure: ABORT
+    commands:
       - tar -C ${CODEBUILD_SRC_DIR}/the-count/ -cf ${MULTI_CONF}-pa.tar count_von_count test_von_count
 
 artifacts:
