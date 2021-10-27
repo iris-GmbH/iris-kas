@@ -574,24 +574,26 @@ pipeline {
                                 image '693612562064.dkr.ecr.eu-central-1.amazonaws.com/gen6-tools:v1.15.0'
                             }
                         }
-                        options {
-                            // currently we can only run one FWUpdate at a time.
-                            lock('sensor-fwupd')
-                        }
                         steps {
-                            // download base sources
-                            s3Download bucket: "${S3_BUCKET}",
-                                path: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip",
-                                file: "${MULTI_CONF}-deploy.zip",
-                                payloadSigningEnabled: true
-                            // extract deploy image
-                            unzip zipFile: "${MULTI_CONF}-deploy.zip", dir: "${MULTI_CONF}-deploy"
 
-                            // extract inner file
-                            fileOperations([fileUnTarOperation(filePath: "${MULTI_CONF}-deploy/${MULTI_CONF}-deploy.tar",
-                                isGZIP: false,
-                                targetLocation: "${MULTI_CONF}-internal")])
-                            sh "python Gen6Tools/Gen6_Update.py -s ${SENSOR_IP} -f ${MULTI_CONF}-internal/images/${MULTI_CONF}/update_files/firmware-${IMAGE}.zip"
+                            // currently we can only run one FWUpdate at a time.
+                            lock('sensor-fwupd') {
+
+                                // download base sources
+                                s3Download bucket: "${S3_BUCKET}",
+                                    path: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip",
+                                    file: "${MULTI_CONF}-deploy.zip",
+                                    payloadSigningEnabled: true
+                                // extract deploy image
+                                unzip zipFile: "${MULTI_CONF}-deploy.zip", dir: "${MULTI_CONF}-deploy"
+
+                                // extract inner file
+                                fileOperations([fileUnTarOperation(filePath: "${MULTI_CONF}-deploy/${MULTI_CONF}-deploy.tar",
+                                    isGZIP: false,
+                                    targetLocation: "${MULTI_CONF}-internal")])
+
+                                sh "python Gen6Tools/Gen6_Update.py -s ${SENSOR_IP} -f ${MULTI_CONF}-internal/images/${MULTI_CONF}/update_files/firmware-${IMAGE}.zip"
+                            }
                         }
                     }
                 }
