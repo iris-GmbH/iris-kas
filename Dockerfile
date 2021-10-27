@@ -4,7 +4,7 @@
 # type can be set to jenkins. Override with "--build-arg type=jenkins" during build
 ARG type=base
 
-ARG KAS_VER=next
+ARG KAS_VER=2.6.1
 ARG REPO_REV=v2.17.2
 ARG YQ_REV=v4.13.5
 
