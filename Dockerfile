@@ -22,6 +22,11 @@ RUN set -ex \
 
 FROM ghcr.io/siemens/kas/kas:next as base
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
+RUN set -ex \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+        cmake \
+    && rm -rf /var/lib/apt/lists
 COPY --from=builder /yq/yq /usr/local/bin/yq
 COPY --from=builder /repo/repo /usr/local/bin/repo
 
