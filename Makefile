@@ -6,6 +6,15 @@ GROUP_ID 	?= $(shell id -g)
 SSH_DIR 	?= ~/.ssh
 RELEASE 	?= r1
 KAS_COMMAND ?= USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) SSH_DIR=$(SSH_DIR) docker-compose run --service-ports --rm kas
+MAKEFILE_PATH = $(abspath $(lastword ${MAKEFILE_LIST}))
+MAKEFILE_DIR = $(dir ${MAKEFILE_PATH})
+DOCKER_TAG = $(shell grep -E 'ARG\s+KAS_VER=' ${MAKEFILE_DIR}/Dockerfile | sed -e 's/ARG\s\+KAS_VER=//g')
+
+docker-login:
+	aws-vault exec -n iris-devops -- aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 693612562064.dkr.ecr.eu-central-1.amazonaws.com
+
+push-jenkins-image: docker-login
+	docker buildx build -t 693612562064.dkr.ecr.eu-central-1.amazonaws.com/kas:latest -t 693612562064.dkr.ecr.eu-central-1.amazonaws.com/kas:${DOCKER_TAG} --platform linux/amd64,linux/arm64 --build-arg type=jenkins --push ${MAKEFILE_DIR}
 
 clean:
 	${KAS_COMMAND} shell -c 'echo $${BUILDDIR}' kas-irma6-base.yml

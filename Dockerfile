@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
 
-# TYPE can be set to jenkins. Override with "--build-arg type=jenkins" during build
+# type can be set to jenkins. Override with "--build-arg type=jenkins" during build
 ARG type=base
+
+ARG KAS_VER=next
 ARG REPO_REV=v2.17.2
 ARG YQ_REV=v4.13.5
 
@@ -20,7 +22,7 @@ RUN set -ex \
     && git clone --single-branch -b ${REPO_REV} https://android.googlesource.com/tools/repo /repo \
     && chmod +x /repo/repo
 
-FROM ghcr.io/siemens/kas/kas:next as base
+FROM ghcr.io/siemens/kas/kas:${KAS_VER} as base
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
 RUN set -ex \
     && apt-get update \
