@@ -1,0 +1,10 @@
+policy_module(container_read_sshdir, 1.0)
+
+gen_require(`
+ type container_t;
+ type ssh_home_t;
+')
+
+allow container_t ssh_home_t:dir list_dir_perms;
+allow container_t ssh_home_t:file read_file_perms;
+
