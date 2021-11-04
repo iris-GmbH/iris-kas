@@ -49,7 +49,7 @@ repos:
       meta-networking:
     patches:
       add-repo-recipe:
-        path: "patches/0001-Add-recipe-for-repo-2.16.7.patch"
+        path: "patches/0001-Add-recipe-for-repo-2.17.3.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
     refspec: "dunfell"
