@@ -72,7 +72,7 @@ index 2bdbbd4097..60af8275cc 100644
 -        ud.localfile = d.expand("repo_%s%s_%s_%s.tar.gz" % (ud.host, ud.path.replace("/", "."), ud.manifest, ud.branch))
 +        repodir = d.getVar("REPODIR") or (d.getVar("DL_DIR") + "/repo")
 +        gitsrcname = "%s%s.%s" % (ud.host, ud.path.replace("/", "."), ud.manifest)
-+        ud.codir = os.path.join(repodir, d.getVar("PN"), gitsrcname)
++        ud.codir = os.path.join(repodir, d.getVar("BPN"), gitsrcname)
 +
 +        if ud.user:
 +            ud.username = ud.user + "@"
@@ -210,7 +210,7 @@ index 2bdbbd4097..60af8275cc 100644
 +      return ud.revisions[name]
 +
 +    def _revision_key(self, ud, d, name):
-+      return "%s-%s" % (d.getVar("PN"), name)
++      return "%s-%s" % (d.getVar("BPN"), name)
 +
 +    def _latest_revision(self, ud, d, name):
 +        """
