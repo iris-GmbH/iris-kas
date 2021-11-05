@@ -78,6 +78,9 @@ repos:
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
     refspec: "dunfell"
+    patches:
+      fix-compilation-of-fsl-image-mfgtool-initramfs:
+        path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
     refspec: "dunfell"
