@@ -547,19 +547,20 @@ pipeline {
             }
         }
 
-        stage('Release: Test firmware update process') {
-            // we assume releases are always tagged
-            when {
-                expression {
-                    env.JOB_NAME == 'iris-kas-develop'
-                }
-            }
+        stage('Daily: Test firmware update process') {
+            // the daily build has a specific job name, so use this to trigger the fwupd.
+            // FIXME: Temporarily commented out to ensure we can test it.
+            // when {
+            //     expression {
+            //         env.JOB_NAME == 'iris-kas-develop'
+            //     }
+            // }
             matrix {
                 axes {
                     axis {
                         name 'MULTI_CONF'
                         values 'sc573-gen6'
-                        // ADD gen6r2 when hardware is available
+                        // TODO: add gen6r2 when hardware is available
                     }
                     axis {
                         name 'IMAGE'
@@ -575,10 +576,8 @@ pipeline {
                             }
                         }
                         steps {
-
                             // currently we can only run one FWUpdate at a time.
                             lock('sensor-fwupd') {
-
                                 // download base sources
                                 s3Download bucket: "${S3_BUCKET}",
                                     path: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip",
