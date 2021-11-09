@@ -17,7 +17,7 @@ push-jenkins-image: docker-login
 	docker buildx build -t 693612562064.dkr.ecr.eu-central-1.amazonaws.com/kas:latest -t 693612562064.dkr.ecr.eu-central-1.amazonaws.com/kas:${DOCKER_TAG} --platform linux/amd64,linux/arm64 --build-arg type=jenkins --push ${MAKEFILE_DIR}
 
 clean:
-	${KAS_COMMAND} shell -c 'echo $${BUILDDIR}' kas-irma6-base.yml
+	${KAS_COMMAND} shell -c 'rm -rf $${BUILDDIR}' kas-irma6-base.yml
 
 pull:
 	${KAS_COMMAND} checkout --update kas-irma6-pa.yml
