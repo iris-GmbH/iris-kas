@@ -53,10 +53,10 @@ run-qemu:
 	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" kas-irma6-pa.yml
 
 build-base-r1:
-	${KAS_COMMAND} shell --update -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml
+	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml
 
 build-base-r2:
-	${KAS_COMMAND} shell --update -c "bitbake mc:imx8mp-evk:irma6-base" kas-irma6-base.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-base" kas-irma6-base.yml
 
 build-base: build-base-${RELEASE}
 
@@ -65,13 +65,14 @@ build-base-dump-r1:
 
 build-base-dump-r2:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-base" kas-irma6-base.yml:include/kas-offline-build.yml
+
 build-base-dump: build-base-dump-${RELEASE}
 
 build-r1:
-	${KAS_COMMAND} shell --update -c "bitbake mc:sc573-gen:irma6-deploy mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev mc:qemux86-64-r1:irma6-test" kas-irma6-base.yml
+	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen:irma6-deploy mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev mc:qemux86-64-r1:irma6-test" kas-irma6-base.yml
 
 build-r2:
-	${KAS_COMMAND} shell --update -c "bitbake mc:imx8mp-evk:irma6-deploy mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev mc:qemux86-64-r2:irma6-test" kas-irma6-base.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-deploy mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev mc:qemux86-64-r2:irma6-test" kas-irma6-base.yml
 
 build: build-${RELEASE}
 
