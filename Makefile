@@ -82,17 +82,17 @@ git-flow:
 start-release: git-flow
 	@[ -n "${TAG}" ] || { echo "Error: Please specify the TAG variable" >&2; exit 1; }
 	git flow release start --showcommands ${TAG} develop
-	@echo "Info: Setting fixed refspecs on layer repos for you..."
-	${KAS_COMMAND} for-all-repos kas-irma6-pa.yml 'if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git describe --tags --always)\"" -i ../kas-irma6-pa.yml; elif [ "$${KAS_REPO_NAME}" != "this" ]; then yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git describe --tags --always)\"" -i ../kas-irma6-base.yml; fi'
+	@echo "Info: Setting fixed refspecs on thirdparty layer repos for you..."
+	${KAS_COMMAND} for-all-repos kas-irma6-pa.yml 'if echo "$${KAS_REPO_NAME}" | grep -vq "iris" && [ "$${KAS_REPO_NAME}" != "this" ]; then yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git describe --tags --long --always)\"" -i ../kas-irma6-base.yml; fi'
 	git add -A
-	git commit -m "Set fixed repo refspecs for release ${TAG}"
-	@echo "Warning: Please make sure you adjust "IRMA6_DISTRO_VERSION" in kas-irma6-base.yml and that the changelog is up-to-date before merging the release."
+	git commit -m "Fixed refspecs on thirdparty layers for release ${TAG}"
+	@echo "Info: Please make sure you adjust "IRMA6_DISTRO_VERSION" in kas-irma6-base.yml, set fixed refspecs for iris layers and that the changelog is up-to-date before merging the release."
 
 start-support: git-flow
 	@[ -n "${TAG}" ] || { echo "Error: Please specify the TAG variable" >&2; exit 1; }
-	git flow support start --showcommands ${TAG} develop
+	git flow support start --showcommands ${TAG}
 	@echo "Info: Setting fixed refspecs on layer repos for you..."
-	${KAS_COMMAND} for-all-repos kas-irma6-pa.yml 'if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git describe --tags --always)\"" -i ../kas-irma6-pa.yml; elif [ "$${KAS_REPO_NAME} != "this" ]; then yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git describe --tags --always)\"" -i ../kas-irma6-base.yml; fi'
+	${KAS_COMMAND} for-all-repos kas-irma6-pa.yml 'if echo "$${KAS_REPO_NAME}" | grep -vq "iris" && [ "$${KAS_REPO_NAME}" != "this" ]; then yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git describe --tags --long --always)\"" -i ../kas-irma6-base.yml; fi'
 	git add -A
-	git commit -m "Set fixed repo refspecs for support release ${TAG}"
-	@echo "Warning: Please make sure you adjust "IRMA6_DISTRO_VERSION" in kas-irma6-base.yml and that the changelog is up-to-date before tagging the support release."
+	git commit -m "Fixed refspecs on thirdparty layers for support release ${TAG}"
+	@echo "Info: Please make sure you adjust "IRMA6_DISTRO_VERSION" in kas-irma6-base.yml, set fixed refspecs for iris layers and that the changelog is up-to-date before tagging the support release."
