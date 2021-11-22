@@ -25,8 +25,27 @@ pull:
 force-pull:
 	${KAS_COMMAND} checkout --update --force-checkout kas-irma6-pa.yml
 
-build-qemu-${RELEASE}:
-	${KAS_COMMAND} shell --update -c "bitbake mc:qemux86-64-${RELEASE}:irma6-test" kas-irma6-pa.yml:include/kas-irma6-qemux86-64-${RELEASE}.yml
+build-sdk-r1:
+	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-sc573-gen6.yml
+
+build-sdk-r2:
+	${KAS_COMMAND} shell -c "bitbake mc:imxmp-evk:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-imxmp-evk.yml
+
+build-sdk: build-sdk-${RELEASE}
+
+build-sdk-qemu-r1:
+	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r1:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-qemux86-64-r1.yml
+
+build-sdk-qemu-r2:
+	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r2:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-qemux86-64-r2.yml
+
+build-sdk-qemu: build-sdk-${RELEASE}
+
+build-qemu-r1:
+	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r1:irma6-test" kas-irma6-pa.yml:include/kas-irma6-qemux86-64-r1.yml
+
+build-qemu-r2:
+	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r2:irma6-test" kas-irma6-pa.yml:include/kas-irma6-qemux86-64-r2.yml
 
 build-qemu: build-qemu-${RELEASE}
 
