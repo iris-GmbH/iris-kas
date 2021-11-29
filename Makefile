@@ -69,10 +69,10 @@ build-base-dump-r2:
 build-base-dump: build-base-dump-${RELEASE}
 
 build-r1:
-	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen:irma6-deploy mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev mc:qemux86-64-r1:irma6-test" kas-irma6-base.yml
+	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-deploy mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev mc:qemux86-64-r1:irma6-test" kas-irma6-pa.yml
 
 build-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-deploy mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev mc:qemux86-64-r2:irma6-test" kas-irma6-base.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-deploy mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev mc:qemux86-64-r2:irma6-test" kas-irma6-pa.yml
 
 build: build-${RELEASE}
 
