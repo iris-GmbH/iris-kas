@@ -71,7 +71,7 @@ index 2bdbbd4097..60af8275cc 100644
  
 -        ud.localfile = d.expand("repo_%s%s_%s_%s.tar.gz" % (ud.host, ud.path.replace("/", "."), ud.manifest, ud.branch))
 +        repodir = d.getVar("REPODIR") or (d.getVar("DL_DIR") + "/repo")
-+        gitsrcname = "%s%s.%s" % (ud.host, ud.path.replace("/", "."), ud.manifest)
++        gitsrcname = "%s%s.%s" % (ud.host, ud.path.replace("/", "."), ud.manifest.replace("/", "."))
 +        ud.codir = os.path.join(repodir, d.getVar("PN"), gitsrcname)
 +
 +        if ud.user:
@@ -89,7 +89,7 @@ index 2bdbbd4097..60af8275cc 100644
 +        # ud.localfile is used to fill localpath, where the downloaded tarball is stored.
 +        # in our case, we want something like repo_$GIT_URL_$MANIFEST_$SRCREV
 +        # todo: do we want the packagename?
-+        ud.localfile = "repo_%s%s_%s_%s.tar.gz" % (ud.host, ud.path.replace("/", "."), ud.manifest, d.getVar("SRCREV"))
++        ud.localfile = "repo_%s%s_%s_%s.tar.gz" % (ud.host, ud.path.replace("/", "."), ud.manifest.replace("/", "."), d.getVar("SRCREV"))
 +
 +    def need_update(self, ud, d):
 +        if d.getVar("SRCREV") == "AUTOINC":
