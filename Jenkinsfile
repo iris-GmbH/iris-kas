@@ -13,6 +13,9 @@ pipeline {
 
         // S3 bucket for temporary artifacts
         S3_TEMP_BUCKET = 'iris-devops-tempartifacts-693612562064'
+
+        // IP Address for the sensor to update the firmware.
+        SENSOR_IP = '192.168.122.100'
     }
     stages {
         stage('Preparation Stage') {
@@ -402,54 +405,54 @@ pipeline {
             }
         }
 
-        stage('Run QEMU Tests') {
-            matrix {
-                axes {
-                    axis {
-                        name 'MULTI_CONF'
-                        values 'qemux86-64-r1', 'qemux86-64-r2'
-                    }
-                }
-                stages {
-                    stage('Run QEMU Tests') {
-                        steps {
-                            awsCodeBuild buildSpecFile: 'buildspecs/qemu_tests.yml',
-                                projectName: 'iris-devops-kas-large-amd-qemu-codebuild',
-                                credentialsType: 'keys',
-                                region: 'eu-central-1',
-                                sourceControlType: 'project',
-                                sourceTypeOverride: 'S3',
-                                sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
-                                secondarySourcesOverride: """[
-                                    {
-                                        "type": "S3",
-                                        "location": "${S3_TEMP_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-deploy.zip",
-                                        "sourceIdentifier": "deploy"
-                                    }
-                                ]""",
-                                artifactTypeOverride: 'S3',
-                                artifactLocationOverride: "${S3_TEMP_BUCKET}",
-                                artifactPathOverride: "${JOB_NAME}/${GIT_COMMIT}",
-                                artifactNamespaceOverride: 'NONE',
-                                artifactNameOverride: "${MULTI_CONF}-reports.zip",
-                                artifactPackagingOverride: 'ZIP',
-                                downloadArtifacts: 'true',
-                                envVariables: """[
-                                    { MULTI_CONF, $MULTI_CONF },
-                                    { GIT_TAG, $GIT_TAG }
-                                ]"""
-                        }
-                        post {
-                            always {
-                                // add test reports to pipeline run
-                                unzip zipFile: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-reports.zip", dir: "${MULTI_CONF}-reports"
-                                junit testResults: "${MULTI_CONF}-reports/**/*.xml", skipPublishingChecks: true
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // stage('Run QEMU Tests') {
+        //     matrix {
+        //         axes {
+        //             axis {
+        //                 name 'MULTI_CONF'
+        //                 values 'qemux86-64-r1', 'qemux86-64-r2'
+        //             }
+        //         }
+        //         stages {
+        //             stage('Run QEMU Tests') {
+        //                 steps {
+        //                     awsCodeBuild buildSpecFile: 'buildspecs/qemu_tests.yml',
+        //                         projectName: 'iris-devops-kas-large-amd-qemu-codebuild',
+        //                         credentialsType: 'keys',
+        //                         region: 'eu-central-1',
+        //                         sourceControlType: 'project',
+        //                         sourceTypeOverride: 'S3',
+        //                         sourceLocationOverride: "${S3_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/iris-kas-sources.zip",
+        //                         secondarySourcesOverride: """[
+        //                             {
+        //                                 "type": "S3",
+        //                                 "location": "${S3_TEMP_BUCKET}/${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-deploy.zip",
+        //                                 "sourceIdentifier": "deploy"
+        //                             }
+        //                         ]""",
+        //                         artifactTypeOverride: 'S3',
+        //                         artifactLocationOverride: "${S3_TEMP_BUCKET}",
+        //                         artifactPathOverride: "${JOB_NAME}/${GIT_COMMIT}",
+        //                         artifactNamespaceOverride: 'NONE',
+        //                         artifactNameOverride: "${MULTI_CONF}-reports.zip",
+        //                         artifactPackagingOverride: 'ZIP',
+        //                         downloadArtifacts: 'true',
+        //                         envVariables: """[
+        //                             { MULTI_CONF, $MULTI_CONF },
+        //                             { GIT_TAG, $GIT_TAG }
+        //                         ]"""
+        //                 }
+        //                 post {
+        //                     always {
+        //                         // add test reports to pipeline run
+        //                         unzip zipFile: "${JOB_NAME}/${GIT_COMMIT}/${MULTI_CONF}-reports.zip", dir: "${MULTI_CONF}-reports"
+        //                         junit testResults: "${MULTI_CONF}-reports/**/*.xml", skipPublishingChecks: true
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Release: Sync SSTATE Caches & Archive Artifacts') {
             // we assume releases are always tagged
@@ -539,6 +542,60 @@ pipeline {
                             path: 'releases',
                             payloadSigningEnabled: true,
                             sseAlgorithm: 'AES256'
+                    }
+                }
+            }
+        }
+
+        stage('Daily: Test firmware update process') {
+            // the daily build has a specific job name, so use this to trigger the fwupd.
+            // FIXME: Temporarily commented out to ensure we can test it.
+            // when {
+            //     expression {
+            //         env.JOB_NAME == 'iris-kas-develop'
+            //     }
+            // }
+            matrix {
+                axes {
+                    axis {
+                        name 'MULTI_CONF'
+                        values 'sc573-gen6'
+                        // TODO: add gen6r2 when hardware is available
+                    }
+                    axis {
+                        name 'IMAGE'
+                        values 'irma6-deploy'
+                        // TODO: add more firmware images when required.
+                    }
+                }
+                stages {
+                    stage('Update firmware') {
+                        agent {
+                            docker {
+                                label 'fwupd'
+                                image '693612562064.dkr.ecr.eu-central-1.amazonaws.com/gen6-tools:v1.15.0'
+                            }
+                        }
+                        steps {
+                            // currently we can only run one FWUpdate at a time.
+                            lock('sensor-fwupd') {
+                                // download base sources
+                                s3Download bucket: "${S3_BUCKET}",
+                                    path: "iris-kas-latest-dev/${MULTI_CONF}-deploy.zip",
+                                    file: "${MULTI_CONF}-deploy.zip",
+                                    payloadSigningEnabled: true
+                                // extract deploy image
+                                unzip zipFile: "${MULTI_CONF}-deploy.zip", dir: "${MULTI_CONF}-deploy"
+
+                                // extract inner file
+                                fileOperations([fileUnTarOperation(filePath: "${MULTI_CONF}-deploy/${MULTI_CONF}-deploy.tar",
+                                    isGZIP: false,
+                                    targetLocation: "${MULTI_CONF}-internal")
+                                ])
+
+                                sh "python Gen6Tools/Gen6_Update.py -s ${SENSOR_IP} -f ${MULTI_CONF}-internal/deploy/images/${MULTI_CONF}/update_files/firmware-${IMAGE}.zip"
+                            }
+                        }
                     }
                 }
             }
