@@ -41,7 +41,7 @@ phases:
   build:
     commands:
       # run unittest
-      - ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "test_von_count --gtest_repeat=30 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
+      - ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
     finally:
       - scp -P 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml ${MULTI_CONF}-gtest_results.xml
 
