@@ -1,4 +1,4 @@
-From e8d04e6c379cacd4fd93cc739d52effcabfed29b Mon Sep 17 00:00:00 2001
+From c26329ecce30aa6c45e102b13b541f1b59d130a2 Mon Sep 17 00:00:00 2001
 From: Martin Koppehel <martin@mko.dev>
 Date: Mon, 4 Oct 2021 08:36:05 +0000
 Subject: [PATCH] Implement AUTOREV for repo fetcher
@@ -12,9 +12,9 @@ Subject: [PATCH] Implement AUTOREV for repo fetcher
 Signed-off-by: Jasper Orschulko Jasper.Orschulko@iris-sensing.com
 ---
  bitbake/lib/bb/fetch2/__init__.py |   4 +-
- bitbake/lib/bb/fetch2/repo.py     | 224 ++++++++++++++++++++++++++----
+ bitbake/lib/bb/fetch2/repo.py     | 227 ++++++++++++++++++++++++++----
  meta/classes/base.bbclass         |   9 +-
- 3 files changed, 206 insertions(+), 31 deletions(-)
+ 3 files changed, 210 insertions(+), 30 deletions(-)
 
 diff --git a/bitbake/lib/bb/fetch2/__init__.py b/bitbake/lib/bb/fetch2/__init__.py
 index dc99914cd9..8c104a48c0 100644
@@ -32,7 +32,7 @@ index dc99914cd9..8c104a48c0 100644
  
      def sortable_revision(self, ud, d, name):
 diff --git a/bitbake/lib/bb/fetch2/repo.py b/bitbake/lib/bb/fetch2/repo.py
-index 2bdbbd4097..60af8275cc 100644
+index 2bdbbd4097..91625f64aa 100644
 --- a/bitbake/lib/bb/fetch2/repo.py
 +++ b/bitbake/lib/bb/fetch2/repo.py
 @@ -13,6 +13,8 @@ BitBake "Fetch" repo (git) implementation
@@ -44,7 +44,7 @@ index 2bdbbd4097..60af8275cc 100644
  from   bb.fetch2 import FetchMethod
  from   bb.fetch2 import runfetchcmd
  from   bb.fetch2 import logger
-@@ -27,46 +29,74 @@ class Repo(FetchMethod):
+@@ -27,46 +29,79 @@ class Repo(FetchMethod):
  
      def urldata_init(self, ud, d):
          """
@@ -134,14 +134,18 @@ index 2bdbbd4097..60af8275cc 100644
 +        bb.fetch2.check_network_access(d, "%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), ud.url)
 +        runfetchcmd("%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), d, workdir=ud.repodir)
  
--        bb.fetch2.check_network_access(d, "%s sync %s" % (ud.basecmd, ud.url), ud.url)
++        # always run a repo sync, otherwise you will get errors like "branch not found" when running with submodules enabled
+         bb.fetch2.check_network_access(d, "%s sync %s" % (ud.basecmd, ud.url), ud.url)
 -        runfetchcmd("%s sync" % ud.basecmd, d, workdir=repodir)
-+        bb.fetch2.check_network_access(d, "%s sync %s %s" % (ud.basecmd, submodules, ud.url), ud.url)
-+        runfetchcmd("%s sync %s" % (ud.basecmd, submodules), d, workdir=ud.repodir)
++        runfetchcmd("%s sync" % (ud.basecmd), d, workdir=ud.repodir)
++
++        if ud.submodules == "fetch":
++            bb.fetch2.check_network_access(d, "%s sync %s %s" % (ud.basecmd, submodules, ud.url), ud.url)
++            runfetchcmd("%s sync %s" % (ud.basecmd, submodules), d, workdir=ud.repodir)
  
          scmdata = ud.parm.get("scmdata", "")
          if scmdata == "keep":
-@@ -75,13 +105,151 @@ class Repo(FetchMethod):
+@@ -75,13 +110,151 @@ class Repo(FetchMethod):
              tar_flags = "--exclude='.repo' --exclude='.git'"
  
          # Create a cache
@@ -300,7 +304,7 @@ index 2bdbbd4097..60af8275cc 100644
 -    def _want_sortable_revision(self, ud, d):
 -        return False
 diff --git a/meta/classes/base.bbclass b/meta/classes/base.bbclass
-index 8a1b5f79c1..7466898ef4 100644
+index 9ed736b0e1..3ab712e131 100644
 --- a/meta/classes/base.bbclass
 +++ b/meta/classes/base.bbclass
 @@ -269,7 +269,7 @@ python base_eventhandler() {
@@ -334,4 +338,4 @@ index 8a1b5f79c1..7466898ef4 100644
          if path.endswith('.lz4'):
              d.appendVarFlag('do_unpack', 'depends', ' lz4-native:do_populate_sysroot')
 -- 
-2.20.1
+2.34.1
