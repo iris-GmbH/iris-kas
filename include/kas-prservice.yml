@@ -6,4 +6,4 @@ header:
 
 local_conf_header:
   prservice: |
-    PRSERV_HOST = "ip-10-5-9-73.eu-central-1.compute.internal:8585"
+    PRSERV_HOST = "https://prservice.devops.iris-sensing.net:443"

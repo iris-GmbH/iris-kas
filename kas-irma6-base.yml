@@ -38,8 +38,10 @@ repos:
       meta:
       meta-poky:
     patches:
-      001-fixup-repo-fetcher:
+      0001-fixup-repo-fetcher:
         path: "patches/0001-Implement-AUTOREV-for-repo-fetcher.patch"
+      0002-prservice-https-support:
+        path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
     refspec: "dunfell"
@@ -48,7 +50,7 @@ repos:
       meta-python:
       meta-networking:
     patches:
-      add-repo-recipe:
+      0001-add-repo-recipe:
         path: "patches/0001-Add-recipe-for-repo-2.16.7.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
@@ -79,7 +81,7 @@ repos:
     url: "https://github.com/Freescale/meta-freescale.git"
     refspec: "dunfell"
     patches:
-      fix-compilation-of-fsl-image-mfgtool-initramfs:
+      0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
