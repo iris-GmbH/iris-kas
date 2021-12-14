@@ -10,8 +10,7 @@ phases:
     on-failure: ABORT
     commands:
       # TEST print all mounts
-      - cat /etc/fstab
-      - mount
+      - sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0de422358f56290c9.efs.eu-central-1.amazonaws.com:/ /mnt/yocto_cache/sstate_cache
       # TEST try to catch delayed mounts?
       - sleep 10
       # make sure ownership of mounted EFS volumes is correct
