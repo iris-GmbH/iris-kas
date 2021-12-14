@@ -63,7 +63,7 @@ pipeline {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             awsCodeBuild buildSpecFile: 'buildspecs/populate_download_mirror.yml',
-                                projectName: 'iris-devops-kas-large-amd-codebuild',
+                                projectName: 'iris-devops-kas-2xlarge-amd-codebuild',
                                 credentialsType: 'keys',
                                 downloadArtifacts: 'false',
                                 region: 'eu-central-1',
@@ -110,7 +110,7 @@ pipeline {
                     stage('Release: License Compliance') {
                         steps {
                             awsCodeBuild buildSpecFile: 'buildspecs/license_compliance.yml',
-                                projectName: 'iris-devops-kas-large-amd-codebuild',
+                                projectName: 'iris-devops-kas-2xlarge-amd-codebuild',
                                 credentialsType: 'keys',
                                 downloadArtifacts: 'false',
                                 region: 'eu-central-1',
@@ -217,7 +217,7 @@ pipeline {
                     stage('Release: Build Firmware Artifacts') {
                         steps {
                             awsCodeBuild buildSpecFile: 'buildspecs/build_firmware_images_release.yml',
-                                projectName: 'iris-devops-kas-large-amd-codebuild',
+                                projectName: 'iris-devops-kas-2xlarge-amd-codebuild',
                                 credentialsType: 'keys',
                                 downloadArtifacts: 'false',
                                 region: 'eu-central-1',
@@ -337,7 +337,7 @@ pipeline {
                     stage('Develop: Build Firmware Artifacts') {
                         steps {
                             awsCodeBuild buildSpecFile: 'buildspecs/build_firmware_images_develop.yml',
-                                projectName: 'iris-devops-kas-large-amd-codebuild',
+                                projectName: 'iris-devops-kas-2xlarge-amd-codebuild',
                                 credentialsType: 'keys',
                                 downloadArtifacts: 'false',
                                 region: 'eu-central-1',
@@ -413,7 +413,7 @@ pipeline {
                     stage('Run QEMU Tests') {
                         steps {
                             awsCodeBuild buildSpecFile: 'buildspecs/qemu_tests.yml',
-                                projectName: 'iris-devops-kas-large-amd-qemu-codebuild',
+                                projectName: 'iris-devops-kas-2xlarge-amd-qemu-codebuild',
                                 credentialsType: 'keys',
                                 region: 'eu-central-1',
                                 sourceControlType: 'project',
