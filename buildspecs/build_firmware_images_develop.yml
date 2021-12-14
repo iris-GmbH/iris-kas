@@ -9,6 +9,10 @@ phases:
   pre_build:
     on-failure: ABORT
     commands:
+      # TEST print all mounts
+      - mount
+      # TEST try to catch delayed mounts?
+      - sleep 10
       # make sure ownership of mounted EFS volumes is correct
       - sudo chown builder:builder /mnt/yocto_cache/dl_dir /mnt/yocto_cache/sstate_cache
       # set target images
