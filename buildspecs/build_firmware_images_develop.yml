@@ -10,6 +10,7 @@ phases:
     on-failure: ABORT
     commands:
       # TEST print all mounts
+      - cat /etc/fstab
       - mount
       # TEST try to catch delayed mounts?
       - sleep 10
