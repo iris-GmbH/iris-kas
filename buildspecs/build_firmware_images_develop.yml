@@ -10,11 +10,8 @@ phases:
     on-failure: ABORT
     commands:
       - ls /mnt
-      - ls /mnt/yocto_cache
-      - sudo mkdir -p /mnt/yocto_cache/sstate_cache
-      # TEST print all mounts
-      - sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0de422358f56290c9.efs.eu-central-1.amazonaws.com:/ /mnt/yocto_cache/sstate_cache
-      # TEST try to catch delayed mounts?
+      - ls /mnt/yocto_cache/sstate_cache
+      - mount
       - sleep 10
       # make sure ownership of mounted EFS volumes is correct
       - sudo chown builder:builder /mnt/yocto_cache/dl_dir /mnt/yocto_cache/sstate_cache
