@@ -9,8 +9,8 @@ phases:
   pre_build:
     on-failure: ABORT
     commands:
-      # make sure ownership of mounted EFS volumes is correct
-      - sudo chown builder:builder /mnt/yocto_cache/dl_dir /mnt/yocto_cache/sstate_cache /mnt/yocto_cache/sstate_release_cache
+      # make sure ownership of mounted EFS volume is correct
+      - sudo chown builder:builder /mnt/yocto_cache
       # make sure sstate release cache is empty
       - "[ $(find /mnt/yocto_cache/sstate_release_cache -mindepth 1 | wc -l) -eq 0 ] || { echo \"Error: sstate release cache is not clean.\"; exit 1; }"
       - "echo Info: Making sure fixed refspecs are set..."

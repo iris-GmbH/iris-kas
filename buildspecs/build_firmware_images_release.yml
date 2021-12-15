@@ -9,8 +9,8 @@ phases:
   pre_build:
     on-failure: ABORT
     commands:
-      # make sure ownership of mounted EFS volumes is correct
-      - sudo chown builder:builder /mnt/yocto_cache/dl_dir /mnt/yocto_cache/sstate_cache /mnt/yocto_cache/sstate_release_cache
+      # make sure ownership of mounted EFS volume is correct
+      - sudo chown builder:builder /mnt/yocto_cache
       - "echo Info: Making sure fixed refspecs are set..."
       - "kas for-all-repos kas-irma6-pa.yml 'if [ \"${KAS_REPO_NAME}\" != \"this\" ]; then git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" || { echo \"Error: Non-fixed refspec detected in repo ${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi'"
       # set target images
