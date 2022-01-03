@@ -39,7 +39,7 @@ repos:
       meta-poky:
     patches:
       0001-fixup-repo-fetcher:
-        path: "patches/0001-Implement-AUTOREV-for-repo-fetcher.patch"
+        path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
       0002-prservice-https-support:
         path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
   meta-openembedded:
@@ -51,7 +51,7 @@ repos:
       meta-networking:
     patches:
       0001-add-repo-recipe:
-        path: "patches/0001-Add-recipe-for-repo-2.16.7.patch"
+        path: "patches/0001-Add-recipe-for-repo-2.19.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
     refspec: "dunfell"
