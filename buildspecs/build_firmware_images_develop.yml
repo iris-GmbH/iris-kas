@@ -33,7 +33,7 @@ phases:
       # build SDK
       - >
         if [ -n "${SDK_IMAGE}" ]; then
-          kas shell -c "bitbake mc:${MULTI_CONF}:${SDK_IMAGE} -c populate_sdk" kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}
+          kas shell -k -c "bitbake mc:${MULTI_CONF}:${SDK_IMAGE} -c populate_sdk" kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}
         fi
 
   post_build:
