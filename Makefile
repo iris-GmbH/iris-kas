@@ -39,7 +39,7 @@ build-sdk-qemu-r1:
 build-sdk-qemu-r2:
 	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r2:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-qemux86-64-r2.yml
 
-build-sdk-qemu: build-sdk-${RELEASE}
+build-sdk-qemu: build-sdk-qemu-${RELEASE}
 
 build-qemu-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r1:irma6-test" kas-irma6-pa.yml:include/kas-irma6-qemux86-64-r1.yml
