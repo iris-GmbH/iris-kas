@@ -1,23 +1,23 @@
-From c26329ecce30aa6c45e102b13b541f1b59d130a2 Mon Sep 17 00:00:00 2001
+From 1e3739db5bcb191e69e4da1346d2463666372919 Mon Sep 17 00:00:00 2001
 From: Martin Koppehel <martin@mko.dev>
 Date: Mon, 4 Oct 2021 08:36:05 +0000
-Subject: [PATCH] Implement AUTOREV for repo fetcher
+Subject: [PATCH] Implement AUTOREV for local manifest repo fetcher
 
-- Implement AUTOINC and submodule support for REPO provider
-- Implement srcrev support fully
-- Add comments and fixup empty DL_DIR initialization
-- Distinguish between artificial and plain rev
+- Implement local manifest file support for repo fetcher
+- Implement AUTOINC and submodule support for REPO provider with local
+  manifest file
+- Implement submodule support for REPO provider
 - Comments/documentation
 
 Signed-off-by: Jasper Orschulko Jasper.Orschulko@iris-sensing.com
 ---
  bitbake/lib/bb/fetch2/__init__.py |   4 +-
- bitbake/lib/bb/fetch2/repo.py     | 227 ++++++++++++++++++++++++++----
+ bitbake/lib/bb/fetch2/repo.py     | 234 ++++++++++++++++++++++++++----
  meta/classes/base.bbclass         |   9 +-
- 3 files changed, 210 insertions(+), 30 deletions(-)
+ 3 files changed, 217 insertions(+), 30 deletions(-)
 
 diff --git a/bitbake/lib/bb/fetch2/__init__.py b/bitbake/lib/bb/fetch2/__init__.py
-index dc99914cd9..8c104a48c0 100644
+index dc99914cd9..d4fb216559 100644
 --- a/bitbake/lib/bb/fetch2/__init__.py
 +++ b/bitbake/lib/bb/fetch2/__init__.py
 @@ -1584,7 +1584,9 @@ class FetchMethod(object):
@@ -27,12 +27,12 @@ index dc99914cd9..8c104a48c0 100644
 -            revs[key] = rev = self._latest_revision(ud, d, name)
 +            rev = self._latest_revision(ud, d, name)
 +            if rev != '':
-+              revs[key] = rev
++                revs[key] = rev
              return rev
  
      def sortable_revision(self, ud, d, name):
 diff --git a/bitbake/lib/bb/fetch2/repo.py b/bitbake/lib/bb/fetch2/repo.py
-index 2bdbbd4097..91625f64aa 100644
+index 2bdbbd4097..4ff25c1931 100644
 --- a/bitbake/lib/bb/fetch2/repo.py
 +++ b/bitbake/lib/bb/fetch2/repo.py
 @@ -13,6 +13,8 @@ BitBake "Fetch" repo (git) implementation
@@ -44,7 +44,7 @@ index 2bdbbd4097..91625f64aa 100644
  from   bb.fetch2 import FetchMethod
  from   bb.fetch2 import runfetchcmd
  from   bb.fetch2 import logger
-@@ -27,46 +29,79 @@ class Repo(FetchMethod):
+@@ -27,46 +29,93 @@ class Repo(FetchMethod):
  
      def urldata_init(self, ud, d):
          """
@@ -70,20 +70,28 @@ index 2bdbbd4097..91625f64aa 100644
              ud.manifest += '.xml'
  
 -        ud.localfile = d.expand("repo_%s%s_%s_%s.tar.gz" % (ud.host, ud.path.replace("/", "."), ud.manifest, ud.branch))
-+        repodir = d.getVar("REPODIR") or (d.getVar("DL_DIR") + "/repo")
-+        gitsrcname = "%s%s.%s" % (ud.host, ud.path.replace("/", "."), ud.manifest.replace("/", "."))
-+        ud.codir = os.path.join(repodir, d.getVar("PN"), gitsrcname)
++        if ud.proto == 'file':
++            ud.path = '%s%s' % (ud.host, ud.path)
++            ud.host = ''
++            ud.manifest = ''
 +
 +        if ud.user:
 +            ud.username = ud.user + "@"
 +        else:
 +            ud.username = ""
-+        ud.remoteRepo = "%s://%s%s%s" % (ud.proto, ud.username, ud.host, ud.path)
++
++        repodir = d.getVar("REPODIR") or (d.getVar("DL_DIR") + "/repo")
++        if ud.proto == 'file':
++            gitsrcname = ud.path.replace('/', '.')
++            ud.remoteRepo = "%s://%s" % (ud.proto, ud.path)
++        else:
++            gitsrcname = "%s%s.%s" % (ud.host, ud.path.replace("/", "."), ud.manifest.replace("/", "."))
++            ud.remoteRepo = "%s://%s%s%s" % (ud.proto, ud.username, ud.host, ud.path)
++
++        ud.codir = os.path.join(repodir, gitsrcname)
++
 +
 +        ud.repodir = os.path.join(ud.codir, "repo")
-+        # a temporary directory to compute _latest_revision
-+        ud.tempdir = os.path.join(ud.codir, "temp")
-+        ud.stampfile = os.path.join(ud.codir, "__hash.txt")
 +        ud.setup_revisions(d)
 +
 +        # ud.localfile is used to fill localpath, where the downloaded tarball is stored.
@@ -93,7 +101,7 @@ index 2bdbbd4097..91625f64aa 100644
 +
 +    def need_update(self, ud, d):
 +        if d.getVar("SRCREV") == "AUTOINC":
-+          return True
++            return True
 +        return os.path.exists(ud.localfile)
  
      def download(self, ud, d):
@@ -131,8 +139,14 @@ index 2bdbbd4097..91625f64aa 100644
 -            bb.fetch2.check_network_access(d, "%s init -m %s -b %s -u %s://%s%s%s" % (ud.basecmd, ud.manifest, ud.branch, ud.proto, username, ud.host, ud.path), ud.url)
 -            runfetchcmd("%s init -m %s -b %s -u %s://%s%s%s" % (ud.basecmd, ud.manifest, ud.branch, ud.proto, username, ud.host, ud.path), d, workdir=repodir)
 +        # always run repo init, because we might want to switch branch or manifests.
-+        bb.fetch2.check_network_access(d, "%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), ud.url)
-+        runfetchcmd("%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), d, workdir=ud.repodir)
++        if ud.proto != 'git':
++            # for http/file URLs we run repo in standalone manifest mode
++            bb.fetch2.check_network_access(d, "%s init --standalone-manifest -u %s" % (ud.basecmd, ud.remoteRepo), ud.url)
++            runfetchcmd("%s init --standalone-manifest -u %s" % (ud.basecmd, ud.remoteRepo), d, workdir=ud.repodir)
++        else:
++            # for git, we run repo init with the branch/revision
++            bb.fetch2.check_network_access(d, "%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), ud.url)
++            runfetchcmd("%s init -m %s -b %s -u %s" % (ud.basecmd, ud.manifest, realRevision, ud.remoteRepo), d, workdir=ud.repodir)
  
 +        # always run a repo sync, otherwise you will get errors like "branch not found" when running with submodules enabled
          bb.fetch2.check_network_access(d, "%s sync %s" % (ud.basecmd, ud.url), ud.url)
@@ -145,7 +159,7 @@ index 2bdbbd4097..91625f64aa 100644
  
          scmdata = ud.parm.get("scmdata", "")
          if scmdata == "keep":
-@@ -75,13 +110,151 @@ class Repo(FetchMethod):
+@@ -75,13 +124,144 @@ class Repo(FetchMethod):
              tar_flags = "--exclude='.repo' --exclude='.git'"
  
          # Create a cache
@@ -159,7 +173,7 @@ index 2bdbbd4097..91625f64aa 100644
 +    def clean(self, ud, d):
 +        """ clean the repo directory """
 +
-+        to_remove = [ud.localpath, ud.repodir, ud.tempdir, ud.stampfile]
++        to_remove = [ud.localpath, ud.repodir]
 +        # The localpath is a symlink to clonedir when it is cloned from a
 +        # mirror, so remove both of them.
 +        if os.path.islink(ud.localpath):
@@ -211,10 +225,10 @@ index 2bdbbd4097..91625f64aa 100644
 +            raise bb.fetch2.FetchError("Could not determine remote ref!")
 +
 +    def _build_revision(self, ud, d, name):
-+      return ud.revisions[name]
++        return ud.revisions[name]
 +
 +    def _revision_key(self, ud, d, name):
-+      return "%s-%s" % (d.getVar("PN"), name)
++        return "%s-%s" % (d.getVar("PN"), name)
 +
 +    def _latest_revision(self, ud, d, name):
 +        """
@@ -226,27 +240,20 @@ index 2bdbbd4097..91625f64aa 100644
 +            return ''
 +        d.setVar('_BB_REPO_IN_LATEST_REV', '1')
 +
++        if ud.proto != 'file':
++            raise Exception('Invalid configuration, AUTOREV only implemented for protocol=file!')
++
 +        # we use a sha256 to mixup all the hashes we have
 +        hashCalc = hashlib.sha256()
 +
 +        # first, add the hash of the repo itself
-+        sha1 = self._checkBranch(ud, d, ud.branch, ud.remoteRepo)
-+        hashUpdate = bytes(sha1, 'utf-8')
-+        hashCalc.update(hashUpdate)
++        with open(ud.path, 'rb') as f:
++            hashCalc.update(f.read())
 +
 +        # Parse the repo XML files, remove things
 +        try:
-+            # create/cleanup temporary dir where to clone the repo-manifest URL
-+            if os.path.isdir(ud.tempdir):
-+                bb.utils.prunedir(ud.tempdir)
-+            bb.utils.mkdirhier(ud.tempdir)
-+
-+            # clone the manifest repo to the temporary dir we just set up
-+            bb.fetch2.check_network_access(d, "%s clone -b %s --depth 1 --single-branch %s ." % (ud.gitcmd, ud.branch, ud.remoteRepo), ud.url)
-+            runfetchcmd("%s clone -b %s --depth 1 --single-branch %s %s" % (ud.gitcmd, ud.branch, ud.remoteRepo, ud.tempdir), d, workdir=ud.tempdir)
-+
 +            # parse the specified XML manifest
-+            xml = ET.parse("%s/%s" % (ud.tempdir, ud.manifest))
++            xml = ET.parse(ud.path)
 +
 +            # repo manifest *may* specify a <default> element, specifying fallback remotes and revisions
 +            defaultObject = xml.find('default')
@@ -255,43 +262,43 @@ index 2bdbbd4097..91625f64aa 100644
 +            remotes = {}
 +            remoteRevisions = {}
 +            for remote in xml.findall('remote'):
-+              remotes[remote.get('name')] = remote.get('fetch')
-+              remoteRevisions[remote.get('name')] = remote.get('revision')
++                remotes[remote.get('name')] = remote.get('fetch')
++                remoteRevisions[remote.get('name')] = remote.get('revision')
 +
 +            # iterate through the <project> elements, resolving the correct remote
 +            # and revision
 +            for project in xml.findall('project'):
 +
-+              # resolve the remote of the project
-+              # when no remote is specified in the project take the one from <default>
-+              # when both aren't specified, throw
-+              remoteName = project.get('remote')
-+              if remoteName is None and defaultObject is not None:
-+                remoteName = defaultObject.get('remote')
-+              if remoteName is None:
-+                raise bb.fetch2.FetchError("repo manifest specifies no remote for %s" % project.get('name'))
++                # resolve the remote of the project
++                # when no remote is specified in the project take the one from <default>
++                # when both aren't specified, throw
++                remoteName = project.get('remote')
++                if remoteName is None and defaultObject is not None:
++                    remoteName = defaultObject.get('remote')
++                if remoteName is None:
++                    raise bb.fetch2.FetchError("repo manifest specifies no remote for %s" % project.get('name'))
 +
-+              # resolve the remoteName to a git remote URL and optionally
-+              # the revision if it was specified in <remote>
-+              if remotes[remoteName] is not None:
-+                remoteRev = remoteRevisions[remoteName]
-+                remote = remotes[remoteName]
++                # resolve the remoteName to a git remote URL and optionally
++                # the revision if it was specified in <remote>
++                if remotes[remoteName] is not None:
++                    remoteRev = remoteRevisions[remoteName]
++                    remote = remotes[remoteName]
 +
-+              # use revision in the project, when not specified use the one from <remote>
-+              # when that is not specified use <default> and when we not have anything specified
-+              # throw an exception
-+              revision = project.get('revision') or remoteRev
-+              if revision is None and defaultObject is not None:
-+                revision = defaultObject.get('revision')
-+              if revision is None:
-+                raise bb.fetch2.FetchError("repo manifest specifies no revision for %s" % project.get('name'))
++                # use revision in the project, when not specified use the one from <remote>
++                # when that is not specified use <default> and when we not have anything specified
++                # throw an exception
++                revision = project.get('revision') or remoteRev
++                if revision is None and defaultObject is not None:
++                    revision = defaultObject.get('revision')
++                if revision is None:
++                    raise bb.fetch2.FetchError("repo manifest specifies no revision for %s" % project.get('name'))
 +
-+              # perform an ls-remote on the branch, update the checksum with the commit hash
-+              gitRemotePath = "%s/%s" % (remote, project.get('name'))
++                # perform an ls-remote on the branch, update the checksum with the commit hash
++                gitRemotePath = "%s/%s" % (remote, project.get('name'))
 +
-+              sha1 = self._checkBranch(ud, d, revision, gitRemotePath)
-+              hashUpdate = bytes(sha1, 'utf-8')
-+              hashCalc.update(hashUpdate)
++                sha1 = self._checkBranch(ud, d, revision, gitRemotePath)
++                hashUpdate = bytes(sha1, 'utf-8')
++                hashCalc.update(hashUpdate)
 +
 +        finally:
 +            d.delVar('_BB_REPO_IN_LATEST_REV')
@@ -339,3 +346,4 @@ index 9ed736b0e1..3ab712e131 100644
              d.appendVarFlag('do_unpack', 'depends', ' lz4-native:do_populate_sysroot')
 -- 
 2.34.1
+

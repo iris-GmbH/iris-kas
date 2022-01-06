@@ -12,14 +12,18 @@ phases:
       # prepare kas environment for qemu testing
       # we need to rebuild the qemu-native parts here due to absolute paths in the linked libraries. As we can use the sstate-cache, this won't take long though.
       - export BUILD_CONF="include/kas-irma6-jenkins-develop.yml"
-      - kas shell -c "bitbake qemu-helper-native" kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:${BUILD_CONF}
+      # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
+      # contained in openembedded-core and this can speed up the parsing
+      - kas shell -c "bitbake qemu-helper-native" kas-irma6-base.yml:include/kas-irma6-${MULTI_CONF}.yml:${BUILD_CONF}
       # extract QEMU artifacts from build step
       - mkdir -p build/tmp/
       - tar -xf ${CODEBUILD_SRC_DIR_deploy}/${MULTI_CONF}-deploy.tar -C build/tmp/
       - tar -xf ${CODEBUILD_SRC_DIR_pa}/${MULTI_CONF}-pa.tar
       - "echo Info: Booting firmware in QEMU VM..."
       # start QEMU in background, use 70% of total RAM and use slirp networking, which does not require root
-      - kas shell -c "runqemu qemux86-64 qemuparams=\"-m $(($(free -m | awk '/Mem:/ {print $2}') /100 *70))\" slirp" kas-irma6-pa.yml &
+      # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
+      # contained in openembedded-core and this can speed up the parsing
+      - kas shell -c "runqemu qemux86-64 qemuparams=\"-m $(($(free -m | awk '/Mem:/ {print $2}') /100 *70))\" slirp" kas-irma6-base.yml &
       # wait for SSH to become available in QEMU
       - "echo Info: Waiting for SSH to become available..."
       - export TIMEOUT=0;
