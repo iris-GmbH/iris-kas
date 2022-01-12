@@ -59,6 +59,9 @@ repos:
       meta-ros-backports-gatesgarth:
       meta-ros-backports-hardknott:
       meta-ros-common:
+  meta-swupdate:
+    url: "https://github.com/sbabic/meta-swupdate"
+    refspec: "dunfell"
 
   # repos relevant for testing
   meta-java:
