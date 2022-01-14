@@ -17,9 +17,11 @@ phases:
       - >
           if [ "${JOB_NAME}" = "iris-kas-develop" ]; then
             echo "Info: Populating caches..." && export POPULATE_CACHES=":include/kas-irma6-jenkins-populate-caches.yml";
+            #echo "Info: Uploading packages to FOSSOLOGY..." && export FOSSOLOGY":include/kas-irma6-jenkins-fossology.yml";
           fi
       # clone layer repos
-      - kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}
+      #- kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}${FOSSOLOGY}
+      - kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}:include/kas-irma6-jenkins-fossology.yml
       # try to checkout the current feature/bugfix/... branch in all iris meta layers
       - >
           if [ "$(basename ${GIT_BRANCH})" != "develop" ] && [ "$(basename ${GIT_BRANCH})" != "master" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then

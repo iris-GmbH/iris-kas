@@ -49,6 +49,7 @@ repos:
       meta-oe:
       meta-python:
       meta-networking:
+      meta-webserver:
     patches:
       0001-add-repo-recipe:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
@@ -61,6 +62,11 @@ repos:
       meta-ros-common:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
+    refspec: "dunfell"
+
+  # repos relevant for license compliance
+  meta-spdxscanner:
+    url: "https://git.yoctoproject.org/git/meta-spdxscanner"
     refspec: "dunfell"
 
   # repos relevant for testing

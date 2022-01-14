@@ -5,29 +5,35 @@
 ARG type=base
 
 ARG KAS_VER=2.6.1
-ARG REPO_REV=v2.17.2
-ARG YQ_REV=v4.13.5
+ARG REPO_VER=v2.17.2
+ARG YQ_VER=v4.13.5
+ARG FOSSOLOGY_VER=1.4.0
 
 FROM golang:1.17 as builder
-ARG REPO_REV
-ARG YQ_REV
+ARG REPO_VER
+ARG YQ_VER
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
         git \
         ca-certificates \
-    && git clone --single-branch -b ${YQ_REV} https://github.com/mikefarah/yq.git /yq \
+    && git clone --single-branch -b ${YQ_VER} https://github.com/mikefarah/yq.git /yq \
     && cd /yq \
     && CGO_ENABLED=0 go build . \
-    && git clone --single-branch -b ${REPO_REV} https://android.googlesource.com/tools/repo /repo \
+    && git clone --single-branch -b ${REPO_VER} https://android.googlesource.com/tools/repo /repo \
     && chmod +x /repo/repo
 
 FROM ghcr.io/siemens/kas/kas:${KAS_VER} as base
-LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
+ARG FOSSOLOGY_VER
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
         cmake \
+        python3-pip \
+    && pip3 install -v \
+        fossology==${FOSSOLOGY_VER} \
+    && apt-get purge --autoremove -y \
+        python3-pip \
     && rm -rf /var/lib/apt/lists
 COPY --from=builder /yq/yq /usr/bin/yq
 COPY --from=builder /repo/repo /usr/bin/repo
@@ -44,5 +50,6 @@ USER builder
 # This FROM statement will cause the build to either use the "base" or
 # "jenkins" image layer as final image, depending on what the "type" argument is set to.
 FROM ${type} as final
-ARG REPO_REV
-ENV REPO_REV=${REPO_REV}
+LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
+ARG REPO_VER
+ENV REPO_VER=${REPO_VER}
