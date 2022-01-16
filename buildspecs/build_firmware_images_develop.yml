@@ -9,6 +9,7 @@ phases:
   pre_build:
     on-failure: ABORT
     commands:
+      - env
       # make sure ownership of mounted EFS volume is correct
       - sudo chown builder:builder /mnt/yocto_cache
       # set target images
