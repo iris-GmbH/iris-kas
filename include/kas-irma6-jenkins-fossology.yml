@@ -7,5 +7,4 @@ header:
 local_conf_header:
   fossology: |
     INHERIT += "fossology-python"
-    WAIT_TIME = "5"
     FOSSOLOGY_SERVER = "https://fossology.devops.iris-sensing.net/repo"
