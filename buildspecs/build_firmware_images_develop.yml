@@ -16,12 +16,18 @@ phases:
       # populate sstate on daily builds of iris-kas-develop
       - >
           if [ "${JOB_NAME}" = "iris-kas-develop" ]; then
-            echo "Info: Populating caches..." && export POPULATE_CACHES=":include/kas-irma6-jenkins-populate-caches.yml";
-            #echo "Info: Uploading packages to FOSSOLOGY..." && export FOSSOLOGY":include/kas-irma6-jenkins-fossology.yml";
+            echo "Info: Populating caches..."
+            export POPULATE_CACHES=":include/kas-irma6-jenkins-populate-caches.yml"
+            #if [ -n "${FOSSOLOGY_SCAN}" ]; then
+              #echo "Info: Uploading packages to FOSSOLOGY..."
+              #export FOSSOLOGY=":include/kas-irma6-jenkins-fossology.yml"
+            #fi
           fi
-      # clone layer repos
-      #- kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}${FOSSOLOGY}
-      - kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}:include/kas-irma6-jenkins-fossology.yml
+      # fossology scan
+      - kas shell -c "export TOKEN=${TOKEN}; export BB_ENV_EXTRAWHITE=\"${BB_ENV_EXTRAWHITE}\"; bitbake mc:${MULTI_CONF}:irma6-deploy -c do_spdx" kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}:include/kas-irma6-jenkins-fossology.yml
+      # clone layer repos & set config files
+      #- kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}
+      - kas checkout --update kas-irma6-pa.yml:include/kas-irma6-${MULTI_CONF}.yml:include/kas-irma6-jenkins-develop.yml${POPULATE_CACHES}
       # try to checkout the current feature/bugfix/... branch in all iris meta layers
       - >
           if [ "$(basename ${GIT_BRANCH})" != "develop" ] && [ "$(basename ${GIT_BRANCH})" != "master" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
@@ -31,7 +37,7 @@ phases:
     on-failure: ABORT
     commands:
       # build artifacts
-      - kas shell -k -c "export TOKEN=${TOKEN}; export BB_ENV_EXTRAWHITE=\"$BB_ENV_EXTRAWHITE TOKEN\"; bitbake ${images} -e" kas-irma6-pa.yml
+      - kas shell -k -c "bitbake ${images}" kas-irma6-pa.yml
       # build SDK
       - >
         if [ -n "${SDK_IMAGE}" ]; then
