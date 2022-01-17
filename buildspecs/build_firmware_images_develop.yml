@@ -35,7 +35,7 @@ phases:
     on-failure: ABORT
     commands:
       # build artifacts
-      - kas shell -k -c "bitbake ${images} -e" kas-irma6-pa.yml
+      - kas shell -k -c "export TOKEN=\"${TOKEN}\"; export BB_ENV_EXTRAWHITE=\"${BB_ENV_EXTRAWHITE}\"; bitbake ${images} -e" kas-irma6-pa.yml
       # build SDK
       - >
         if [ -n "${SDK_IMAGE}" ]; then
