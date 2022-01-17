@@ -1,0 +1,26 @@
+From 6e41ebab86283f9cc0c42b34d25482b69c44562a Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@fujitsu.com>
+Date: Wed, 8 Sep 2021 11:10:23 +0900
+Subject: [PATCH 27/30] Modified unnecessary warning.
+
+Signed-off-by: Lei Maohui <leimaohui@fujitsu.com>
+---
+ classes/spdx-common.bbclass | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/classes/spdx-common.bbclass b/classes/spdx-common.bbclass
+index 4584b3d..2e195e6 100644
+--- a/classes/spdx-common.bbclass
++++ b/classes/spdx-common.bbclass
+@@ -108,7 +108,7 @@ def spdx_create_tarball(d, srcdir, suffix, ar_outdir):
+ 
+     filename = get_tar_name(d, suffix)
+     tarname = os.path.join(ar_outdir, filename)
+-    bb.warn('Creating %s' % tarname)
++    bb.note('Creating %s' % tarname)
+     tar = tarfile.open(tarname, 'w:gz')
+     tar.add(srcdir, arcname=os.path.basename(srcdir), filter=exclude_useless_paths)
+     tar.close()
+-- 
+2.34.1
+

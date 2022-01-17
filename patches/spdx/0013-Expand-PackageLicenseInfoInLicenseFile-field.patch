@@ -1,0 +1,31 @@
+From 62d90ea4a8af1501df1570b32115e8f2fa287d6e Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@cn.fujitsu.com>
+Date: Mon, 24 May 2021 17:25:02 +0900
+Subject: [PATCH 13/30] Expand PackageLicenseInfoInLicenseFile field:
+
+Added files which name includes "LICENSE" and "COPYING".
+
+Signed-off-by: Lei Maohui <leimaohui@cn.fujitsu.com>
+---
+ classes/spdx-common.bbclass | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/classes/spdx-common.bbclass b/classes/spdx-common.bbclass
+index efef80b..f7aa6ea 100644
+--- a/classes/spdx-common.bbclass
++++ b/classes/spdx-common.bbclass
+@@ -208,9 +208,9 @@ def find_infoinlicensefile(sstatefile):
+             bb.note("Found readme file " + base_file_name)
+         elif base_file_name.startswith("README"):
+             bb.note("Found README file " + base_file_name)
+-        elif base_file_name.startswith("COPYING") or base_file_name.endswith("COPYING"):
++        elif base_file_name.find("COPYING")>=0:
+             bb.note("Found COPYING file " + base_file_name)
+-        elif base_file_name.startswith("LICENSE"):
++        elif base_file_name.find("LICENSE")>=0:
+             bb.note("Found LICENSE file: " + base_file_name)
+         else:
+             continue
+-- 
+2.34.1
+

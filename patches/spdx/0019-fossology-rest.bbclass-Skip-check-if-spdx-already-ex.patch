@@ -1,0 +1,37 @@
+From 2147bca168eacfdbb218f7ed8d86f3ed25ab1ce5 Mon Sep 17 00:00:00 2001
+From: Marco Cavallini <m.cavallini@koansoftware.com>
+Date: Tue, 27 Jul 2021 18:04:47 +0900
+Subject: [PATCH 19/30] fossology-rest.bbclass: Skip check if spdx already
+ exists
+
+ With the previous code was impossible to run the do_get_report  task  whenever a correspondent .spdx file was already present  in tmp/deploy/spdx.
+ Removed the check if spdx already exists in python do_get_report()  therefore is possible to run : bitbake -c get_report
+
+Signed-off-by: Marco Cavallini <koansoftware@gmail.com>
+---
+ classes/fossology-rest.bbclass | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/classes/fossology-rest.bbclass b/classes/fossology-rest.bbclass
+index 3694440..c29e57f 100644
+--- a/classes/fossology-rest.bbclass
++++ b/classes/fossology-rest.bbclass
+@@ -157,15 +157,6 @@ python do_get_report () {
+     info['outfile'] = os.path.join(manifest_dir, info['pn'] + "-" + info['pv'] + ".spdx" )
+     sstatefile = os.path.join(spdx_outdir, info['pn'] + "-" + info['pv'] + ".spdx" )
+     
+-    # if spdx has been exist
+-    if os.path.exists(info['outfile']):
+-        bb.note(info['pn'] + "spdx file has been exist, do nothing")
+-        return
+-    if os.path.exists( sstatefile ):
+-        bb.note(info['pn'] + "spdx file has been exist, do nothing")
+-        create_manifest(info,sstatefile)
+-        return
+-
+     spdx_get_src(d)
+ 
+     bb.note('SPDX: Archiving the patched source...')
+-- 
+2.34.1
+

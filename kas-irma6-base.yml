@@ -68,6 +68,57 @@ repos:
   meta-spdxscanner:
     url: "https://git.yoctoproject.org/git/meta-spdxscanner"
     refspec: "dunfell"
+    patches:
+      0002-backport:
+        path: "patches/spdx/0002-Modified-the-following.patch"
+      0003-backport:
+        path: "patches/spdx/0003-There-is-no-need-to-modify-nopackages.bbclass.patch"
+      0004-backport:
+        path: "patches/spdx/0004-fossology-rest-To-remove-the-denpendence-of-nopackag.patch"
+      0005-backport:
+        path: "patches/spdx/0005-fossdriver-host.bbclass-Deleted-for-no-maintenance-f.patch"
+      0006-backport:
+        path: "patches/spdx/0006-scancode-tk-Modified-for-the-following.patch"
+      0007-backport:
+        path: "patches/spdx/0007-WAIT_TIME-Reduce-to-20s.patch"
+      0008-backport:
+        path: "patches/spdx/0008-README.md-Updated.patch"
+      0009-backport:
+        path: "patches/spdx/0009-Make-it-can-work-with-fossology-python1.3.0.patch"
+      0010-backport:
+        path: "patches/spdx/0010-gnulib-Deleted-do_spdx-because-it-doesn-t-supply-pac.patch"
+      0011-backport:
+        path: "patches/spdx/0011-Needn-t-to-create-spdx-files-for-recipes-that-don-t-.patch"
+      0012-backport:
+        path: "patches/spdx/0013-Expand-PackageLicenseInfoInLicenseFile-field.patch"
+      0013-backport:
+        path: "patches/spdx/0014-Added-delay-after-create_folder.patch"
+      0014-backport:
+        path: "patches/spdx/0015-Deleted-repeated-function.patch"
+      0015-backport:
+        path: "patches/spdx/0016-Separate-do_upload-to-two-tasks-creat-tarball-and-up.patch"
+      0016-backport:
+        path: "patches/spdx/0017-Fix-patch-error-for-recipes-that-inherit-dos2unix.patch"
+      0017-backport:
+        path: "patches/spdx/0018-Added-CREATOR_TOOL.patch"
+      0018-backport:
+        path: "patches/spdx/0019-fossology-rest.bbclass-Skip-check-if-spdx-already-ex.patch"
+      0019-backport:
+        path: "patches/spdx/0020-MAINTAINERS-Updated-the-email-address-where-send-pat.patch"
+      0021-backport:
+        path: "patches/spdx/0024-Fix-issue-of-Document-Information.patch"
+      0022-backport:
+        path: "patches/spdx/0025-Fix-NameError.patch"
+      0023-backport:
+        path: "patches/spdx/0026-fossology-python-Fix-an-error.patch"
+      0024-backport:
+        path: "patches/spdx/0027-Modified-unnecessary-warning.patch"
+      0025-backport:
+        path: "patches/spdx/0028-spdx-common.bbclass-Deleted-redundant-dependencies.patch"
+      0026-backport:
+        path: "patches/spdx/0029-fossology-rest.bbclass-Only-for-target-has-necessary.patch"
+      0027-backport:
+        path: "patches/spdx/0030-Added-blackduck-upload.bbclass.patch"
 
   # repos relevant for testing
   meta-java:

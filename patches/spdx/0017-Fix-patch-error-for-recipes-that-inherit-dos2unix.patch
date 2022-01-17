@@ -1,0 +1,29 @@
+From 3b6adbd3d94d6db91ea642171c8d86dd56a57d62 Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@cn.fujitsu.com>
+Date: Tue, 27 Jul 2021 10:17:36 +0900
+Subject: [PATCH 17/30] Fix patch error for recipes that inherit dos2unix.
+
+Signed-off-by: Lei Maohui <leimaohui@cn.fujitsu.com>
+---
+ classes/spdx-common.bbclass | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/classes/spdx-common.bbclass b/classes/spdx-common.bbclass
+index 265f666..58112ce 100644
+--- a/classes/spdx-common.bbclass
++++ b/classes/spdx-common.bbclass
+@@ -165,7 +165,11 @@ def spdx_get_src(d):
+ 
+     # Make sure gcc and kernel sources are patched only once
+     if not (d.getVar('SRC_URI') == "" or is_work_shared(d)):
++        if bb.data.inherits_class('dos2unix', d):
++            d.setVar('WORKDIR', spdx_workdir)
++            bb.build.exec_func('do_convert_crlf_to_lf', d)
+         bb.build.exec_func('do_patch', d)
++        
+ 
+     # Some userland has no source.
+     if not os.path.exists( spdx_workdir ):
+-- 
+2.34.1
+

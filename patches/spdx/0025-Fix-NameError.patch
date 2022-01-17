@@ -1,0 +1,84 @@
+From a760b0b4f0814646a36bfd48b6c2afc13da3f23a Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@fujitsu.com>
+Date: Fri, 27 Aug 2021 15:54:15 +0900
+Subject: [PATCH 25/30] Fix NameError:
+
+"Exception: NameError: name 'null' is not defined."
+
+Signed-off-by: Lei Maohui <leimaohui@fujitsu.com>
+---
+ classes/fossology-rest.bbclass | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/classes/fossology-rest.bbclass b/classes/fossology-rest.bbclass
+index c29e57f..7f1df07 100644
+--- a/classes/fossology-rest.bbclass
++++ b/classes/fossology-rest.bbclass
+@@ -268,6 +268,7 @@ def create_folder(d, folder_name):
+     add_folder = str(add_folder, encoding = "utf-8")
+     bb.note("add_folder = ")
+     bb.note(add_folder)
++    add_folder = add_folder.replace("null", "None")
+     add_folder = eval(add_folder)
+     if str(add_folder["code"]) == "201":
+         bb.note("add_folder = " + folder_name)
+@@ -301,12 +302,15 @@ def has_upload(d, tar_file, folder_id):
+         bb.note("Please set fossology server URL by setting FOSSOLOGY_SERVER!\n")
+         raise OSError(errno.ENOENT, "No setting of  FOSSOLOGY_SERVER")
+ 
++    folder_name = d.getVar('FOLDER_NAME')
++
+     token = (d.getVar('TOKEN', True) or "")
+     if token == "":
+         bb.note("Please set token of fossology server by setting TOKEN!\n" + srcPath)
+         raise OSError(errno.ENOENT, "No setting of TOKEN comes from fossology server.")
+ 
+     rest_api_cmd = "curl -k -s -S -X GET " + server_url + "/api/v1/uploads" \
++                   + " -H \'folderName: " + folder_name + "\'" \
+                    + " -H \"Authorization: Bearer " + token + "\"" \
+                    + " --noproxy " + no_proxy
+     bb.note("Invoke rest_api_cmd = " + rest_api_cmd )
+@@ -318,6 +322,7 @@ def has_upload(d, tar_file, folder_id):
+         return False
+ 
+     upload_output = str(upload_output, encoding = "utf-8")
++    upload_output = upload_output.replace("null", "None")
+     upload_output = eval(upload_output)
+     bb.note("upload_output = ")
+     print(upload_output)
+@@ -331,7 +336,7 @@ def has_upload(d, tar_file, folder_id):
+     bb.note("len of upload_output = ")
+     bb.note(str(len(upload_output)))
+     for i in range(0, len(upload_output)):
+-        if upload_output[i]["uploadname"] == file_name and str(upload_output[i]["folderid"]) == str(folder_id):
++        if upload_output[i]["uploadname"] == file_name:
+             bb.warn("Find " + file_name + " in fossology server. So, will not upload again.")
+             return upload_output[i]["id"]
+     return False
+@@ -372,6 +377,7 @@ def upload(d, tar_file, folder):
+         upload = str(upload, encoding = "utf-8")
+         bb.note("Upload = ")
+         bb.note(upload)
++        upload = upload.replace("null", "None")
+         upload = eval(upload)
+         if str(upload["code"]) == "201":
+             return upload["message"]
+@@ -415,6 +421,7 @@ def analysis(d, folder_id, upload_id):
+         analysis = str(analysis, encoding = "utf-8")
+         bb.note("analysis  = ")
+         bb.note(analysis)
++        analysis = analysis.replace("null", "None")
+         analysis = eval(analysis)
+         if str(analysis["code"]) == "201":
+             return analysis["message"]
+@@ -460,6 +467,7 @@ def trigger(d, folder_id, upload_id):
+             return False
+         time.sleep(delaytime)
+         trigger = str(trigger, encoding = "utf-8")
++        trigger = trigger.replace("null", "None")
+         trigger = eval(trigger)
+         bb.note("trigger id = ")
+         bb.note(str(trigger["message"]))
+-- 
+2.34.1
+

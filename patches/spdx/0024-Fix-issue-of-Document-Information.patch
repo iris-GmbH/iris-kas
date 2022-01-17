@@ -1,0 +1,37 @@
+From 6adb6fc3ab547928c60ee382bddd555fc3ef33f7 Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@fujitsu.com>
+Date: Wed, 18 Aug 2021 09:40:40 +0900
+Subject: [PATCH 24/30] Fix issue of Document Information.
+
+Signed-off-by: Lei Maohui <leimaohui@fujitsu.com>
+---
+ classes/spdx-common.bbclass | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/classes/spdx-common.bbclass b/classes/spdx-common.bbclass
+index 58112ce..4584b3d 100644
+--- a/classes/spdx-common.bbclass
++++ b/classes/spdx-common.bbclass
+@@ -276,13 +276,16 @@ def write_cached_spdx( info,sstatefile, ver_code ):
+ 
+     ## Delet ^M in doc format
+     subprocess.call("sed -i -e 's#\r##g' %s" % sstatefile, shell=True)
++    
+     ## Document level information
++    subprocess.call("sed -i '/SPDXID: SPDXRef-DOCUMENT/d' %s" % sstatefile, shell=True)
++    subprocess.call("sed -i '/DocumentName: \/srv\/fossology\/repository\/report/d' %s" % sstatefile, shell=True)
++    subprocess.call("sed -i '/DocumentNamespace: http:/i SPDXID: SPDXRef-DOCUMENT' %s" % sstatefile, shell=True)
++    
+     sed_cmd = r"sed -i " 
+     spdx_DocumentComment = "<text>SPDX for " + info['pn'] + " version " \ 
+         + info['pv'] + "</text>"
+-    sed_cmd = sed_replace(sed_cmd,"DocumentComment: ",spdx_DocumentComment)
+-    sed_cmd = sed_insert(sed_cmd,"SPDXID:","DocumentName: " + info['pn']+"-"+info['pv'])
+-    sed_cmd = sed_insert(sed_cmd,"SPDXID:","DocumentNamespace: http://spdx.org/spdxdocs/SPDXRef-" + info['creator']['Tool']+"-"+info['pn']+"_"+info['pv'])
++    sed_cmd = sed_insert(sed_cmd,"SPDXID: SPDXRef-DOCUMENT","DocumentName: " + info['pn']+"-"+info['pv'])
+ 
+     ## Creator information
+     sed_cmd = sed_replace(sed_cmd,"Creator: Tool: ",info['creator']['Tool'])
+-- 
+2.34.1
+

@@ -1,0 +1,152 @@
+From b079d38d911183c93d2e0958c074ba048385ad99 Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@fujitsu.com>
+Date: Wed, 8 Sep 2021 11:08:52 +0900
+Subject: [PATCH 26/30] fossology-python: Fix an error.
+
+Signed-off-by: Lei Maohui <leimaohui@fujitsu.com>
+---
+ classes/fossology-python.bbclass | 35 ++++++--------------------------
+ 1 file changed, 6 insertions(+), 29 deletions(-)
+
+diff --git a/classes/fossology-python.bbclass b/classes/fossology-python.bbclass
+index 5e08fd0..1603705 100644
+--- a/classes/fossology-python.bbclass
++++ b/classes/fossology-python.bbclass
+@@ -100,7 +100,6 @@ python () {
+ 
+ python do_foss_upload(){
+     import logging, shutil,time
+-
+     logger = logging.getLogger()
+     logger.setLevel(logging.INFO)
+     logging.basicConfig(level=logging.INFO)
+@@ -136,11 +135,10 @@ python do_foss_upload(){
+ }
+ def get_upload(d, folder, foss):
+     filename = get_upload_file_name(d)
+-    upload_list,pages = foss.list_uploads()
++    upload_list, _ = foss.list_uploads(page_size=1, all_pages=True)
+     upload = None
+     bb.note("Check tarball: %s ,has been uploaded?" % filename)
+     for upload in upload_list:
+-        bb.note("upload  = %s" % upload)
+         if upload.uploadname == filename and upload.foldername == folder.name:
+             bb.note("The size of uploaded file is %s" % upload.filesize)
+             bb.note("Found " + upload.uploadname  + " in " + folder.name)
+@@ -157,7 +155,6 @@ def upload_oss(d, folder, foss, filepath):
+ 
+     (work_dir, filename) = os.path.split(filepath)
+ 
+-    upload_list = foss.list_uploads()
+     upload = None
+     bb.note("Begin to upload..." + filename)
+     try:
+@@ -166,14 +163,14 @@ def upload_oss(d, folder, foss, filepath):
+         file=filepath,
+         access_level=AccessLevel.PUBLIC,
+         group=None,
+-        wait_time=120
++        wait_time=int(d.getVar('WAIT_TIME'))
+         )
+     except AttributeError as error:
+         bb.error(error.message)
+     except FossologyApiError as error:
+         bb.error(error.message)
+     except TryAgain:
+-        time.sleep(30)
++        time.sleep(int(d.getVar('WAIT_TIME')))
+ 
+     return upload
+ 
+@@ -201,20 +198,6 @@ def create_folder(d, foss, token, folder_name):
+     else:
+         return folder
+ 
+-def get_upload(d, folder, foss):
+-    filename = get_upload_file_name(d)
+-    upload_list,pages = foss.list_uploads()
+-    upload = None
+-    bb.note("Check tarball, %s ,has been uploaded?" % filename)
+-    for upload in upload_list:
+-        bb.note("upload  = %s" % upload)
+-        if upload.uploadname == filename and upload.foldername == folder.name:
+-            bb.note("The size of uploaded file is %s" % upload.filesize)
+-            bb.note("Found " + upload.uploadname  + " in " + folder.name)
+-            bb.note("filesha1  = %s" % upload.filesha1)
+-            return upload
+-    return None
+-
+ python do_schedule_jobs(){
+     import os
+     import re
+@@ -315,8 +298,8 @@ python do_schedule_jobs(){
+ 
+ def check_jobs(d, foss, uploaded):
+     i = 0
+-    job_wait = 120
+-    time_wait = 30
++    job_wait = int(d.getVar('WAIT_TIME'))
++    time_wait = int(d.getVar('WAIT_TIME'))
+ 
+     while i < 20:
+         i += 1
+@@ -358,7 +341,7 @@ python do_get_report(){
+     from fossology.obj import ReportFormat
+ 
+     i = 0
+-    wait_time = 60
++    wait_time = int(d.getVar('WAIT_TIME'))
+     complete = False
+     report_id = None
+     report = None
+@@ -383,7 +366,6 @@ python do_get_report(){
+         folder = create_folder(d, foss, token, folder_name)
+     else:
+         folder = foss.rootFolder
+-    
+     manifest_dir = (d.getVar('SPDX_DEPLOY_DIR') or "")
+     if not os.path.exists( manifest_dir ):
+         bb.utils.mkdirhier( manifest_dir )
+@@ -394,7 +376,6 @@ python do_get_report(){
+     spdx_outdir = d.getVar('SPDX_OUTDIR')
+ 
+     cur_ver_code = get_ver_code(spdx_workdir).split()[0]
+-
+     info = {}
+     info['workdir'] = (d.getVar('WORKDIR') or "")
+     info['pn'] = (d.getVar( 'PN') or "")
+@@ -403,7 +384,6 @@ python do_get_report(){
+     if info['package_download_location'] != "":
+         info['package_download_location'] = info['package_download_location'].split()[0]
+     info['spdx_version'] = (d.getVar('SPDX_VERSION') or '')
+-
+     info['outfile'] = os.path.join(manifest_dir, info['pn'] + "-" + info['pv'] + ".spdx" )
+     spdx_file = os.path.join(spdx_outdir, info['pn'] + "-" + info['pv'] + ".spdx" )
+     if os.path.exists(info['outfile']):
+@@ -413,7 +393,6 @@ python do_get_report(){
+         bb.note(info['pn'] + "spdx file has been exist, do nothing")
+         create_manifest(info,spdx_file)
+         return
+-
+     info['data_license'] = (d.getVar('DATA_LICENSE') or '')
+     info['creator'] = {}
+     info['creator']['Tool'] = (d.getVar('CREATOR_TOOL') or '')
+@@ -432,7 +411,6 @@ python do_get_report(){
+             item = item[length:]
+             if item.endswith(".patch") or item.endswith(".diff"):
+                 info['modified'] = "true"
+-
+     upload = get_upload(d, folder, foss)
+     if upload == None:
+         bb.error("Has not been uploaded.")
+@@ -452,7 +430,6 @@ python do_get_report(){
+         return
+     while i < 20:
+         i += 1
+-        bb.note("Begin to download_report. report_id = " + report_id)
+         try:
+             report = foss.download_report(report_id)
+         except TryAgain:
+-- 
+2.34.1
+

@@ -1,0 +1,26 @@
+From 2ff4af53178d439d0d7d5b5265773aaff167c060 Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@cn.fujitsu.com>
+Date: Thu, 3 Dec 2020 17:24:50 +0900
+Subject: [PATCH 07/30] WAIT_TIME: Reduce to 20s.
+
+Signed-off-by: Lei Maohui <leimaohui@cn.fujitsu.com>
+---
+ classes/fossology-python.bbclass | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/classes/fossology-python.bbclass b/classes/fossology-python.bbclass
+index e919c41..a3698e7 100644
+--- a/classes/fossology-python.bbclass
++++ b/classes/fossology-python.bbclass
+@@ -25,7 +25,7 @@ do_get_report[dirs] = "${SPDX_OUTDIR}"
+ 
+ #CREATOR_TOOL = "fossology-python.bbclass in meta-spdxscanner"
+ FOSSOLOGY_SERVER ?= "http://127.0.0.1/repo"
+-WAIT_TIME ?= "180"
++WAIT_TIME ?= "20"
+ 
+ python () {
+     from multiprocessing import Lock
+-- 
+2.34.1
+

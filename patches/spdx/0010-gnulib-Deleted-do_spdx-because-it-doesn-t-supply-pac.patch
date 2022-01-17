@@ -1,0 +1,22 @@
+From d3f7442795fc4ccf49cc3169c2bb2683f836ffb9 Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@cn.fujitsu.com>
+Date: Wed, 24 Feb 2021 15:28:10 +0900
+Subject: [PATCH 10/30] gnulib: Deleted do_spdx because it doesn't supply
+ packages any more.
+
+Signed-off-by: Lei Maohui <leimaohui@cn.fujitsu.com>
+---
+ recipes-support/gnulib/gnulib_2018-03-07.03.bbappend | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 recipes-support/gnulib/gnulib_2018-03-07.03.bbappend
+
+diff --git a/recipes-support/gnulib/gnulib_2018-03-07.03.bbappend b/recipes-support/gnulib/gnulib_2018-03-07.03.bbappend
+new file mode 100644
+index 0000000..995f652
+--- /dev/null
++++ b/recipes-support/gnulib/gnulib_2018-03-07.03.bbappend
+@@ -0,0 +1 @@
++deltask do_spdx
+-- 
+2.34.1
+

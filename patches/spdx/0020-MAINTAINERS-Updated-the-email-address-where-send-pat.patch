@@ -1,0 +1,28 @@
+From d796c349735f074713cd6e971e1889f971f7450e Mon Sep 17 00:00:00 2001
+From: Lei Maohui <leimaohui@cn.fujitsu.com>
+Date: Thu, 29 Jul 2021 10:35:08 +0900
+Subject: [PATCH 20/30] MAINTAINERS: Updated the email address where send
+ patches
+
+Signed-off-by: Marco Cavallini <koansoftware@gmail.com>
+Signed-off-by: Lei Maohui <leimaohui@cn.fujitsu.com>
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 23761bf..ec34c24 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1,7 +1,7 @@
+ This file contains a list of maintainers for the meta-spdxscanner layer.
+ 
+ Please submit any patches against meta-spdxscanner to the Yocto Project 
+-mailing list (yocto@yoctoproject.org) with'[meta-spdxscanner]' in the 
++mailing list (yocto@lists.yoctoproject.org) with'[meta-spdxscanner]' in the 
+ subject.
+ 
+ You may also contact the maintainers directly.
+-- 
+2.34.1
+
