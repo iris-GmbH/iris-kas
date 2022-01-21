@@ -26,10 +26,15 @@ repos:
   # the iris-kas repo
   this:
     path: ""
+
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
     refspec: "develop"
+  meta-iris-thirdparty:
+    url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
+    refspec: "dunfell"
+
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"

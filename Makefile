@@ -81,6 +81,9 @@ build-r2:
 
 build: build-${RELEASE}
 
+patch-thirdparty-hostbuild:
+	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} -c do_patch" kas-irma6-base.yml
+
 git-flow:
 	git flow init -d
 
