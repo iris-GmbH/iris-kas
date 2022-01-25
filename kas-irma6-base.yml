@@ -12,7 +12,7 @@ distro: "poky-iris"
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.0.2-dev"
+    IRMA6_DISTRO_VERSION = "2.0.2-RC1"
 defaults:
   repos:
     patches:

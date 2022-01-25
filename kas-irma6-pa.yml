@@ -10,4 +10,4 @@ header:
 repos:
   meta-iris:
     url: "ssh://git@bitbucket.iris-sensing.net:7999/gen6/meta-iris.git"
-    refspec: "develop"
+    refspec: "2.0.2-RC1"
