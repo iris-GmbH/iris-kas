@@ -28,7 +28,7 @@ repos:
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "dunfell-23.0.13-58-g368caf87fb"
+    refspec: "dunfell-23.0.13-56-g2bfe7e096d"
     layers:
       meta:
       meta-poky:
