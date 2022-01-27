@@ -29,8 +29,8 @@ RUN set -ex \
     && apt-get install --no-install-recommends -y \
         cmake \
     && rm -rf /var/lib/apt/lists
-COPY --from=builder /yq/yq /usr/local/bin/yq
-COPY --from=builder /repo/repo /usr/local/bin/repo
+COPY --from=builder /yq/yq /usr/bin/yq
+COPY --from=builder /repo/repo /usr/bin/repo
 
 FROM base as jenkins
 # Jenkins (and some other CI systems) override the entrypoint.
