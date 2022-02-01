@@ -28,6 +28,7 @@ local_conf_header:
 
   package_class: |
     PACKAGE_CLASSES ?= "package_ipk"
+    DEPLOY_DIR_IPK = "${TMPDIR}/ipk-deploy"
 
   image_features: |
     EXTRA_IMAGE_FEATURES ?= "debug-tweaks"

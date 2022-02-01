@@ -4,6 +4,5 @@
 header:
   version: 9
 
-local_conf_header:
-  prservice: |
-    PRSERV_HOST = "https://prservice.devops.iris-sensing.net:443"
+target:
+  - multiconfig:qemuarm64-r1

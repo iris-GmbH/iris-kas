@@ -9,8 +9,8 @@ phases:
   pre_build:
     on-failure: ABORT
     commands:
-      # ensure writability on dl mirror mount point
-      - sudo chown builder:builder /mnt/yocto_cache/dl_dir
+      # make sure ownership of mounted EFS volume is correct
+      - sudo chown builder:builder /mnt/yocto_cache
 
   build:
     on-failure: ABORT

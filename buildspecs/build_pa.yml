@@ -1,0 +1,60 @@
+version: 0.2
+
+run-as: builder
+
+phases:
+  install:
+    on-failure: ABORT
+    commands:
+      # extract and install latest SDK artifacts from daily build pipeline
+      - tar -xf ${CODEBUILD_SRC_DIR_deploy}/${MULTI_CONF}-deploy.tar
+      - find deploy/sdk/ -name '*.sh' -exec {} -d sdk -y \;
+
+  pre_build:
+    on-failure: ABORT
+    commands:
+      # prepare ssh connection
+      - eval $(ssh-agent -s)
+      - echo "${SSH_PRIVATE_KEY}" > /tmp/ssh_key
+      - chmod 600 /tmp/ssh_key
+      - ssh-add /tmp/ssh_key
+      - mkdir -p ~/.ssh
+      - ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - ssh-keyscan -p 7999 bitbucket.iris-sensing.net >> ~/.ssh/known_hosts
+      - ssh-keyscan -p 7999 bitbucket.irisgmbh.local >> ~/.ssh/known_hosts
+      # clone PA repos
+      - mkdir pa
+      - cd pa
+      # checkout feature, bugfix,... branches on versioning repo
+      - >
+          if [ "$(basename ${GIT_BRANCH})" != "develop" ] && [ "$(basename ${GIT_BRANCH})" != "master" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*') && git ls-remote ssh://git@bitbucket.iris-sensing.net:7999/gen6/component-versioning.git | grep -q "${GIT_BRANCH}"; then
+            echo "Info: Found branch ${GIT_BRANCH} in components-versioning repo"
+            repo init -u ssh://git@bitbucket.iris-sensing.net:7999/gen6/component-versioning.git -b ${GIT_BRANCH};
+          else
+            repo init -u ssh://git@bitbucket.iris-sensing.net:7999/gen6/component-versioning.git;
+          fi
+      - repo sync --fetch-submodules
+      # checkout feature, bugfix,... branches on component repos
+      - >
+          if [ "$(basename ${GIT_BRANCH})" != "develop" ] && [ "$(basename ${GIT_BRANCH})" != "master" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
+            repo forall $(repo list -n) -c "git checkout ${GIT_BRANCH} || true";
+          fi
+      - mkdir i6pa/build
+      - cd i6pa/build
+
+  build:
+    on-failure: ABORT
+    commands:
+      - ENV_SETUP="$(find ${CODEBUILD_SRC_DIR}/sdk -name 'environment-setup-*')"
+      # we need to run this explicitly in bash, as "source" is a shell built-in
+      - bash -c "source ${ENV_SETUP} && cmake .. && make -j $(nproc)"
+
+  post_build:
+    on-failure: ABORT
+    commands:
+      - cd ${CODEBUILD_SRC_DIR}
+      - tar -cf ${MULTI_CONF}-pa.tar -C pa/i6pa/build/the-count count_von_count test/test_von_count
+
+artifacts:
+  files:
+    - ${MULTI_CONF}-pa.tar

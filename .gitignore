@@ -2,3 +2,9 @@
 /poky/
 /meta-*/
 /lnxdsp-adi-meta/
+
+# SELinux policy
+/*.if
+/*.fc
+/*.pp
+/tmp/
