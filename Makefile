@@ -34,7 +34,7 @@ build-sdk-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-sc573-gen6.yml
 
 build-sdk-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imxmp-evk:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-imxmp-evk.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-imx8mp-evk.yml
 
 build-sdk: build-sdk-${RELEASE}
 
