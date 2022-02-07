@@ -1,0 +1,53 @@
+From cfad6b8bd8c92dc603168fcf2c11075f790ccc77 Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Mon, 7 Feb 2022 02:01:14 +0100
+Subject: [PATCH] Add ability to parse fossology token via env var
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ classes/fossology-python.bbclass | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/classes/fossology-python.bbclass b/classes/fossology-python.bbclass
+index 1603705..9a84102 100644
+--- a/classes/fossology-python.bbclass
++++ b/classes/fossology-python.bbclass
+@@ -99,7 +99,7 @@ python () {
+ }
+ 
+ python do_foss_upload(){
+-    import logging, shutil,time
++    import logging, shutil, time, os
+     logger = logging.getLogger()
+     logger.setLevel(logging.INFO)
+     logging.basicConfig(level=logging.INFO)
+@@ -111,6 +111,8 @@ python do_foss_upload(){
+ 
+     fossology_server = d.getVar('FOSSOLOGY_SERVER')
+     token = d.getVar('TOKEN')
++    if not token:
++        token = os.environ["FOSSOLOGY_TOKEN"]
+     foss = Fossology(fossology_server, token, "fossy")
+     
+     filepath = d.getVar('SPDX_OUTDIR')
+@@ -241,6 +243,8 @@ python do_schedule_jobs(){
+ 
+     fossology_server = d.getVar('FOSSOLOGY_SERVER')
+     token = d.getVar('TOKEN')
++    if not token:
++        token = os.environ["FOSSOLOGY_TOKEN"]
+     foss = Fossology(fossology_server, token, "fossy")
+     pn = d.getVar('PN')
+ 
+@@ -358,6 +362,8 @@ python do_get_report(){
+ 
+     fossology_server = d.getVar('FOSSOLOGY_SERVER')
+     token = d.getVar('TOKEN')
++    if not token:
++        token = os.environ["FOSSOLOGY_TOKEN"]
+     foss = Fossology(fossology_server, token, "fossy")
+     pn = d.getVar('PN')
+ 
+-- 
+2.35.1
+

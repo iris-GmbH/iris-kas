@@ -6,6 +6,5 @@ header:
 
 local_conf_header:
   fossology: |
-    export TOKEN
     INHERIT += "fossology-python"
-    FOSSOLOGY_SERVER = "https://fossology.devops.iris-sensing.net/repo"
+    FOSSOLOGY_SERVER = "https://fossology.defra01.iris-sensing.net/repo"

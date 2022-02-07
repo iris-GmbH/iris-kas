@@ -7,7 +7,6 @@ ARG type=base
 ARG KAS_VER=2.6.1
 ARG REPO_VER=v2.17.2
 ARG YQ_VER=v4.13.5
-ARG FOSSOLOGY_VER=1.4.0
 
 FROM golang:1.17 as builder
 ARG REPO_VER
@@ -24,16 +23,10 @@ RUN set -ex \
     && chmod +x /repo/repo
 
 FROM ghcr.io/siemens/kas/kas:${KAS_VER} as base
-ARG FOSSOLOGY_VER
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
         cmake \
-        python3-pip \
-    && pip3 install -v \
-        fossology==${FOSSOLOGY_VER} \
-    && apt-get purge --autoremove -y \
-        python3-pip \
     && rm -rf /var/lib/apt/lists
 COPY --from=builder /yq/yq /usr/bin/yq
 COPY --from=builder /repo/repo /usr/bin/repo
