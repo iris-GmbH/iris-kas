@@ -121,6 +121,8 @@ repos:
         path: "patches/spdx-backports/0030-Added-blackduck-upload.bbclass.patch"
       0028-fossology-token-via-env-var:
         path: "patches/0001-Add-ability-to-parse-fossology-token-via-env-var.patch"
+      0029-python3-fossology-dependency:
+        path: "patches/0001-fossology-python-Add-python3-fossology-dependency.patch"
 
   # repos relevant for testing
   meta-java:
