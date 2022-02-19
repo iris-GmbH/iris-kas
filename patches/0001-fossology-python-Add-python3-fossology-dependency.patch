@@ -1,0 +1,25 @@
+From 69b1f849e631764980ec4fc1782108bd1d53ffab Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Mon, 7 Feb 2022 02:50:30 +0100
+Subject: [PATCH] fossology-python: Add python3-fossology dependency
+
+---
+ classes/fossology-python.bbclass | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/classes/fossology-python.bbclass b/classes/fossology-python.bbclass
+index 9a84102..8fa8e02 100644
+--- a/classes/fossology-python.bbclass
++++ b/classes/fossology-python.bbclass
+@@ -19,6 +19,8 @@ inherit copyleft_filter
+ 
+ inherit spdx-common 
+ 
++DEPENDS += "python3-fossology-native"
++
+ do_foss_upload[dirs] = "${SPDX_TOPDIR}"
+ do_schedule_jobs[dirs] = "${SPDX_TOPDIR}"
+ do_get_report[dirs] = "${SPDX_OUTDIR}"
+-- 
+2.35.1
+
