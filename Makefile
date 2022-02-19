@@ -18,6 +18,9 @@ MAKEFILE_DIR 	= $(dir ${MAKEFILE_PATH})
 # default action: building ${RELEASE}
 build: build-${RELEASE}
 
+update-toc: ## Updates the README table of contents
+	doctoc --github --title "**Table of Contents**" README.md
+
 docker-login:
 	aws-vault exec -n iris-devops -- aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
 
