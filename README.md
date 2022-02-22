@@ -1,3 +1,32 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [iris-kas](#iris-kas)
+  - [Maintainers](#maintainers)
+  - [What is KAS?](#what-is-kas)
+  - [How does it work?](#how-does-it-work)
+  - [Prerequisites](#prerequisites)
+    - [Native Installation](#native-installation)
+    - [Docker (default & recommended)](#docker-default--recommended)
+      - [Docker and SELinux](#docker-and-selinux)
+  - [Usage (general)](#usage-general)
+    - [Supported environment variables](#supported-environment-variables)
+  - [Usage (IRIS developers)](#usage-iris-developers)
+    - [Build all images](#build-all-images)
+    - [Run interactive QEMU VM](#run-interactive-qemu-vm)
+    - [Update all repos](#update-all-repos)
+    - [Force update all repos](#force-update-all-repos)
+    - [Prepare a firmware release](#prepare-a-firmware-release)
+    - [Prepare a firmware support release](#prepare-a-firmware-support-release)
+    - [Cleanup all artifacts](#cleanup-all-artifacts)
+  - [Usage (IRIS customers)](#usage-iris-customers)
+    - [Build our current base Linux distribution](#build-our-current-base-linux-distribution)
+    - [Build our base Linux distribution from a source-code dump](#build-our-base-linux-distribution-from-a-source-code-dump)
+  - [Running arbitrary KAS commands](#running-arbitrary-kas-commands)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # iris-kas
 
 ## Maintainers
