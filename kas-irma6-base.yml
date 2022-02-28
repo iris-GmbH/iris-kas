@@ -29,7 +29,10 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "feature/jaor/APC-4245_webinterface_protection"
+  meta-iris-thirdparty:
+    url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
+    refspec: "add_argon2"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
