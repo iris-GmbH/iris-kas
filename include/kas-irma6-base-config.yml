@@ -18,8 +18,9 @@ local_conf_header:
   standard: |
     CONF_VERSION = "1"
 
-  default_cache_dirs: |
+  dl_dir: |
     DL_DIR ?= "${TOPDIR}/dl_dir"
+  sstate_dir: |
     SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
 
   # we only want to cherry-pick u-boot and kernel recipes from the adi upstream. ignore everything else

@@ -10,6 +10,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 - [DEVOPS-511] Build uuu files in Jenkins
 - [RDPHOEN-1067] Added R2 build to cloud Jenkins
 - [RDPHOEN-1122] Add development keys/certs for further development of Secure Boot
+- [DEVOPS-446] Introduce GitLab CI/CD config
 
 
 ### Changed
