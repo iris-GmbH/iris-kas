@@ -12,7 +12,7 @@ distro: "poky-iris"
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.0.3-dev"
+    IRMA6_DISTRO_VERSION = "2.0.3-RC1"
 defaults:
   repos:
     patches:
@@ -24,7 +24,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "2.0.3"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
