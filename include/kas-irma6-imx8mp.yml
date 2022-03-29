@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 9
+
+target:
+  - multiconfig:imx8mp-irma6r2
