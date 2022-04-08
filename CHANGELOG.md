@@ -8,6 +8,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 ### Added
 - [APC-4244]: Introduce webserver and iris-thirdparty dependencies
 - [DEVOPS-511] Build uuu files in Jenkins
+- [RDPHOEN-1067] Added R2 build to cloud Jenkins
 
 
 ### Changed

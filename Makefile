@@ -40,7 +40,7 @@ build-sdk-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-sc573-gen6.yml
 
 build-sdk-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-imx8mp.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-imx8mp-irma6r2.yml
 
 build-sdk-r2-evk:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-maintenance -c do_populate_sdk" kas-irma6-pa.yml:include/kas-irma6-imx8mp-evk.yml
@@ -70,7 +70,7 @@ build-base-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml:include/kas-irma6-sc573-gen6.yml
 
 build-base-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-base" kas-irma6-base.yml:include/kas-irma6-imx8mp.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-base" kas-irma6-base.yml:include/kas-irma6-imx8mp-irma6r2.yml
 
 build-base-r2-evk:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-base" kas-irma6-base.yml:include/kas-irma6-imx8mp-evk.yml
@@ -81,7 +81,7 @@ build-base-dump-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-base" kas-irma6-base.yml:include/kas-irma6-sc573-gen6.yml:include/kas-offline-build.yml
 
 build-base-dump-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-base" kas-irma6-base.yml:include/kas-irma6-imx8mp.yml:include/kas-offline-build.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-base" kas-irma6-base.yml:include/kas-irma6-imx8mp-irma6r2.yml:include/kas-offline-build.yml
 
 build-base-dump-r2-evk:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-base" kas-irma6-base.yml:include/kas-irma6-imx8mp-evk.yml:include/kas-offline-build.yml
@@ -92,7 +92,7 @@ build-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-deploy mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev" kas-irma6-pa.yml:include/kas-irma6-sc573-gen6.yml
 
 build-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-deploy mc:imx8mp-irma6r2:irma6-maintenance mc:imx8mp-irma6r2:irma6-dev" kas-irma6-pa.yml:include/kas-irma6-imx8mp.yml
+	{KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-deploy mc:imx8mp-irma6r2:irma6-maintenance mc:imx8mp-irma6r2:irma6-dev" kas-irma6-pa.yml:include/kas-irma6-imx8mp-irma6r2.yml
 
 build-r2-evk:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-deploy mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev" kas-irma6-pa.yml:include/kas-irma6-imx8mp-evk.yml
