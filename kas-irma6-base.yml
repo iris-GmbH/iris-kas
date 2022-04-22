@@ -62,6 +62,9 @@ repos:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     refspec: "dunfell"
+  meta-secure-imx:
+    url: "https://source.denx.de/denx/meta-secure-imx.git"
+    refspec: "dunfell"
 
   # repos relevant for testing
   meta-java:
