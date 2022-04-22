@@ -32,7 +32,7 @@ repos:
     refspec: "develop"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "develop"
+    refspec: "dunfell"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"

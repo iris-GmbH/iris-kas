@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [APR's Version Numbering](https://apr.apache.org/versioning.html).
 
+## [1.1.26] -dev (HEAD) - n/a
+### Added
+- [APC-4244]: Introduce webserver and iris-thirdparty dependencies
+
+
+### Changed
+
+
+### Deprecated
+
+
+### Removed
+
+
+### Fixed
+
+
+### Simulation only
+
+
+### Maintenance only
+
+
+### Known issues
+
+
 ## [1.1.25]
 ### Added
 - Added appendable KAS configuration file for offline builds
