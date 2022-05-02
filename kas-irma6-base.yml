@@ -30,6 +30,9 @@ repos:
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
     refspec: "develop"
+  meta-iris-thirdparty:
+    url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
+    refspec: "dunfell"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
@@ -49,6 +52,7 @@ repos:
       meta-oe:
       meta-python:
       meta-networking:
+      meta-webserver:
     patches:
       0001-add-repo-recipe:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
