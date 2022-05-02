@@ -7,6 +7,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 ## [1.1.25]
 ### Added
 - Added appendable KAS configuration file for offline builds
+- [APC-4501] Preferred version definition for chrony package
 
 ### Changed
 - Our KAS config repository is now open source (MIT licensed)

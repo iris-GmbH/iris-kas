@@ -52,3 +52,7 @@ local_conf_header:
   preferred_providers: |
     PREFERRED_PROVIDER_virtual/java-initial-native = "cacao-initial-native"
     PREFERRED_PROVIDER_virtual/java-native = "cacao-native"
+
+  preferred_versions: |
+    # NTS support has been added in 4.0: https://chrony.tuxfamily.org/news.html
+    PREFERRED_VERSION_chrony = "4.2"
