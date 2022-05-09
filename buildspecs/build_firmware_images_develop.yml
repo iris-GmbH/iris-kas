@@ -30,6 +30,12 @@ phases:
     commands:
       # build artifacts
       - kas shell -k -c "bitbake ${images}" kas-irma6-pa.yml
+      # if rel2, build uuu files
+      - >
+        if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
+         export uuuimages="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i}-uuu "; done)"
+         kas shell -k -c "bitbake ${uuuimages}" kas-irma6-pa.yml 
+        fi
       # build SDK
       - >
         if [ -n "${SDK_IMAGE}" ]; then
