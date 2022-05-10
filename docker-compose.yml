@@ -15,6 +15,7 @@ services:
     volumes:
       - ./:/mnt/yocto-kas:z
       - ${SSH_DIR:-~/.ssh}:/etc/skel/.ssh
+      - /etc/hosts:/etc/hosts
     ports:
       # expose QEMU SSH port to host
       - "127.0.0.1:2222:2222"
