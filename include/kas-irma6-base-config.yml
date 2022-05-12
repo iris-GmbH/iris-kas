@@ -52,3 +52,11 @@ local_conf_header:
   preferred_providers: |
     PREFERRED_PROVIDER_virtual/java-initial-native = "cacao-initial-native"
     PREFERRED_PROVIDER_virtual/java-native = "cacao-native"
+
+  meta-secure-imx: |
+    HAB_ENABLE= "1"
+    HAB_DIR = "/mnt/yocto-kas/dev_keys"
+    SRKTAB = "${HAB_DIR}/crts/SRK_1_2_3_4_table.bin"
+    CSFK = "${HAB_DIR}/crts/CSF1_1_sha256_secp521r1_v3_usr_crt.pem"
+    SIGN_CERT = "${HAB_DIR}/crts/IMG1_1_sha256_secp521r1_v3_usr_crt.pem"
+    CRYPTO_HW_ACCEL = "CAAM"
