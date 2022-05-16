@@ -60,3 +60,4 @@ local_conf_header:
     CSFK = "${HAB_DIR}/crts/CSF1_1_sha256_secp521r1_v3_usr_crt.pem"
     SIGN_CERT = "${HAB_DIR}/crts/IMG1_1_sha256_secp521r1_v3_usr_crt.pem"
     CRYPTO_HW_ACCEL = "CAAM"
+    BBMASK += "meta-secure-imx/recipes-bsp/u-boot/u-boot_%.bbappend"
