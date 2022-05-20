@@ -1,0 +1,28 @@
+From 2423e8b2128d33d4dcfd819a56672ae8574790e7 Mon Sep 17 00:00:00 2001
+From: Erik Schumacher <erik.schumacher@iris-sensing.com>
+Date: Tue, 17 May 2022 09:14:31 +0200
+Subject: [PATCH] Remove dependency to u-boot- and linux-mfgtool in initramfs
+ image
+
+Skip compilation of these two packages. There are not needed in our
+setup. Removing them will reduce build time.
+---
+ classes/mfgtool-initramfs-image.bbclass | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/classes/mfgtool-initramfs-image.bbclass b/classes/mfgtool-initramfs-image.bbclass
+index 65028b8f..fe26c8f3 100644
+--- a/classes/mfgtool-initramfs-image.bbclass
++++ b/classes/mfgtool-initramfs-image.bbclass
+@@ -6,8 +6,6 @@
+ #
+ # Copyright 2014-2017 (C) O.S. Systems Software LTDA.
+ 
+-DEPENDS += "u-boot-mfgtool linux-mfgtool"
+-
+ FEATURE_PACKAGES_mtd = "packagegroup-fsl-mfgtool-mtd"
+ FEATURE_PACKAGES_extfs = "packagegroup-fsl-mfgtool-extfs"
+ FEATURE_PACKAGES_f2fs = "packagegroup-fsl-mfgtool-f2fs"
+-- 
+2.34.3
+

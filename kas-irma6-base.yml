@@ -93,6 +93,8 @@ repos:
     patches:
       0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
+      0001-Remove-dependency-to-u-boot-and-linux-mfgtool-in-ini.patch:
+        path: "patches/0001-Remove-dependency-to-u-boot-and-linux-mfgtool-in-ini.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
     refspec: "dunfell"
