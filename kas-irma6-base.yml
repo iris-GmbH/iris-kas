@@ -70,14 +70,6 @@ repos:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "dunfell"
 
-  # repos relevant for testing
-  meta-java:
-    url: "https://git.yoctoproject.org/git/meta-java"
-    refspec: "dunfell"
-  meta-clang:
-    url: "https://github.com/kraj/meta-clang.git"
-    refspec: "dunfell"
-
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"

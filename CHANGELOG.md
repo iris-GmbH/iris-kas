@@ -13,12 +13,13 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 
 
 ### Changed
-
+- [DEVOPS-519] Move basic config from local.conf to distro.conf in meta-iris
 
 ### Deprecated
 
 
 ### Removed
+- Remove currently unused layers (meta-clang, meta-java)
 
 
 ### Fixed
