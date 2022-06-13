@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 9
+
+local_conf_header:
+  cve_scanning: |
+    INHERIT += "cve-check"
+
+  build_history: |
+    INHERIT += "buildhistory"
+    BUILDHISTORY_COMMIT = "1"

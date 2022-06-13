@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+
+.common_template:
+  script:
+    create-deploy-artifact:
+      # create a tar.gz for archiving the deploy artifacts
+      - tar -I "gzip --best" -C build/tmp -cf ${MULTI_CONF}-deploy.tar.gz deploy
+    create-sdk-artifact:
+      # create a tar.gz for archiving the sdk artifacts
+      - tar -I "gzip --best" -C build/tmp/deploy -cf ${MULTI_CONF}-sdk.tar.gz sdk

@@ -1,0 +1,317 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+
+include:
+  - ".gitlab/common-template.yml"
+  - ".gitlab/release-template.yml"
+  - ".gitlab/develop-template.yml"
+  - ".gitlab/test-qemu-template.yml"
+
+variables:
+  RELEASE_BRANCH: "master"
+  # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
+  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*(?<!iris-GmbH))?/([^/]*?)(?:.git)?$ http://gitea-http.gitea:3000/gitea_admin/\\1.git"
+  MAIN_KAS_FILES: "kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  SSTATE_CACHE: "/mnt/yocto-sstate-cache"
+  SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
+  DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
+  SKIP_SDK_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the SDK build.'
+  SKIP_TARGET_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the firmware build for the sensor targets.'
+  SKIP_QEMU_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the firmware build for the QEMU targets. Will be ignored if SKIP_QEMU_TESTS is set to false.'
+  SKIP_QEMU_TESTS:
+    value: "false"
+    description: 'Set to "true" to skip the QEMU tests.'
+  SKIP_CONTAINER_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip building the iris-kas container.'
+  BUILD_FROM_SCRATCH:
+    value: "false"
+    description: 'Set to "true" to build from scratch.'
+  BUILD_IMAGE:
+    value: "${CI_REGISTRY_IMAGE}:latest"
+    description: "Optionally override of the build image."
+
+# default config for all jobs
+default:
+  image: "${BUILD_IMAGE}"
+  before_script:
+    # make sure ownership of mounted EFS volumes are correct
+    - sudo chown builder:builder ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} ${DOWNLOAD_MIRROR}
+  tags:
+    # run on gitlab runners designed for kas builds 
+    - kas
+
+# List of stages for jobs, and their order of execution
+stages:
+  - setup
+  - build
+  - test
+  - wipe
+
+# Make sure that the release sstate cache is empty before build.
+# This ensures that the build is done from scratch (build reproducibility)
+release-wipe-release-sstate-cache:
+  rules:
+    - !reference [.release_template, rules]
+  stage: setup
+  script:
+    - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
+    - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+
+# We prepare a offline-build environment for building the irma6-base image. This image contains the naked iris linux distro without any propriatary software. After a test build, this build environment is saved for license compliance.
+base-build:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - MULTI_CONF: [sc573-gen6]
+  variables:
+    MAIN_KAS_FILES: "kas-irma6-base.yml:include/ci/kas-ci-common.yml"
+  script:
+    # set build target
+    - export BUILD_TARGET="mc:${MULTI_CONF}:irma6-base"
+    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, create-source-artifact]
+    # verify reproducibility of offline build
+    - !reference [.release_template, script, offline-build]
+  artifacts:
+    paths:
+      - "${MULTI_CONF}-base-sources.tar.gz"
+    untracked: false
+    expire_in: 20 yrs
+
+# Build the actual release artifacts
+release-build:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - MULTI_CONF: [sc573-gen6]
+        IMAGES: "irma6-maintenance irma6-deploy irma6-dev"
+      - MULTI_CONF: [qemux86-64-r1]
+        IMAGES: irma6-test
+  script:
+    # set build target. If rel2 target build, build uuu files as well
+    - >
+      if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
+        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} mc:${MULTI_CONF}:${i}-uuu "; done)"
+      else
+        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+      fi
+    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, create-source-artifact]
+    - !reference [.release_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.release_template, artifacts, release-deploy-artifacts]
+
+release-build-qemu:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - MULTI_CONF: [qemux86-64-r1]
+        IMAGES: irma6-test
+  script:
+    # set build target
+    - export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, create-source-artifact]
+    - !reference [.release_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.release_template, artifacts, release-deploy-artifacts]
+
+release-build-sdk:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - MULTI_CONF: [sc573-gen6]
+        SDK_IMAGE: irma6-maintenance
+      - MULTI_CONF: [qemux86-64-r1]
+        SDK_IMAGE: irma6-test
+  variables:
+    BITBAKE_TASK: "-c populate_sdk"
+  script:
+    - export BUILD_TARGET="mc:${MULTI_CONF}:${SDK_IMAGE}"
+    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, build]
+    - !reference [.common_template, script, create-sdk-artifact]
+  artifacts:
+    paths:
+      - "${MULTI_CONF}-sdk.tar.gz"
+    untracked: false
+    expire_in: 20 yrs
+
+release-test-qemu:
+  stage: test
+  rules:
+    - !reference [.release_template, rules]
+  needs:
+    - "release-build-qemu"
+  dependencies:
+    - "release-build-qemu"
+  variables:
+    # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
+    # present in openembedded-core and this can speed up the parsing
+    MAIN_KAS_FILES: "kas-irma6-base.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-populate-release-caches.yml"
+  parallel: !reference [.test_qemu_template, parallel]
+  script: !reference [.test_qemu_template, script]
+  artifacts: !reference [.test_qemu_template, artifacts]
+
+release-sync-sstate-cache:
+  stage: wipe
+  rules:
+    - !reference [.release_template, rules]
+  script:
+    # don't overwrite develop sstate_cache during support release and RC tags
+    - >
+      if echo "${CI_COMMIT_TAG}" | grep -qviE '\d+\.\d+\.\d+-.*'; then
+        rsync -avh --delete ${SSTATE_CACHE_RELEASE} ${SSTATE_CACHE};
+      fi
+    # wipe release sstate cache
+    - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+
+# develop build is used whenever we are not building a release
+develop-build-target:
+  rules:
+    # skip if SKIP_TARGET_BUILD is set to true
+    - if: '$SKIP_TARGET_BUILD == "true"'
+      when: never 
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      IMAGES: "irma6-maintenance irma6-deploy irma6-dev"
+  script:
+    # set build target. If rel2 target build, build uuu files as well
+    - >
+      if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
+        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} mc:${MULTI_CONF}:${i}-uuu "; done)"
+      else
+        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+      fi
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.develop_template, artifacts, develop-deploy-artifacts]
+
+develop-build-qemu:
+  rules:
+    # skip if SKIP_FIRMWARE_BUILD is set to true
+    - if: '$SKIP_QEMU_BUILD == "true" && $SKIP_QEMU_TESTS == "true"'
+      when: never 
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+    - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+      IMAGES: irma6-test
+  script:
+    # set build target
+    - export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.develop_template, artifacts, develop-deploy-artifacts]
+
+develop-build-sdk:
+  rules:
+    # skip if SKIP_SDK_BUILD is set to true
+    - if: '$SKIP_SDK_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  variables:
+    SDK_IMAGE: irma6-maintenance
+    BITBAKE_TASK: "-c populate_sdk"
+  parallel:
+    matrix:
+    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      IMAGES: "irma6-maintenance irma6-deploy irma6-dev"
+  script:
+    - export BUILD_TARGET="mc:${MULTI_CONF}:${SDK_IMAGE}"
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+    - !reference [.common_template, script, create-sdk-artifact]
+  artifacts:
+    paths:
+      - "${MULTI_CONF}-sdk.tar.gz"
+    untracked: false
+    expire_in: 7 days
+
+develop-test-qemu:
+  stage: test
+  rules:
+    # skip if SKIP_QEMU_TESTS is set to true
+    - if: '$SKIP_QEMU_TESTS == "true"'
+      when: never 
+    - !reference [.develop_template, rules]
+  needs:
+    - "develop-build-qemu"
+  dependencies:
+    - "develop-build-qemu"
+  variables:
+    # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
+    # contained in openembedded-core and this can speed up the parsing
+    MAIN_KAS_FILES: "kas-irma6-base.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-develop.yml"
+  parallel: !reference [.test_qemu_template, parallel]
+  script: !reference [.test_qemu_template, script]
+  artifacts: !reference [.test_qemu_template, artifacts]
+
+wipe-sstate-caches:
+  stage: wipe
+  when: manual
+  script:
+   - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+
+docker-build:
+  rules:
+    # skip if SKIP_CONTAINER_BUILD is set to true
+    - if: '$SKIP_CONTAINER_BUILD == "true"'
+      when: never
+    # only run this job when changes are made to the Dockerfile
+    - changes:
+      - Dockerfile
+  tags:
+    - gp
+  image:
+    # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
+    name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
+    entrypoint: [""]
+  stage: build
+  before_script:
+    # Default branch = latest tag
+    # All other branches are tagged with the escaped branch name (commit ref slug)
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        tag="latest"
+        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+      else
+        tag="$CI_COMMIT_REF_SLUG"
+        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
+      fi
+  script:
+    - >-
+      /kaniko/executor
+      --build-arg "type=ci"
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${tag}"

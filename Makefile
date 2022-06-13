@@ -25,7 +25,7 @@ docker-login:
 	aws-vault exec -n iris-devops -- aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
 
 build-and-push-image: docker-login
-	docker buildx build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} --platform linux/amd64,linux/arm64 --build-arg type=jenkins --push ${MAKEFILE_DIR}
+	docker buildx build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} --platform linux/amd64,linux/arm64 --build-arg type=ci --push ${MAKEFILE_DIR}
 
 clean:
 	${KAS_COMMAND} shell -c 'rm -rf $${BUILDDIR}' kas-irma6-base.yml
