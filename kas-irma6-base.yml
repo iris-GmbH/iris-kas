@@ -12,7 +12,7 @@ distro: "poky-iris"
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.0.4"
+    IRMA6_DISTRO_VERSION = "2.0.5"
 defaults:
   repos:
     patches:
@@ -39,7 +39,7 @@ repos:
         path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "0722ff6f021df91542b5efa1ff5b5f6269f66add"
+    refspec: "29e3a918ac80f98f3bad70eec50a9ada1a47fc41"
     layers:
       meta-oe:
       meta-python:
