@@ -21,6 +21,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 
 ### Removed
 - Remove currently unused layers (meta-clang, meta-java)
+- dev signing keys have been removed from this repo and moved to meta-iris-base instead
 
 
 ### Fixed
