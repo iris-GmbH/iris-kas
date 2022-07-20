@@ -4,9 +4,9 @@
 # type can be set to ci. Override with "--build-arg type=ci" during build
 ARG type=base
 
-ARG KAS_VER=2.6.1
+ARG KAS_VER=3.0.2
 ARG REPO_REV=v2.17.2
-ARG YQ_REV=v4.13.5
+ARG YQ_REV=v4.26.1
 
 FROM golang:1.17 as builder
 ARG REPO_REV
