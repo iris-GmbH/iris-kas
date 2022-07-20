@@ -11,7 +11,7 @@ variables:
   RELEASE_BRANCH: "master"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: "^https?://[^/]*(?:/.*(?<!iris-GmbH))?/([^/]*?)(?:.git)?$ http://gitea-http.gitea:3000/gitea_admin/\\1.git"
-  MAIN_KAS_FILES: "kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   SSTATE_CACHE: "/mnt/yocto-sstate-cache"
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
@@ -41,7 +41,7 @@ variables:
 default:
   image: "${BUILD_IMAGE}"
   before_script:
-    # make sure ownership of mounted EFS volumes are correct
+    # Ensure correct ownership of mounted EFS volumes
     - sudo chown builder:builder ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} ${DOWNLOAD_MIRROR}
   tags:
     # run on gitlab runners designed for kas builds 
@@ -54,8 +54,24 @@ stages:
   - test
   - wipe
 
-# Make sure that the release sstate cache is empty before build.
-# This ensures that the build is done from scratch (build reproducibility)
+# Ensures that fixed refspecs are set for all meta-layers.
+# This is vital for build reproducibility.
+release-verify-fixed-refspecs:
+  rules:
+    - !reference [.release_template, rules]
+  stage: setup
+  script:
+    - echo "Ensuring that fixed refspecs are set..."
+    - >
+      kas for-all-repos --update ${MAIN_KAS_FILES} """
+      if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
+        git checkout \${KAS_REPO_REFSPEC} \
+        && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
+        || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
+      """
+
+# Ensures that the release sstate cache is empty before any build is started.
+# This ensures the release is built from scratch (build reproducibility).
 release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
@@ -64,20 +80,21 @@ release-wipe-release-sstate-cache:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
-# We prepare a offline-build environment for building the irma6-base image. This image contains the naked iris linux distro without any propriatary software. After a test build, this build environment is saved for license compliance.
-base-build:
+# We prepare an offline-build environment for building the irma6-base image.
+# This image contains the raw iris-poky-deploy distro without any proprietary software.
+# After a test build, this build environment is saved for license compliance.
+release-base-build:
   rules:
     - !reference [.release_template, rules]
   stage: build
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
+        IMAGES: "irma6-base"
   variables:
-    MAIN_KAS_FILES: "kas-irma6-base.yml:include/ci/kas-ci-common.yml"
+    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
   script:
-    # set build target
-    - export BUILD_TARGET="mc:${MULTI_CONF}:irma6-base"
-    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, create-source-artifact]
@@ -96,24 +113,12 @@ release-build:
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
-        IMAGES: "irma6-maintenance irma6-deploy irma6-dev"
-      - MULTI_CONF: [qemux86-64-r1]
-        IMAGES: irma6-test
+        IMAGES: "irma6-deploy"
+      - MULTI_CONF: [sc573-gen6]
+        IMAGES: "irma6-maintenance irma6-dev"
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   script:
-    # set build target. If rel2 target build, build uuu and swuimages, unless netboot img
-    - >
-      if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
-        export BUILD_TARGET="$(for i in ${IMAGES}; do \
-          if [ "${i}" != "irma6-fitimage-netboot" ]; then \
-            echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
-          else \
-            echo -n "mc:${MULTI_CONF}:${i}"; \
-          fi; \
-        done)"
-      else
-        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
-      fi
-    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, create-source-artifact]
@@ -129,10 +134,9 @@ release-build-qemu:
     matrix:
       - MULTI_CONF: [qemux86-64-r1]
         IMAGES: irma6-test
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   script:
-    # set build target
-    - export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
-    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, create-source-artifact]
@@ -148,13 +152,14 @@ release-build-sdk:
     matrix:
       - MULTI_CONF: [sc573-gen6]
         SDK_IMAGE: irma6-maintenance
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
       - MULTI_CONF: [qemux86-64-r1]
         SDK_IMAGE: irma6-test
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
     BITBAKE_TASK: "-c populate_sdk"
   script:
-    - export BUILD_TARGET="mc:${MULTI_CONF}:${SDK_IMAGE}"
-    - !reference [.release_template, script, verify-fixed-refspecs]
+    - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
     - !reference [.common_template, script, create-sdk-artifact]
@@ -171,7 +176,7 @@ release-test-qemu:
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # present in openembedded-core and this can speed up the parsing
-    MAIN_KAS_FILES: "kas-irma6-base.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-populate-release-caches.yml"
+    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-populate-release-caches.yml"
   parallel: !reference [.test_qemu_template, parallel]
   script: !reference [.test_qemu_template, script]
   artifacts: !reference [.test_qemu_template, artifacts]
@@ -200,23 +205,12 @@ develop-build-target:
   parallel:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-maintenance irma6-deploy irma6-dev"
-    - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-fitimage-netboot"
+      IMAGES: "irma6-deploy"
+    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+      IMAGES: "irma6-maintenance irma6-dev"
   script:
-    # set build target. If rel2 target build, build uuu and swuimages, unless netboot img
-    - >
-      if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
-      export BUILD_TARGET="$(for i in ${IMAGES}; do \
-        if [ "${i}" != "irma6-fitimage-netboot" ]; then \
-          echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
-        else \
-          echo -n "mc:${MULTI_CONF}:${i}"; \
-        fi; \
-        done)"
-      else
-        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
-      fi
+    - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.develop_template, script, build-configuration]
     - !reference [.develop_template, script, build]
     - !reference [.common_template, script, create-deploy-artifact]
@@ -233,9 +227,9 @@ develop-build-qemu:
     matrix:
     - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
       IMAGES: irma6-test
+      MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   script:
-    # set build target
-    - export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+    - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.develop_template, script, build-configuration]
     - !reference [.develop_template, script, build]
     - !reference [.common_template, script, create-deploy-artifact]
@@ -254,9 +248,12 @@ develop-build-sdk:
   parallel:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-maintenance irma6-deploy irma6-dev"
+      IMAGES: "irma6-deploy"
+    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      IMAGES: "irma6-maintenance irma6-dev"
+      MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   script:
-    - export BUILD_TARGET="mc:${MULTI_CONF}:${SDK_IMAGE}"
+    - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.develop_template, script, build-configuration]
     - !reference [.develop_template, script, build]
     - !reference [.common_template, script, create-sdk-artifact]
@@ -276,7 +273,7 @@ develop-test-qemu:
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # contained in openembedded-core and this can speed up the parsing
-    MAIN_KAS_FILES: "kas-irma6-base.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-develop.yml"
+    MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-develop.yml"
   parallel: !reference [.test_qemu_template, parallel]
   script: !reference [.test_qemu_template, script]
   artifacts: !reference [.test_qemu_template, artifacts]

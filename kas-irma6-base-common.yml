@@ -10,8 +10,6 @@ header:
     - "include/kas-irma6-base-config.yml"
     - "include/kas-targets.yml"
 
-distro: "poky-iris"
-
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
