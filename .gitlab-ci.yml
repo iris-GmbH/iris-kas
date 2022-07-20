@@ -16,11 +16,17 @@ variables:
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   SKIP_SDK_BUILD:
+    value: "true"
+    description: 'Set to "false" to run the SDK build.'
+  USE_IDENTICAL_NAMED_LAYER_BRANCHES:
+    value: "true"
+    description: 'Set to "true" to use identical named meta layer branches during the build'
+  SKIP_DEPLOY_TARGET_BUILD:
     value: "false"
-    description: 'Set to "true" to skip the SDK build.'
-  SKIP_TARGET_BUILD:
+    description: 'Set to "true" to skip the deploy firmware build for the sensor targets.'
+  SKIP_MAINTENANCE_TARGET_BUILD:
     value: "false"
-    description: 'Set to "true" to skip the firmware build for the sensor targets.'
+    description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
   SKIP_QEMU_BUILD:
     value: "false"
     description: 'Set to "true" to skip the firmware build for the QEMU targets. Will be ignored if SKIP_QEMU_TESTS is set to false.'
@@ -50,7 +56,9 @@ default:
 # List of stages for jobs, and their order of execution
 stages:
   - setup
+  - build-base
   - build
+  - build-deploy-distros
   - test
   - wipe
 
@@ -86,7 +94,7 @@ release-wipe-release-sstate-cache:
 release-base-build:
   rules:
     - !reference [.release_template, rules]
-  stage: build
+  stage: build-base
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
@@ -102,8 +110,8 @@ release-base-build:
     - !reference [.release_template, script, offline-build]
   artifacts: !reference [.release_template, artifacts, release-source-artifacts]
 
-# Build the actual release artifacts
-release-build:
+# Build the maintenance release artifacts
+release-build-maintenance-distros:
   rules:
     - !reference [.release_template, rules]
   tags:
@@ -112,8 +120,6 @@ release-build:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
-        IMAGES: "irma6-deploy"
       - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
@@ -165,6 +171,25 @@ release-build-sdk:
     - !reference [.common_template, script, create-sdk-artifact]
   artifacts: !reference [.release_template, artifacts, release-sdk-artifacts]
 
+
+# Build the actual release artifacts
+release-build-deploy-distros:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build-deploy-distros
+  parallel:
+    matrix:
+      - MULTI_CONF: [sc573-gen6]
+        IMAGES: "irma6-deploy"
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, create-source-artifact]
+    - !reference [.release_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.release_template, artifacts, release-deploy-artifacts]
+
 release-test-qemu:
   stage: test
   rules:
@@ -195,17 +220,15 @@ release-sync-sstate-cache:
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
 # develop build is used whenever we are not building a release
-develop-build-target:
+develop-build-maintenance-distro-targets:
   rules:
-    # skip if SKIP_TARGET_BUILD is set to true
-    - if: '$SKIP_TARGET_BUILD == "true"'
+    # skip if SKIP_MAINTENANCE_TARGET_BUILD is set to true
+    - if: '$SKIP_MAINTENANCE_TARGET_BUILD == "true"'
       when: never 
     - !reference [.develop_template, rules]
   stage: build
   parallel:
     matrix:
-    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-deploy"
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
       MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
       IMAGES: "irma6-maintenance irma6-dev"
@@ -248,8 +271,6 @@ develop-build-sdk:
   parallel:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-deploy"
-    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
       IMAGES: "irma6-maintenance irma6-dev"
       MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   script:
@@ -258,6 +279,24 @@ develop-build-sdk:
     - !reference [.develop_template, script, build]
     - !reference [.common_template, script, create-sdk-artifact]
   artifacts: !reference [.develop_template, artifacts, develop-sdk-artifacts]
+
+develop-build-deploy-distro-targets:
+  rules:
+    # skip if SKIP_DEPLOY_TARGET_BUILD is set to true
+    - if: '$SKIP_DEPLOY_TARGET_BUILD == "true"'
+      when: never 
+    - !reference [.develop_template, rules]
+  stage: build-deploy-distros
+  parallel:
+    matrix:
+    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      IMAGES: "irma6-deploy"
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.develop_template, artifacts, develop-deploy-artifacts]
 
 develop-test-qemu:
   stage: test
@@ -285,13 +324,7 @@ wipe-sstate-caches:
    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
 docker-build:
-  rules:
-    # skip if SKIP_CONTAINER_BUILD is set to true
-    - if: '$SKIP_CONTAINER_BUILD == "true"'
-      when: never
-    # only run this job when changes are made to the Dockerfile
-    - changes:
-      - Dockerfile
+  when: manual
   tags:
     - gp
   image:
