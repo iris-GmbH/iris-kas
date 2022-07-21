@@ -54,11 +54,11 @@
           export NO_SETSCENE="--no-setscene"
         fi
     build:
-      - echo "Building ${BUILD_TARGET}..."
+      - echo "Building ${BUILD_TARGETS}..."
       # build target images (-k is vital, so that we do not change the branch or config again during run)
       # this also means that the build config cannot change
       # long term it would be smarter to update the refspec within the yaml during change branch
-      - kas shell -k -c "bitbake ${NO_SETSCENE} ${BITBAKE_TASK} ${BUILD_TARGET}" ${MAIN_KAS_FILES}
+      - kas shell -k -c "bitbake ${NO_SETSCENE} ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}
   artifacts:
     develop-deploy-artifacts:
       paths:

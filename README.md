@@ -230,7 +230,7 @@ In advanced use cases, it might become necessary to call KAS directly, e.g. when
 
 In the case of a local KAS installation, this can be done by calling the `kas` binary directly, e.g.:
 
-`kas shell -c "bitbake foo" kas-irma6-pa.yml`.
+`kas shell -c "bitbake foo" kas-irma6-base-deploy.yml:kas-irma6-pa.yml`.
 
 When using the docker based setup, the following needs to be added as a prefix to the command ("[]" marks optional Variables):
 
