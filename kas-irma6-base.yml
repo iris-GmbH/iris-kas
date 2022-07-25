@@ -45,6 +45,9 @@ repos:
         path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
       0002-fixup-repo-fetcher:
         path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
+      0003-fix-cve-downloads:
+        path: "patches/0001-Fix-cve-download-problems.patch"
+
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
     refspec: "dunfell"
