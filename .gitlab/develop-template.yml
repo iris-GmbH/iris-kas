@@ -65,3 +65,8 @@
         - "${MULTI_CONF}-deploy.tar.gz"
       untracked: false
       expire_in: 7 days
+    develop-sdk-artifacts:
+      paths:
+        - "${MULTI_CONF}-sdk.tar.gz"
+      untracked: false
+      expire_in: 7 days
