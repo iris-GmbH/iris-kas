@@ -83,11 +83,7 @@ base-build:
     - !reference [.release_template, script, create-source-artifact]
     # verify reproducibility of offline build
     - !reference [.release_template, script, offline-build]
-  artifacts:
-    paths:
-      - "${MULTI_CONF}-base-sources.tar.gz"
-    untracked: false
-    expire_in: 20 yrs
+  artifacts: !reference [.release_template, artifacts, release-source-artifacts]
 
 # Build the actual release artifacts
 release-build:
@@ -101,10 +97,16 @@ release-build:
       - MULTI_CONF: [qemux86-64-r1]
         IMAGES: irma6-test
   script:
-    # set build target. If rel2 target build, build uuu files as well
+    # set build target. If rel2 target build, build uuu and swuimages, unless netboot img
     - >
       if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
-        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} mc:${MULTI_CONF}:${i}-uuu "; done)"
+        export BUILD_TARGET="$(for i in ${IMAGES}; do \
+          if [ "${i}" != "irma6-fitimage-netboot" ]; then \
+            echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
+          else \
+            echo -n "mc:${MULTI_CONF}:${i}"; \
+          fi; \
+        done)"
       else
         export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
       fi
@@ -153,11 +155,7 @@ release-build-sdk:
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
     - !reference [.common_template, script, create-sdk-artifact]
-  artifacts:
-    paths:
-      - "${MULTI_CONF}-sdk.tar.gz"
-    untracked: false
-    expire_in: 20 yrs
+  artifacts: !reference [.release_template, artifacts, release-sdk-artifacts]
 
 release-test-qemu:
   stage: test
@@ -200,11 +198,19 @@ develop-build-target:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
       IMAGES: "irma6-maintenance irma6-deploy irma6-dev"
+    - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
+      IMAGES: "irma6-fitimage-netboot"
   script:
-    # set build target. If rel2 target build, build uuu files as well
+    # set build target. If rel2 target build, build uuu and swuimages, unless netboot img
     - >
       if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
-        export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} mc:${MULTI_CONF}:${i}-uuu "; done)"
+      export BUILD_TARGET="$(for i in ${IMAGES}; do \
+        if [ "${i}" != "irma6-fitimage-netboot" ]; then \
+          echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
+        else \
+          echo -n "mc:${MULTI_CONF}:${i}"; \
+        fi; \
+        done)"
       else
         export BUILD_TARGET="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
       fi
@@ -251,11 +257,7 @@ develop-build-sdk:
     - !reference [.develop_template, script, build-configuration]
     - !reference [.develop_template, script, build]
     - !reference [.common_template, script, create-sdk-artifact]
-  artifacts:
-    paths:
-      - "${MULTI_CONF}-sdk.tar.gz"
-    untracked: false
-    expire_in: 7 days
+  artifacts: !reference [.develop_template, artifacts, develop-sdk-artifacts]
 
 develop-test-qemu:
   stage: test

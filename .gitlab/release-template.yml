@@ -56,8 +56,16 @@
       - echo "Attempting to build ${BUILD_TARGET} offline..."
       - kas shell -c "bitbake ${BITBAKE_TASK} ${BUILD_TARGET}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml:include/kas-offline-build.yml
   artifacts:
+    release-source-artifacts:
+      paths:
+        - "${MULTI_CONF}-base-sources.tar.gz"
+      untracked: false
+      expire_in: 20 yrs
     release-deploy-artifacts:
       paths:
         - "${MULTI_CONF}-deploy.tar.gz"
       untracked: false
       expire_in: 20 yrs
+    release-sdk-artifacts:
+      paths:
+        - "${MULTI_CONF}-sdk.tar.gz"
