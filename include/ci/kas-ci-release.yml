@@ -19,10 +19,11 @@ local_conf_header:
     SWUPDATE_CMS_KEY = "/vault/secrets/swupdate/swupdate-signing-key.pem"
     SWUPDATE_AES_FILE = "/vault/secrets/swupdate/swupdate-encryption.key"
 
-  # Roothash Signing keys
-    ROOTHASH_SIGNING_PRIVATE_KEY ?= "/vault/secrets/roothash/private.pem"
-    ROOTHASH_SIGNING_PUBLIC_KEY ?= "/vault/secrets/roothash/public.pem"
-    ROOTHASH_DM_VERITY_SALT ?= "/vault/secrets/roothash/salt.txt"
+  # override roothash develop keys with production keys for release
+  roothash_signing: |
+    ROOTHASH_SIGNING_PRIVATE_KEY = "/vault/secrets/roothash/private.pem"
+    ROOTHASH_SIGNING_PUBLIC_KEY = "/vault/secrets/roothash/public.pem"
+    ROOTHASH_DM_VERITY_SALT = "/vault/secrets/roothash/salt.txt"
 
   # override secureboot hab dir for release
   hab_signing: |
