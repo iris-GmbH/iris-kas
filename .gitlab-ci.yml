@@ -197,6 +197,8 @@ develop-build-target:
       when: never 
     - !reference [.develop_template, rules]
   stage: build
+  tags:
+    - iris-kas-release
   parallel:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]

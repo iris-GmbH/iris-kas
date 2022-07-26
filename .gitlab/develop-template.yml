@@ -35,11 +35,11 @@
           echo "Populating caches..."
           export POPULATE_CACHES=":include/ci/kas-ci-populate-caches.yml"
         fi
-      - kas checkout --update ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-develop.yml${POPULATE_CACHES}
+      - kas checkout --update ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml${POPULATE_CACHES}
       # try to checkout the current branch name (feature/bugfix/...) in all iris meta layers. This makes working with multiple repositories easier for the developers
       - >
         if [ "${BRANCH_NAME}" != "${CI_DEFAULT_BRANCH}" ] && [ "${BRANCH_NAME}" != "${RELEASE_BRANCH}" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
-          kas for-all-repos --update ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-develop.yml${POPULATE_CACHES} """
+          kas for-all-repos --update ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml${POPULATE_CACHES} """
             if echo \${KAS_REPO_NAME} | grep -qE '.*iris.*'; then
               echo \"Trying to checkout ${BRANCH_NAME} in \${KAS_REPO_NAME}\";
               git checkout ${BRANCH_NAME} 2>/dev/null \
