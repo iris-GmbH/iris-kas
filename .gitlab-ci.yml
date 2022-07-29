@@ -181,6 +181,8 @@ release-build-deploy-distros:
     matrix:
       - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-deploy"
+  variables:
+    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml"
   script:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
