@@ -319,9 +319,11 @@ develop-test-qemu:
 
 wipe-sstate-caches:
   stage: wipe
+  rules:
+    - !reference [.develop_template, rules]
   when: manual
   script:
-   - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
 docker-build:
   when: manual
