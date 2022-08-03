@@ -9,24 +9,17 @@
     # 1.0.1, 1.0.1-RC1, 1.0.1-support-release
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+(-.+)?/'
   script:
-    verify-fixed-refspecs:
-      # Having fixed refspecs set for the layer repositories is vital for build reproducibility.
-      - echo "Making sure fixed refspecs are set..."
-      - >
-        kas for-all-repos --update ${MAIN_KAS_FILES} """
-        if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
-          git checkout \${KAS_REPO_REFSPEC} \
-          && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
-          || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
-        """
-    populate-dl-cache:
-      # populate the download mirror for later use within ci builds
+
+    # This script populates the download cache in preparation of a release build.
+    # This will ensure that sources are available for following, parallelized build steps.
+    populate-dl-cache: # required vars: BUILD_TARGETS, MAIN_KAS_FILES
       - echo "Populating the download mirror..."
-      - kas shell -c "bitbake ${BUILD_TARGET} --runonly=fetch" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-populate-release-caches.yml
-    populate-dl-dir:
+      - kas shell -c "bitbake ${BUILD_TARGETS} --runonly=fetch" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-populate-release-caches.yml
+    
+    populate-dl-dir: # required vars: BUILD_TARGETS, MAIN_KAS_FILES, MULTI_CONF
       # populate the dl dir for offline build. Make use of the download mirror
       - echo "Populating the download folder for offline build..."
-      - kas shell -c "bitbake ${BUILD_TARGET} --runonly=fetch --force" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-download-mirror.yml:include/ci/kas-ci-release-generate-tarballs.yml
+      - kas shell -c "bitbake ${BUILD_TARGETS} --runonly=fetch --force" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-download-mirror.yml:include/ci/kas-ci-release-generate-tarballs.yml
       # replace softlinks to download-mirror with hard copies
       - > 
         for f in $(find build/dl_dir -type l); do
@@ -42,22 +35,33 @@
         done
       # remove temporary files
       - rm -rf build/tmp build/dl_dir/git2/*
-    create-source-artifact:
+
+    create-source-artifact: # required vars: MULTI_CONF
       # ensure all write operations are finished (might lead to deferred deletion otherwise)
       - sync
       # create an archive containing the complete build environment while preserving file permissions for reproducibility purpose
       - touch ${MULTI_CONF}-base-sources.tar.gz
       - tar -I "gzip --best" --exclude=${MULTI_CONF}-base-sources.tar.gz -cf ${MULTI_CONF}-base-sources.tar.gz .
-    # TODO: make the complete firmware offline reproducible. See DEVOPS-458
-    build:
-      - echo "Building ${BUILD_TARGET}..."
-      - kas shell -c "bitbake ${BITBAKE_TASK} ${BUILD_TARGET}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml
-    offline-build:
-      - echo "Attempting to build ${BUILD_TARGET} offline..."
-      - kas shell -c "bitbake ${BITBAKE_TASK} ${BUILD_TARGET}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml:include/kas-offline-build.yml
+
+    build: # required vars: BUILD_TARGETS, MAIN_KAS_FILES, MULTI_CONF. opt. vars: BITBAKE_TASK
+      - echo "Building ${BUILD_TARGETS}..."
+      - kas shell -c "bitbake ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml
+
+    offline-build: # required vars: BUILD_TARGETS, MAIN_KAS_FILES, MULTI_CONF. opt. vars: BITBAKE_TASK
+      # TODO: make the complete firmware offline reproducible. See DEVOPS-458
+      - echo "Attempting to build ${BUILD_TARGETS} offline..."
+      - kas shell -c "bitbake ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml:include/kas-offline-build.yml
   artifacts:
+    release-source-artifacts:
+      paths:
+        - "${MULTI_CONF}-base-sources.tar.gz"
+      untracked: false
+      expire_in: 20 yrs
     release-deploy-artifacts:
       paths:
         - "${MULTI_CONF}-deploy.tar.gz"
       untracked: false
       expire_in: 20 yrs
+    release-sdk-artifacts:
+      paths:
+        - "${MULTI_CONF}-sdk.tar.gz"

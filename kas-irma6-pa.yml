@@ -4,8 +4,6 @@
 # this config adds the necessary layers for building the propriatary platform-application
 header:
   version: 9
-  includes:
-    - "kas-irma6-base.yml"
 
 repos:
   meta-iris:

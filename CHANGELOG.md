@@ -11,10 +11,15 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 - [RDPHOEN-1067] Added R2 build to cloud Jenkins
 - [RDPHOEN-1122] Add development keys/certs for further development of Secure Boot
 - [DEVOPS-446] Introduce GitLab CI/CD config
+- [DEVOPS-522] Add signing of swupdate packages for R2 releases
+- [DEVOPS-548] Add signing of roothashes for R2 releases
+- [DEVOPS-542] Add HAB signing for R2 releases
 
 
 ### Changed
 - [DEVOPS-519] Move basic config from local.conf to distro.conf in meta-iris
+- [DEVOPS-531] Split distro configs into deploy and maintenance
+
 
 ### Deprecated
 
