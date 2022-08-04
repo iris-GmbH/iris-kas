@@ -119,7 +119,7 @@ start-release: git-flow
 start-support: git-flow
 	@[ -n "${TAG}" ] || { echo "Error: Please specify the TAG variable. e.g. support/2.2.2-foo" >&2; exit 1; }
 	@[ -n "${BASE_COMMIT}" ] || { echo "Error: Please specify the BASE_COMMIT variable. This is a commit on the master branch from which the support release shall be created." >&2; exit 1; }
-	git flow support start --showcommands ${TAG} ${BASE_COMMIT}}
+	git flow support start --showcommands ${TAG} ${BASE_COMMIT}
 	@echo "Info: Setting fixed refspecs on layer repos for you..."
 	${KAS_COMMAND} for-all-repos --update kas-irma6-pa.yml 'if echo "$${KAS_REPO_NAME}" | grep -vq "iris" && [ "$${KAS_REPO_NAME}" != "this" ]; then git checkout $${KAS_REPO_REFSPEC} && yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git rev-parse --verify HEAD)\"" -i ../${DEPLOY_BASE_KAS_CONFIG}; fi'
 	git add -A
