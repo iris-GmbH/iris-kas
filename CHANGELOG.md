@@ -14,6 +14,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 - [DEVOPS-522] Add signing of swupdate packages for R2 releases
 - [DEVOPS-548] Add signing of roothashes for R2 releases
 - [DEVOPS-542] Add HAB signing for R2 releases
+- [RD-1240] Add makefile option for setting fixed refspecs on thirdparty meta layers
 
 
 ### Changed
@@ -30,6 +31,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 
 
 ### Fixed
+- Fix makefile commands for support release and setting fixed refspecs (during release)
 
 
 ### Simulation only
