@@ -3,7 +3,6 @@
 #
 #
 # The KAS base configuration file for the irma6
-
 header:
   version: 9
   includes:
@@ -27,14 +26,14 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "8e1afefa82bfd9ad518602c73431422ba007f6bc"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "dunfell"
+    refspec: "cb2abda7237bfc0921fdd1a6424ce1178f610412"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "dunfell"
+    refspec: "d695bd0d3dc66f2111a25c6922f617be2d991071"
     layers:
       meta:
       meta-poky:
@@ -45,7 +44,7 @@ repos:
         path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "dunfell"
+    refspec: "52cee67833d1975a5bd52e4556c4cd312425a017"
     layers:
       meta-oe:
       meta-python:
@@ -56,22 +55,21 @@ repos:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
-    refspec: "dunfell"
+    refspec: "cd2e0d0625385ca821aa5129d20805640ac80734"
     layers:
       meta-ros-backports-gatesgarth:
       meta-ros-backports-hardknott:
       meta-ros-common:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "dunfell"
+    refspec: "ee778009c33f11c41141b58db57790865f8d2e0e"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    refspec: "dunfell"
-
+    refspec: "639cd0d947e830a638c250061a6a40705f758d3b"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    refspec: "release/yocto-1.0.0"
+    refspec: "ad2203c11723b07727589a8eebe33f3129cc236a"
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
@@ -79,13 +77,13 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "dunfell"
+    refspec: "c4347b507c2ba0d7eb3917303f83631244bf5048"
     patches:
       0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "dunfell"
+    refspec: "88773cbb6367496b1a2ddca683afcd352be3cd58"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    refspec: "dunfell"
+    refspec: "5d882cdf079b3bde0bd9869ce3ca3db411acbf3b"
