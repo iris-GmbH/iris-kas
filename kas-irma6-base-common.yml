@@ -26,7 +26,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "8e1afefa82bfd9ad518602c73431422ba007f6bc"
+    refspec: "9031e058135e29fc5841be1c4f5f1aa831104990"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "cb2abda7237bfc0921fdd1a6424ce1178f610412"
