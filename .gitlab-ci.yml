@@ -55,12 +55,12 @@ default:
 
 # List of stages for jobs, and their order of execution
 stages:
+  - wipe
   - setup
   - build-base
   - build
   - build-deploy-distros
   - test
-  - wipe
 
 # Ensures that fixed refspecs are set for all meta-layers.
 # This is vital for build reproducibility.
