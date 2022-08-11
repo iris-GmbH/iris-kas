@@ -17,7 +17,7 @@
     - [Run interactive QEMU VM](#run-interactive-qemu-vm)
     - [Update all repos](#update-all-repos)
     - [Force update all repos](#force-update-all-repos)
-    - [Set a firmware tag](#set-a-firmware-tag)
+    - [Version pinning for thirdparty layer repositories](#version-pinning-for-thirdparty-layer-repositories)
     - [Prepare a firmware release](#prepare-a-firmware-release)
     - [Prepare a firmware support release](#prepare-a-firmware-support-release)
     - [Cleanup all artifacts](#cleanup-all-artifacts)
@@ -153,9 +153,9 @@ Commands:
 - `[ENV_VARS] make force-pull`
 
 
-### Set a firmware tag
+### Version pinning for thirdparty layer repositories
 
-*Will set and commit fixed refspecs in the thirdparty layer repos file (kas-irma6-base-common.yml) for "tagging" a firmware containing a not committed branch*
+*Will automatically set fixed commit hashes for thirdparty layer repos in kas-irma6-base-common.yml. Useful for temporary version pinning of the base software*
 
 Required variables:
 - None
