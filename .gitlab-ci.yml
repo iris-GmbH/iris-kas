@@ -61,7 +61,6 @@ stages:
   - setup
   - build-base
   - build
-  - build-deploy-distros
   - test
 
 # Ensures that fixed refspecs are set for all meta-layers.
@@ -178,7 +177,7 @@ release-build-sdk:
 release-build-deploy-distros:
   rules:
     - !reference [.release_template, rules]
-  stage: build-deploy-distros
+  stage: build
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
@@ -290,7 +289,7 @@ develop-build-deploy-distro-targets:
     - if: '$SKIP_DEPLOY_TARGET_BUILD == "true"'
       when: never 
     - !reference [.develop_template, rules]
-  stage: build-deploy-distros
+  stage: build
   parallel:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
