@@ -17,6 +17,7 @@
     - [Run interactive QEMU VM](#run-interactive-qemu-vm)
     - [Update all repos](#update-all-repos)
     - [Force update all repos](#force-update-all-repos)
+    - [Set a firmware tag](#set-a-firmware-tag)
     - [Prepare a firmware release](#prepare-a-firmware-release)
     - [Prepare a firmware support release](#prepare-a-firmware-support-release)
     - [Cleanup all artifacts](#cleanup-all-artifacts)
@@ -150,6 +151,20 @@ Additional, optional variable overrides:
 
 Commands:
 - `[ENV_VARS] make force-pull`
+
+
+### Set a firmware tag
+
+*Will set and commit fixed refspecs in the thirdparty layer repos file (kas-irma6-base-common.yml) for "tagging" a firmware containing a not committed branch*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make set-fixed-refspecs`
 
 
 ### Prepare a firmware release
