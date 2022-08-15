@@ -20,7 +20,6 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 ### Changed
 - [DEVOPS-519] Move basic config from local.conf to distro.conf in meta-iris
 - [DEVOPS-531] Split distro configs into deploy and maintenance
-- [DEVOPS-553] Use rw caches not only on develop branch. Workaround for long CI runs.
 
 
 ### Deprecated

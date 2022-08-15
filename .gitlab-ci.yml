@@ -15,8 +15,6 @@ variables:
   SSTATE_CACHE: "/mnt/yocto-sstate-cache"
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
-  # force populating caches as workaround for https://jira.iris-sensing.net/browse/DEVOPS-553
-  FORCE_POPULATE_CACHES: "true"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
