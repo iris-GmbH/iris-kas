@@ -15,6 +15,7 @@ variables:
   SSTATE_CACHE: "/mnt/yocto-sstate-cache"
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
+  ICECREAM_NETNAME: "ICECREAM"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -100,6 +101,8 @@ release-base-build:
         IMAGES: "irma6-base"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
@@ -122,6 +125,8 @@ release-build-maintenance-distros:
       - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
@@ -140,6 +145,8 @@ release-build-qemu:
       - MULTI_CONF: [qemux86-64-r1]
         IMAGES: irma6-test
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
@@ -163,6 +170,8 @@ release-build-sdk:
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
     BITBAKE_TASK: "-c populate_sdk"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-dir]
@@ -182,6 +191,8 @@ release-build-deploy-distros:
         IMAGES: "irma6-deploy"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
@@ -233,6 +244,8 @@ develop-build-maintenance-distro-targets:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
       MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
       IMAGES: "irma6-maintenance irma6-dev"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.develop_template, script, build-configuration]
@@ -252,6 +265,8 @@ develop-build-qemu:
     - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
       IMAGES: irma6-test
       MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.develop_template, script, build-configuration]
@@ -274,6 +289,8 @@ develop-build-sdk:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
       IMAGES: "irma6-maintenance irma6-dev"
       MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.develop_template, script, build-configuration]
@@ -292,6 +309,8 @@ develop-build-deploy-distro-targets:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
       IMAGES: "irma6-deploy"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.develop_template, script, build-configuration]

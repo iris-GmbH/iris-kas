@@ -11,4 +11,3 @@ local_conf_header:
     PRSERV_HOST = "yocto-prservice.yocto-prservice:8585"
   icecc: |
     INHERIT += "icecc"
-    ICECC_PREFERRED_HOST = "iris-devops-icecc-scheduler-headless"

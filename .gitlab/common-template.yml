@@ -30,3 +30,7 @@
         fi
     generate-build-targets-other:
         export BUILD_TARGETS="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+  services:
+    icecc-daemon:
+      - name: $BUILD_IMAGE
+        command: ["/usr/bin/icecc", "-vvv", "-s iris-devops-icecc-scheduler-headless", "-n $ICECREAM_NETNAME", "-l /dev/stdout"]
