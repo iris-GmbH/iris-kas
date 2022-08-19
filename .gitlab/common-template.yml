@@ -33,4 +33,4 @@
   services:
     icecc-daemon:
       - name: $BUILD_IMAGE
-        command: ["/usr/bin/icecc", "-vvv", "-s iris-devops-icecc-scheduler-headless", "-n $ICECREAM_NETNAME", "-l /dev/stdout"]
+        entrypoint: ["/usr/bin/icecc", "-vvv", "-s iris-devops-icecc-scheduler-headless", "-n $ICECREAM_NETNAME", "-l /dev/stdout"]
