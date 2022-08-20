@@ -50,6 +50,7 @@
         fi
     build:
       - echo "Building ${BUILD_TARGETS}..."
+      - date +%d.%m.%YT%H:%M:%S.%NZ
       - kas shell -c "bitbake ${NO_SETSCENE} -S printdiff ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-develop.yml${POPULATE_CACHES}
       # build target images
       - kas shell -c "bitbake ${NO_SETSCENE} ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-develop.yml${POPULATE_CACHES}
