@@ -5,11 +5,6 @@ SSH_DIR 		?= ~/.ssh
 RELEASE 		?= r1
 KAS_COMMAND 	?= USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) SSH_DIR=$(SSH_DIR) docker-compose run --service-ports --rm kas
 
-IMAGE_REGISTRY 	?= 693612562064.dkr.ecr.eu-central-1.amazonaws.com
-IMAGE_NAME 		?= kas
-# adjust on image build
-IMAGE_TAG 		= 2.6.1
-
 USER_ID 		= $(shell id -u)
 GROUP_ID 		= $(shell id -g)
 MAKEFILE_PATH 	= $(abspath $(lastword ${MAKEFILE_LIST}))
@@ -24,12 +19,6 @@ build: build-${RELEASE}
 
 update-toc: ## Updates the README table of contents
 	doctoc --github --title "**Table of Contents**" README.md
-
-docker-login:
-	aws-vault exec -n iris-devops -- aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
-
-build-and-push-image: docker-login
-	docker buildx build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} --platform linux/amd64,linux/arm64 --build-arg type=ci --push ${MAKEFILE_DIR}
 
 clean:
 	${KAS_COMMAND} shell -c 'rm -rf $${BUILDDIR}' kas-irma6-base-common.yml
