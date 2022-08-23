@@ -17,6 +17,7 @@
     - [Run interactive QEMU VM](#run-interactive-qemu-vm)
     - [Update all repos](#update-all-repos)
     - [Force update all repos](#force-update-all-repos)
+    - [Version pinning for thirdparty layer repositories](#version-pinning-for-thirdparty-layer-repositories)
     - [Prepare a firmware release](#prepare-a-firmware-release)
     - [Prepare a firmware support release](#prepare-a-firmware-support-release)
     - [Cleanup all artifacts](#cleanup-all-artifacts)
@@ -150,6 +151,20 @@ Additional, optional variable overrides:
 
 Commands:
 - `[ENV_VARS] make force-pull`
+
+
+### Version pinning for thirdparty layer repositories
+
+*Will automatically set fixed commit hashes for thirdparty layer repos in kas-irma6-base-common.yml. Useful for temporary version pinning of the base software*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make set-fixed-refspecs`
 
 
 ### Prepare a firmware release
