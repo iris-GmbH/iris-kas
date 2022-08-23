@@ -11,3 +11,4 @@ local_conf_header:
     PRSERV_HOST = "yocto-prservice.yocto-prservice:8585"
   icecc: |
     INHERIT += "icecc"
+    ICECC_USER_PACKAGE_BL += "pango"
