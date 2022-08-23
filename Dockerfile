@@ -37,6 +37,7 @@ RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
         icecc \
+        patchelf \
     && rm -rf /var/lib/apt/lists
 # GitLab (and some other CI systems) override the entrypoint.
 # As a result, a non-privileged user needs to be added manually.
