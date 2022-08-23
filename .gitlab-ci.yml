@@ -35,14 +35,14 @@ variables:
     value: "false"
     description: 'Set to "true" to skip the QEMU tests.'
   SKIP_CONTAINER_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip building the iris-kas container.'
+    value: "true"
+    description: 'Set to "false" to build the iris-kas container on this branch. If the branch is not the default branch (develop), the image will be tagged with the commit SHA hash.'
   BUILD_FROM_SCRATCH:
     value: "false"
     description: 'Set to "true" to build from scratch.'
   BUILD_IMAGE:
     value: "${CI_REGISTRY_IMAGE}:latest"
-    description: "Optionally override of the build image."
+    description: "Optionally override of the build image (e.g. useful for using the image built in the container-build stage. Use commit SHA hash as tag)."
 
 # default config for all jobs
 default:
@@ -56,11 +56,52 @@ default:
 
 # List of stages for jobs, and their order of execution
 stages:
+  - container-build
   - wipe
   - setup
   - build-base
   - build
   - test
+
+container-build:
+  rules:
+    # skip container image build when SKIP_CONTAINER_BUILD is true
+    - if: '$SKIP_CONTAINER_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  tags:
+    - gp
+  image:
+    # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
+    name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
+    entrypoint: [""]
+  stage: container-build
+  before_script:
+    # Default branch = latest tag
+    # All other branches are tagged with the currently built commit SHA hash
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        tag="latest"
+        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+      else
+        tag="$CI_COMMIT_SHA"
+        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
+      fi
+  script:
+    - >-
+      /kaniko/executor
+      --build-arg "type=ci"
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${tag}"
+
+wipe-sstate-caches:
+  stage: wipe
+  rules:
+    - !reference [.develop_template, rules]
+  when: manual
+  script:
+    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
 # Ensures that fixed refspecs are set for all meta-layers.
 # This is vital for build reproducibility.
@@ -336,39 +377,3 @@ develop-test-qemu:
   parallel: !reference [.test_qemu_template, parallel]
   script: !reference [.test_qemu_template, script]
   artifacts: !reference [.test_qemu_template, artifacts]
-
-wipe-sstate-caches:
-  stage: wipe
-  rules:
-    - !reference [.develop_template, rules]
-  when: manual
-  script:
-    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
-
-docker-build:
-  when: manual
-  tags:
-    - gp
-  image:
-    # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
-    name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
-    entrypoint: [""]
-  stage: build
-  before_script:
-    # Default branch = latest tag
-    # All other branches are tagged with the escaped branch name (commit ref slug)
-    - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        tag="latest"
-        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
-      else
-        tag="$CI_COMMIT_REF_SLUG"
-        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
-      fi
-  script:
-    - >-
-      /kaniko/executor
-      --build-arg "type=ci"
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${tag}"
