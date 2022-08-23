@@ -33,6 +33,11 @@ COPY --from=builder /yq/yq /usr/bin/yq
 COPY --from=builder /repo/repo /usr/bin/repo
 
 FROM base as ci
+RUN set -ex \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+        icecc \
+    && rm -rf /var/lib/apt/lists
 # GitLab (and some other CI systems) override the entrypoint.
 # As a result, a non-privileged user needs to be added manually.
 RUN set -ex \
