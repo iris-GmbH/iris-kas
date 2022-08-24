@@ -23,10 +23,10 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "2.0.5"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "dunfell"
+    refspec: "cb2abda7237bfc0921fdd1a6424ce1178f610412"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
