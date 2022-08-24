@@ -172,9 +172,6 @@ release-base-build:
 release-build-maintenance-distros:
   rules:
     - !reference [.release_template, rules]
-  tags:
-    # build on release runner
-    - iris-kas-release
   stage: build
   parallel:
     matrix:
@@ -241,6 +238,9 @@ release-build-deploy-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  tags:
+    # build on release runner
+    - iris-kas-release
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
