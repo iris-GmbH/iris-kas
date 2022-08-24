@@ -16,6 +16,7 @@ variables:
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   ICECREAM_NETNAME: "ICECREAM"
+  RUN_MAINTENANCE: "false"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -102,6 +103,20 @@ wipe-sstate-caches:
   when: manual
   script:
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+
+# In certain circumstances a mirror item may fail due to invalid checksums.
+# Unfortunately, yocto does not clear these away automatically,
+# which in the worst case may lead to longer build times.
+download-mirror-maintenance:
+  stage: setup
+  rules:
+    - if: '$RUN_MAINTENANCE == "false"'
+      when: never
+    - !reference [.develop_template, rules]
+  script:
+    - echo "Finding and deleting faulty mirror items..."
+    - find "${DOWNLOAD_MIRROR}" -name '*bad-checksum*' -exec sh -c 'echo "Found faulty mirror item {}. Deleting..."; rm -f {} $(echo {} | sed -r "s/_bad-checksum.*/.done/g")' \;
+    - echo "Done"
 
 # Ensures that fixed refspecs are set for all meta-layers.
 # This is vital for build reproducibility.
