@@ -172,9 +172,6 @@ release-base-build:
 release-build-maintenance-distros:
   rules:
     - !reference [.release_template, rules]
-  tags:
-    # build on release runner
-    - iris-kas-release
   stage: build
   parallel:
     matrix:
@@ -216,16 +213,13 @@ release-build-sdk:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  variables:
+    BITBAKE_TASK: "-c populate_sdk"
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
-        SDK_IMAGE: irma6-maintenance
+        IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-      - MULTI_CONF: [qemux86-64-r1]
-        SDK_IMAGE: irma6-test
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    BITBAKE_TASK: "-c populate_sdk"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -241,6 +235,9 @@ release-build-deploy-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  tags:
+    # build on release runner
+    - iris-kas-release
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
@@ -338,12 +335,11 @@ develop-build-sdk:
     - !reference [.develop_template, rules]
   stage: build
   variables:
-    SDK_IMAGE: irma6-maintenance
     BITBAKE_TASK: "-c populate_sdk"
   parallel:
     matrix:
     - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-maintenance irma6-dev"
+      IMAGES: "irma6-maintenance"
       MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
     - !reference [.common_template, services, icecc-daemon]
