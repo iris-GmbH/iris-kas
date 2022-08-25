@@ -54,13 +54,6 @@ repos:
     patches:
       0001-add-repo-recipe:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
-  meta-ros: # provides yaml-cpp
-    url: "https://github.com/ros/meta-ros.git"
-    refspec: "dunfell"
-    layers:
-      meta-ros-backports-gatesgarth:
-      meta-ros-backports-hardknott:
-      meta-ros-common:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     refspec: "dunfell"
