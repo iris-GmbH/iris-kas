@@ -153,7 +153,7 @@ release-base-build:
   stage: build-base
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-base"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
@@ -175,7 +175,7 @@ release-build-maintenance-distros:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
       - MULTI_CONF: [imx8mp-irma6r2]
@@ -198,7 +198,7 @@ release-build-qemu:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [qemux86-64-r1]
+      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
         IMAGES: irma6-test
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
@@ -220,7 +220,7 @@ release-build-sdk:
     BITBAKE_TASK: "-c populate_sdk"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
@@ -243,7 +243,7 @@ release-build-deploy-distros:
     - iris-kas-release
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-deploy"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml"
