@@ -29,10 +29,14 @@
             link="$(readlink "$(basename $f)")"
             # remove target file beforehand, in case this links to directory. Otherwise this will not work
             rm "$(basename $f)"
-            cp -r "${link}" "$(basename $f)"
+            echo "copying ${link} to $(basename $f)"
+            cp -rp "${link}" "$(basename $f)"
             cd - >/dev/null
           fi
         done
+      # copy uninative binary shim from mirror into dl dir
+      - echo "copying /mnt/yocto-download-mirror/uninative/ to build/dl_dir/uninative"
+      - cp -rp /mnt/yocto-download-mirror/uninative/ build/dl_dir/uninative
       # remove temporary files
       - rm -rf build/tmp build/dl_dir/git2/*
 
@@ -42,6 +46,7 @@
       # create an archive containing the complete build environment while preserving file permissions for reproducibility purpose
       - touch ${MULTI_CONF}-base-sources.tar.gz
       - tar -I "gzip --best" --exclude=${MULTI_CONF}-base-sources.tar.gz -cf ${MULTI_CONF}-base-sources.tar.gz .
+      - echo "${MULTI_CONF}-base-sources.tar.gz is $(echo -n $(ls -lh ${MULTI_CONF}-base-sources.tar.gz | awk '{print $5}')) in size."
 
     build: # required vars: BUILD_TARGETS, MAIN_KAS_FILES, MULTI_CONF. opt. vars: BITBAKE_TASK
       - echo "Building ${BUILD_TARGETS}..."
