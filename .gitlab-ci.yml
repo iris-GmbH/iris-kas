@@ -178,6 +178,9 @@ release-build-maintenance-distros:
       - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+      - MULTI_CONF: [imx8mp-irma6r2]
+        IMAGES: "irma6-fitimage-netboot"
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -294,9 +297,12 @@ develop-build-maintenance-distro-targets:
   stage: build
   parallel:
     matrix:
-    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-      IMAGES: "irma6-maintenance irma6-dev"
+      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+        IMAGES: "irma6-maintenance irma6-dev"
+      - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
+        IMAGES: "irma6-fitimage-netboot"
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -315,9 +321,9 @@ develop-build-qemu:
   stage: build
   parallel:
     matrix:
-    - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
-      IMAGES: irma6-test
-      MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+        IMAGES: irma6-test
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -338,9 +344,9 @@ develop-build-sdk:
     BITBAKE_TASK: "-c populate_sdk"
   parallel:
     matrix:
-    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-maintenance"
-      MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+        IMAGES: "irma6-maintenance"
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -359,8 +365,8 @@ develop-build-deploy-distro-targets:
   stage: build
   parallel:
     matrix:
-    - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-      IMAGES: "irma6-deploy"
+      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+        IMAGES: "irma6-deploy"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
