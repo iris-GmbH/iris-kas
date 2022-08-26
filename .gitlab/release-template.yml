@@ -29,7 +29,7 @@
             link="$(readlink "$(basename $f)")"
             # remove target file beforehand, in case this links to directory. Otherwise this will not work
             rm "$(basename $f)"
-            echo "copying ${link} to $(basename $f)"
+            echo "copying ${link} to build/dl_dir/$(basename $f)"
             cp -rp "${link}" "$(basename $f)"
             cd - >/dev/null
           fi
