@@ -96,6 +96,24 @@ container-build:
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${tag}"
 
+release-container-build:
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - gp
+  image:
+    # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
+    name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
+    entrypoint: [""]
+  stage: container-build
+  script:
+    - >-
+      /kaniko/executor
+      --build-arg "type=ci"
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+
 wipe-sstate-caches:
   stage: wipe
   rules:
@@ -124,6 +142,7 @@ release-verify-fixed-refspecs:
   rules:
     - !reference [.release_template, rules]
   stage: setup
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     - echo "Ensuring that fixed refspecs are set..."
     - >
@@ -140,6 +159,7 @@ release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
   stage: setup
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
@@ -151,6 +171,7 @@ release-base-build:
   rules:
     - !reference [.release_template, rules]
   stage: build-base
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   tags:
     - iris-kas-release-s3-upload
   parallel:
@@ -181,6 +202,7 @@ release-build-maintenance-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6]
@@ -203,6 +225,7 @@ release-build-qemu:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
       - MULTI_CONF: [qemux86-64-r1]
@@ -222,6 +245,7 @@ release-build-sdk:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   variables:
     BITBAKE_TASK: "-c populate_sdk"
   parallel:
@@ -244,6 +268,7 @@ release-build-deploy-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   tags:
     # build on release runner
     - iris-kas-release
@@ -271,6 +296,7 @@ release-test-qemu:
     - "release-build-qemu"
   dependencies:
     - "release-build-qemu"
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # present in openembedded-core and this can speed up the parsing
@@ -283,6 +309,7 @@ release-sync-sstate-cache:
   stage: wipe
   rules:
     - !reference [.release_template, rules]
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     # don't overwrite develop sstate_cache during support release and RC tags
     - >
