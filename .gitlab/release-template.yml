@@ -40,13 +40,13 @@
       # remove temporary files
       - rm -rf build/tmp build/dl_dir/git2/*
 
-    create-source-artifact: # required vars: MULTI_CONF
+    # creates an artifact archive from the current folder
+    create-artifact-archive: # required vars: ARTIFACT_NAME
       # ensure all write operations are finished (might lead to deferred deletion otherwise)
       - sync
-      # create an archive containing the complete build environment while preserving file permissions for reproducibility purpose
-      - touch ${MULTI_CONF}-base-sources.tar.gz
-      - tar -I "gzip --best" --exclude=${MULTI_CONF}-base-sources.tar.gz -cf ${MULTI_CONF}-base-sources.tar.gz .
-      - echo "${MULTI_CONF}-base-sources.tar.gz is $(echo -n $(ls -lh ${MULTI_CONF}-base-sources.tar.gz | awk '{print $5}')) in size."
+      - touch ${ARTIFACT_NAME}.tar.gz
+      - tar -I "gzip --best" --exclude=${ARTIFACT_NAME}.tar.gz -cf ${ARTIFACT_NAME}.tar.gz .
+      - echo "${ARTIFACT_NAME}.tar.gz is $(echo -n $(ls -lh ${ARTIFACT_NAME}.tar.gz | awk '{print $5}')) in size."
 
     build: # required vars: BUILD_TARGETS, MAIN_KAS_FILES, MULTI_CONF. opt. vars: BITBAKE_TASK
       - echo "Building ${BUILD_TARGETS}..."
@@ -56,12 +56,10 @@
       # TODO: make the complete firmware offline reproducible. See DEVOPS-458
       - echo "Attempting to build ${BUILD_TARGETS} offline..."
       - kas shell -c "bitbake ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml:include/kas-offline-build.yml
+    # uploads the source files to the appropriate s3 bucket
+    s3-upload-sources: # required vars: ARTIFACT_NAME, S3_BUCKET_NAME, S3_STORAGE_CLASS S3_ACL, optional vars: S3_PATH_PREFIX
+      - aws s3 cp ${ARTIFACT_NAME}.tar.gz s3://${S3_BUCKET_NAME}/${S3_PATH_PREFIX}${ARTIFACT_NAME}.tar.gz --storage-class ${S3_STORAGE_CLASS} --acl ${S3_ACL}
   artifacts:
-    release-source-artifacts:
-      paths:
-        - "${MULTI_CONF}-base-sources.tar.gz"
-      untracked: false
-      expire_in: 20 yrs
     release-deploy-artifacts:
       paths:
         - "${MULTI_CONF}-deploy.tar.gz"
@@ -70,3 +68,5 @@
     release-sdk-artifacts:
       paths:
         - "${MULTI_CONF}-sdk.tar.gz"
+      untracked: false
+      expire_in: 20 yrs

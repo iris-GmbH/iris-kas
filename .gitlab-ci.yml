@@ -63,6 +63,7 @@ stages:
   - build-base
   - build
   - test
+  - sync-sstate-cache
 
 container-build:
   rules:
@@ -139,7 +140,8 @@ release-verify-fixed-refspecs:
 release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
-  stage: setup
+  stage: wipe
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
@@ -151,22 +153,30 @@ release-base-build:
   rules:
     - !reference [.release_template, rules]
   stage: build-base
+  tags:
+    - iris-kas-release-s3-upload
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-base"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
+    S3_BUCKET_NAME: "iris-devops-opensource-iris-sensing-com"
+    S3_PATH_PREFIX: "sources/${CI_COMMIT_TAG}/"
+    S3_STORAGE_CLASS: "STANDARD_IA"
+    S3_ACL: "public-read"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, create-source-artifact]
+    - ARTIFACT_NAME="${MULTI_CONF}-base-sources"
+    - !reference [.release_template, script, create-artifact-archive]
     # verify reproducibility of offline build
     - !reference [.release_template, script, offline-build]
-  artifacts: !reference [.release_template, artifacts, release-source-artifacts]
+    # upload base sources to public s3 bucket
+    - !reference [.release_template, script, s3-upload-sources]
 
 # Build the maintenance release artifacts
 release-build-maintenance-distros:
@@ -187,7 +197,6 @@ release-build-maintenance-distros:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, create-source-artifact]
     - !reference [.release_template, script, build]
     - !reference [.common_template, script, create-deploy-artifact]
   artifacts: !reference [.release_template, artifacts, release-deploy-artifacts]
@@ -207,7 +216,6 @@ release-build-qemu:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, create-source-artifact]
     - !reference [.release_template, script, build]
     - !reference [.common_template, script, create-deploy-artifact]
   artifacts: !reference [.release_template, artifacts, release-deploy-artifacts]
@@ -253,7 +261,6 @@ release-build-deploy-distros:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, create-source-artifact]
     - !reference [.release_template, script, build]
     - !reference [.common_template, script, create-deploy-artifact]
   artifacts: !reference [.release_template, artifacts, release-deploy-artifacts]
@@ -275,7 +282,7 @@ release-test-qemu:
   artifacts: !reference [.test_qemu_template, artifacts]
 
 release-sync-sstate-cache:
-  stage: wipe
+  stage: sync-sstate-cache 
   rules:
     - !reference [.release_template, rules]
   script:
