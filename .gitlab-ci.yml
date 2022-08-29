@@ -60,7 +60,6 @@ stages:
   - container-build
   - wipe
   - setup
-  - build-base
   - build
   - test
   - sync-sstate-cache
@@ -173,7 +172,7 @@ release-wipe-release-sstate-cache:
 release-base-build:
   rules:
     - !reference [.release_template, rules]
-  stage: build-base
+  stage: build
   image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   tags:
     - "iris-kas-release-s3-upload"
