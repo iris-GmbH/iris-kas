@@ -17,6 +17,7 @@ variables:
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   ICECREAM_NETNAME: "ICECREAM"
   RUN_MAINTENANCE: "false"
+  WIPE_SSTATE_CACHE: "false"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -119,8 +120,9 @@ release-container-build:
 wipe-sstate-caches:
   stage: wipe
   rules:
+    - if: '$WIPE_SSTATE_CACHE == "false"'
+      when: never 
     - !reference [.develop_template, rules]
-  when: manual
   script:
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
