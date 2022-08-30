@@ -20,6 +20,7 @@ defaults:
     patches:
       repo: "this"
 
+# TODO: test
 repos:
   # the iris-kas repo
   this:
