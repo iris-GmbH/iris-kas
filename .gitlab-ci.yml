@@ -19,6 +19,8 @@ variables:
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
   FAILURE_LOG_DIR: "failure-log"
+  TODOCHECK_IMAGE: "registry.devops.defra01.iris-sensing.net/public-projects/it/container-images/todocheck-dockerized:latest"
+  JIRA_URL: "https://jira.iris-sensing.net"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -59,15 +61,16 @@ default:
 
 # List of stages for jobs, and their order of execution
 stages:
-  - container-build
-  - wipe
   - setup
+  - wipe
+  - yocto-setup
   - build-base
   - build
   - test
   - release
 
 container-build:
+  stage: setup
   rules:
     # skip container image build when SKIP_CONTAINER_BUILD is true
     - if: '$SKIP_CONTAINER_BUILD == "true"'
@@ -79,7 +82,6 @@ container-build:
     # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
     name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
     entrypoint: [""]
-  stage: container-build
   before_script:
     # Default branch = latest tag
     # All other branches are tagged with the currently built commit SHA hash
@@ -99,6 +101,20 @@ container-build:
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${tag}"
 
+todocheck:
+  stage: setup
+  rules:
+    - !reference [.develop_template, rules]
+  image: $TODOCHECK_IMAGE
+  tags:
+    - gp
+  before_script:
+    - apk add --no-cache yq
+    - |-
+        echo "{\"origin\": \"${JIRA_URL}\", \"issue_tracker\": \"JIRA\", \"custom_todos\": [\"ToDo\", \"todo\", \"HACK\", \"Hack\", \"hack\", \"FixMe\", \"FIXME\", \"Fixme\", \"fixme\"], \"auth\": {\"type\": \"apitoken\", \"options\": {\"username\": \"${JIRA_USERNAME}\"}}}" | yq > .todocheck.yaml
+  script:
+    - todocheck -verbose
+
 wipe-sstate-caches:
   stage: wipe
   rules:
@@ -112,7 +128,7 @@ wipe-sstate-caches:
 # Unfortunately, yocto does not automatically remove these
 # which in the worst case may lead to significant longer build times.
 download-mirror-maintenance:
-  stage: setup
+  stage: yocto-setup
   rules:
     - if: '$RUN_MAINTENANCE == "false"'
       when: never
@@ -127,7 +143,7 @@ download-mirror-maintenance:
 release-verify-fixed-refspecs:
   rules:
     - !reference [.release_template, rules]
-  stage: setup
+  stage: yocto-setup
   script:
     - echo "Ensuring that fixed refspecs are set..."
     - >
@@ -143,7 +159,7 @@ release-verify-fixed-refspecs:
 release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
-  stage: setup
+  stage: yocto-setup
   script:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
