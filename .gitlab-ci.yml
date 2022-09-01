@@ -63,7 +63,7 @@ stages:
   - setup
   - build
   - test
-  - sync-sstate-cache
+  - release
 
 container-build:
   rules:
@@ -126,9 +126,9 @@ wipe-sstate-caches:
   script:
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
-# In certain circumstances a mirror item may fail due to invalid checksums.
-# Unfortunately, yocto does not clear these away automatically,
-# which in the worst case may lead to longer build times.
+# Under certain circumstances a mirror item may fail due to invalid checksums.
+# Unfortunately, yocto does not automatically remove these
+# which in the worst case may lead to significant longer build times.
 download-mirror-maintenance:
   stage: setup
   rules:
@@ -333,7 +333,7 @@ release-test-qemu:
   artifacts: !reference [.test_qemu_template, artifacts]
 
 release-sync-sstate-cache:
-  stage: sync-sstate-cache 
+  stage: wipe
   rules:
     - !reference [.release_template, rules]
   image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
@@ -346,12 +346,26 @@ release-sync-sstate-cache:
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
+publish-release:
+  stage: release
+  tags:
+    - gp
+  rules:
+    - !reference [.release_template, rules]
+  before_script: []
+  script:
+    - echo "Publishing release $CI_COMMIT_TAG"
+  release:
+    name: "Release $CI_COMMIT_TAG"
+    tag_name: "$CI_COMMIT_TAG"
+    description: "Release $CI_COMMIT_TAG created by GitLab CI."
+
 # develop build is used whenever we are not building a release
 develop-build-maintenance-distro-targets:
   rules:
     # skip if SKIP_MAINTENANCE_TARGET_BUILD is set to true
     - if: '$SKIP_MAINTENANCE_TARGET_BUILD == "true"'
-      when: never 
+      when: never
     - !reference [.develop_template, rules]
   stage: build
   parallel:
@@ -362,6 +376,26 @@ develop-build-maintenance-distro-targets:
       - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.develop_template, artifacts, develop-deploy-artifacts]
+
+develop-build-deploy-distro-targets:
+  rules:
+    # skip if SKIP_DEPLOY_TARGET_BUILD is set to true
+    - if: '$SKIP_DEPLOY_TARGET_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+        IMAGES: "irma6-deploy"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -414,26 +448,6 @@ develop-build-sdk:
     - !reference [.develop_template, script, build]
     - !reference [.common_template, script, create-sdk-artifact]
   artifacts: !reference [.develop_template, artifacts, develop-sdk-artifacts]
-
-develop-build-deploy-distro-targets:
-  rules:
-    # skip if SKIP_DEPLOY_TARGET_BUILD is set to true
-    - if: '$SKIP_DEPLOY_TARGET_BUILD == "true"'
-      when: never 
-    - !reference [.develop_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
-        IMAGES: "irma6-deploy"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-    - !reference [.common_template, script, create-deploy-artifact]
-  artifacts: !reference [.develop_template, artifacts, develop-deploy-artifacts]
 
 develop-test-qemu:
   stage: test
