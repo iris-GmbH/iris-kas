@@ -3,6 +3,8 @@
 **Table of Contents**
 
 - [iris-kas](#iris-kas)
+  - [Latest release](#latest-release)
+  - [Pipeline status](#pipeline-status)
   - [Maintainers](#maintainers)
   - [What is KAS?](#what-is-kas)
   - [How does it work?](#how-does-it-work)
@@ -29,6 +31,17 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # iris-kas
+
+## Latest release
+[![Latest Release](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/badges/release.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/releases)
+
+
+## Build status
+The current status of...
+
+- the develop branch is: [![develop status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/develop/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/develop)
+- the master branch is:  [![master status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/master/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/master)
+
 
 ## Maintainers
 - Jasper Orschulko <Jasper [dot] Orschulko [att] iris-sensing.com>
