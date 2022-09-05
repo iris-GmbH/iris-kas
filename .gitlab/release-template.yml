@@ -60,13 +60,25 @@
     s3-upload-sources: # required vars: ARTIFACT_NAME, S3_BUCKET_NAME, S3_STORAGE_CLASS S3_ACL, optional vars: S3_PATH_PREFIX
       - aws s3 cp ${ARTIFACT_NAME}.tar.gz s3://${S3_BUCKET_NAME}/${S3_PATH_PREFIX}${ARTIFACT_NAME}.tar.gz --storage-class ${S3_STORAGE_CLASS} --acl ${S3_ACL}
   artifacts:
-    release-deploy-artifacts:
+    release-source-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}-base-sources"
       paths:
-        - "${MULTI_CONF}-deploy.tar.gz"
+        - "${MULTI_CONF}-base-sources.tar.gz"
+      untracked: false
+      expire_in: 20 yrs
+    release-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}"
+      paths:
+        - "artifacts"
       untracked: false
       expire_in: 20 yrs
     release-sdk-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}-sdk"
       paths:
-        - "${MULTI_CONF}-sdk.tar.gz"
+        - "artifacts"
+    release-qemu-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}-qemu"
+      paths:
+        - "${MULTI_CONF}-deploy.tar.gz"
       untracked: false
       expire_in: 20 yrs
