@@ -53,15 +53,22 @@
       - kas shell -c "bitbake ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-release.yml:include/kas-offline-build.yml
   artifacts:
     release-source-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}-base-sources"
       paths:
         - "${MULTI_CONF}-base-sources.tar.gz"
       untracked: false
       expire_in: 20 yrs
-    release-deploy-artifacts:
+    release-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}"
       paths:
-        - "${MULTI_CONF}-deploy.tar.gz"
+        - "artifacts"
       untracked: false
       expire_in: 20 yrs
     release-sdk-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}-sdk"
       paths:
-        - "${MULTI_CONF}-sdk.tar.gz"
+        - "artifacts"
+    release-qemu-artifacts:
+      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}-qemu"
+      paths:
+        - "${MULTI_CONF}-deploy.tar.gz"
