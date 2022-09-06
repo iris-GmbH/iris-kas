@@ -35,6 +35,8 @@
     - ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml" || true
     - scp -P 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml ${MULTI_CONF}-gtest_results.xml
   artifacts:
+    when: always
+    name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-gtest-results"
     paths:
       - ${MULTI_CONF}-gtest_results.xml
     reports:

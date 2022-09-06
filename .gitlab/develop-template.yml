@@ -54,15 +54,33 @@
     build:
       - echo "Building ${BUILD_TARGETS}..."
       # build target images
-      - kas shell -c "bitbake ${NO_SETSCENE} ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-develop.yml${POPULATE_CACHES}
+      - >
+        if ! kas shell -c "bitbake ${NO_SETSCENE} ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-develop.yml${POPULATE_CACHES}; then
+          echo "Error during build. Creating log artifact..."
+          mkdir ${FAILURE_LOG_DIR}
+          find build/tmp/work -type f '(' -name "log.do_*" -o -name "log.task_order" ')' -exec rsync -R {} "${FAILURE_LOG_DIR}" \;
+          exit 1
+        fi
   artifacts:
-    develop-deploy-artifacts:
+    develop-artifacts:
+      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}"
+      # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
+      when: always
       paths:
-        - "${MULTI_CONF}-deploy.tar.gz"
+        - "artifacts"
+        - "${FAILURE_LOG_DIR}"
       untracked: false
       expire_in: 7 days
     develop-sdk-artifacts:
+      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-sdk"
+      # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
+      when: always
       paths:
-        - "${MULTI_CONF}-sdk.tar.gz"
+        - "artifacts"
+        - "${FAILURE_LOG_DIR}"
       untracked: false
       expire_in: 7 days
+    develop-qemu-artifacts:
+      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-qemu"
+      paths:
+        - "${MULTI_CONF}-deploy.tar.gz"
