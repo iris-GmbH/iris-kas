@@ -14,6 +14,8 @@
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
     # Automatic build on merge request/changes to merge request targeting the default branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+    # Automatic build on push to default branch (develop)
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     build-configuration:
       # depending on pipeline source, the name of the current branch is saved as different variables. Unify into a single variable
