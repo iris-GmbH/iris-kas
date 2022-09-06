@@ -265,7 +265,30 @@ release-build-sdk:
   artifacts: !reference [.release_template, artifacts, release-sdk-artifacts]
 
 
-# Build the actual release artifacts
+# Build the deploy image with dev keys
+release-build-dev-deploy-distros:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+  parallel:
+    matrix:
+      - MULTI_CONF: [imx8mp-irma6r2]
+        IMAGES: "irma6-deploy"
+  variables:
+    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, build]
+    - !reference [.common_template, script, create-deploy-artifact]
+  artifacts: !reference [.release_template, artifacts, release-deploy-artifacts]
+
+
+# Build the deploy image with production keys
 release-build-deploy-distros:
   rules:
     - !reference [.release_template, rules]
