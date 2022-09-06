@@ -261,8 +261,8 @@ release-build-qemu:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.common_template, script, create-artifact]
     - !reference [.release_template, script, build]
+    - !reference [.common_template, script, create-artifact]
   artifacts: !reference [.release_template, artifacts, release-qemu-artifacts]
 
 release-build-sdk:
