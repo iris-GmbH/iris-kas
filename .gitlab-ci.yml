@@ -364,7 +364,7 @@ release-test-qemu:
   artifacts: !reference [.test_qemu_template, artifacts]
 
 release-sync-sstate-cache:
-  stage: wipe
+  stage: release
   rules:
     - !reference [.release_template, rules]
   image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
