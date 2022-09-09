@@ -163,7 +163,7 @@ release-verify-distro-version:
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml"
   script:
-    - kas shell -c "bitbake -e | grep IRMA6_DISTRO_VERSION | tail -n 1" ${MAIN_KAS_FILES} | head -n 1 2>/dev/null
+    - echo "$(kas shell -c \"bitbake -e | grep IRMA6_DISTRO_VERSION | tail -n 1\" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION)"
       #- >
       #  if test "${IRMA6_DISTRO_VERSION}" != "2.1.0"; then
       #    echo "Error. IRMA6_DISTRO_VERSION \"${IRMA6_DISTRO_VERSION}\" defined in the kas config does not match the current git tag \"2.1.0\"."
