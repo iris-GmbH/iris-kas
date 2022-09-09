@@ -183,8 +183,8 @@ release-verify-distro-version:
   script:
     - export $(kas shell -c "bitbake -e | grep IRMA6_DISTRO_VERSION | tail -n 1" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION)
     - >
-      if test "${IRMA6_DISTRO_VERSION}" != "${CI_COMMIT_TAG}"; then
-        echo "Error. IRMA6_DISTRO_VERSION \"${IRMA6_DISTRO_VERSION}\" defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
+      if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
+        echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag ${CI_COMMIT_TAG}."
         exit 1
       fi
 
