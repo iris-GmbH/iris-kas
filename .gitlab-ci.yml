@@ -181,7 +181,7 @@ release-verify-distro-version:
     - !reference [.release_template, rules]
   stage: yocto-setup
   script:
-    - export $(kas shell -c "bitbake -e | grep IRMA6_DISTRO_VERSION | tail -n 1" ${MAIN_KAS_FILES})
+    - export $(kas shell -c "bitbake -e | grep IRMA6_DISTRO_VERSION | tail -n 1" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION)
     - >
       if test "${IRMA6_DISTRO_VERSION}" != "${CI_COMMIT_TAG}"; then
         echo "Error. IRMA6_DISTRO_VERSION \"${IRMA6_DISTRO_VERSION}\" defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
