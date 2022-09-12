@@ -19,8 +19,6 @@ variables:
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
   FAILURE_LOG_DIR: "failure-log"
-  TODOCHECK_IMAGE: "registry.devops.defra01.iris-sensing.net/public-projects/it/container-images/todocheck-dockerized:latest"
-  JIRA_URL: "https://jira.iris-sensing.net"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -100,20 +98,6 @@ container-build:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${tag}"
-
-todocheck:
-  stage: setup
-  rules:
-    - !reference [.develop_template, rules]
-  image: $TODOCHECK_IMAGE
-  tags:
-    - gp
-  before_script:
-    - apk add --no-cache yq
-    - |-
-        echo "{\"origin\": \"${JIRA_URL}\", \"issue_tracker\": \"JIRA\", \"custom_todos\": [\"ToDo\", \"todo\", \"HACK\", \"Hack\", \"hack\", \"FixMe\", \"FIXME\", \"Fixme\", \"fixme\"], \"auth\": {\"type\": \"apitoken\", \"options\": {\"username\": \"${JIRA_USERNAME}\"}}}" | yq > .todocheck.yaml
-  script:
-    - todocheck -verbose
 
 wipe-sstate-caches:
   stage: wipe
