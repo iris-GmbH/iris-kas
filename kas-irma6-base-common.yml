@@ -45,7 +45,8 @@ repos:
         path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "dunfell"
+    # TODO RDPHOEN-1359: Unfreeze meta-openembedded after patch apply on cryptsetup has been fixed.
+    refspec: "a1a40c95ebf3b9c593a5b6ab97f08db9901caf42"
     layers:
       meta-oe:
       meta-python:
