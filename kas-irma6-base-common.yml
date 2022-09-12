@@ -60,6 +60,9 @@ repos:
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "dunfell"
+    patches:
+      0001-Port-cryptsetup-patch-to-2.3.7:
+        path: "patches/0001-Port-cryptsetup-patch-to-2.3.7.patch"
 
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
