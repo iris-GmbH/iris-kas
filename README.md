@@ -3,6 +3,8 @@
 **Table of Contents**
 
 - [iris-kas](#iris-kas)
+  - [Latest release](#latest-release)
+  - [Pipeline status](#pipeline-status)
   - [Maintainers](#maintainers)
   - [What is KAS?](#what-is-kas)
   - [How does it work?](#how-does-it-work)
@@ -17,6 +19,7 @@
     - [Run interactive QEMU VM](#run-interactive-qemu-vm)
     - [Update all repos](#update-all-repos)
     - [Force update all repos](#force-update-all-repos)
+    - [Version pinning for thirdparty layer repositories](#version-pinning-for-thirdparty-layer-repositories)
     - [Prepare a firmware release](#prepare-a-firmware-release)
     - [Prepare a firmware support release](#prepare-a-firmware-support-release)
     - [Cleanup all artifacts](#cleanup-all-artifacts)
@@ -28,6 +31,17 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # iris-kas
+
+## Latest release
+[![Latest Release](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/badges/release.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/releases)
+
+
+## Build status
+The current status of...
+
+- the develop branch is: [![develop status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/develop/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/develop)
+- the master branch is:  [![master status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/master/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/master)
+
 
 ## Maintainers
 - Jasper Orschulko <Jasper [dot] Orschulko [att] iris-sensing.com>
@@ -152,6 +166,20 @@ Commands:
 - `[ENV_VARS] make force-pull`
 
 
+### Version pinning for thirdparty layer repositories
+
+*Will automatically set fixed commit hashes for thirdparty layer repos in kas-irma6-base-common.yml. Useful for temporary version pinning of the base software*
+
+Required variables:
+- None
+
+Additional, optional variable overrides:
+- None
+
+Commands:
+- `[ENV_VARS] make set-fixed-refspecs`
+
+
 ### Prepare a firmware release
 
 *Will create a release branch, set and commit fixed refspecs in the manifest files*
@@ -230,7 +258,7 @@ In advanced use cases, it might become necessary to call KAS directly, e.g. when
 
 In the case of a local KAS installation, this can be done by calling the `kas` binary directly, e.g.:
 
-`kas shell -c "bitbake foo" kas-irma6-pa.yml`.
+`kas shell -c "bitbake foo" kas-irma6-base-deploy.yml:kas-irma6-pa.yml`.
 
 When using the docker based setup, the following needs to be added as a prefix to the command ("[]" marks optional Variables):
 

@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+
+.common_template:
+  script:
+    create-artifact:
+      # create a tar.gz for archiving the yocto "deploy" folder. Useful, when linux permissions need to be preserved.
+      - sync
+      - tar -I "gzip --best" -C build/tmp -cf ${MULTI_CONF}-deploy.tar.gz deploy
+
+    # Generates bitbake build targets.
+    # required vars: MULTI_CONF, IMAGES
+    # returned vars: BUILD_TARGETS
+    generate-build-targets-target:
+      # If rel2 target build, build uuu files as well
+      - >
+        if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
+          export BUILD_TARGETS="$(for i in ${IMAGES}; do \
+            if [ "${i}" != "irma6-fitimage-netboot" ]; then \
+              echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
+            else \
+              echo -n "mc:${MULTI_CONF}:${i}"; \
+            fi; \
+          done)"
+        else
+          export BUILD_TARGETS="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+        fi
+    generate-build-targets-other:
+        export BUILD_TARGETS="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+
+  after_script:
+    # remove symbolic shortlinks to image build artifacts, as these do not work on Windows machines and just cause confusion
+    remove-symbolic-image-links:
+      - find build/tmp/deploy/images -type l -exec rm -f {} \;
+    # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
+    move-artifacts-to-toplevel:
+      # ensure there are no artifacts left over from previous jobs
+      - rm -rf artifacts
+      - mv build/tmp/deploy artifacts
+
+  services:
+    icecc-daemon:
+      - name: $BUILD_IMAGE
+        entrypoint: ["/bin/sh"]
+        command: ["-c", "sudo /usr/sbin/iceccd -vvv -s iris-devops-icecc-scheduler-headless -n $ICECREAM_NETNAME -l /dev/stdout"]

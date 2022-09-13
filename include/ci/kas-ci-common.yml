@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 9
+
+local_conf_header:
+  bb_threads_number: |
+    BB_NUMBER_THREADS = "10"
+  prservice: |
+    PRSERV_HOST = "yocto-prservice.yocto-prservice:8585"
+  icecc: |
+    INHERIT += "icecc"
+    ICECC_USER_PACKAGE_BL += "pango"

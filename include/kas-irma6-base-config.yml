@@ -18,25 +18,11 @@ local_conf_header:
   standard: |
     CONF_VERSION = "1"
 
-  default_cache_dirs: |
+  dl_dir: |
     DL_DIR ?= "${TOPDIR}/dl_dir"
+  sstate_dir: |
     SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
 
-  # we only want to cherry-pick u-boot and kernel recipes from the adi upstream. ignore everything else
-  ignore-adi-packages: |
-    BBMASK += "meta-adi-adsp-sc5xx\/(?!(recipes-bsp\/u-boot)|(recipes-kernel\/linux)|(recipes-kernel\/linux-firmware)).+\/.+"
-
-  package_class: |
-    PACKAGE_CLASSES ?= "package_ipk"
-    DEPLOY_DIR_IPK = "${TMPDIR}/ipk-deploy"
-
-  image_features: |
-    EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
-    USER_CLASSES ?= "buildstats image-mklibs image-prelink"
-
-  qemu_conf: |
-    PACKAGECONFIG_append_pn-qemu-native = " sdl"
-    PACKAGECONFIG_append_pn-nativesdk-qemu = " sdl"
 
   diskmon: |
     BB_DISKMON_DIRS = "\
@@ -48,7 +34,3 @@ local_conf_header:
       ABORT,${DL_DIR},100M,1K \
       ABORT,${SSTATE_DIR},100M,1K \
       ABORT,/tmp,10M,1K"
-
-  preferred_providers: |
-    PREFERRED_PROVIDER_virtual/java-initial-native = "cacao-initial-native"
-    PREFERRED_PROVIDER_virtual/java-native = "cacao-native"

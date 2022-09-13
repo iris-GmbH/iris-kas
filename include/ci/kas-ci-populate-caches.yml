@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 9
+
+local_conf_header:
+  dl_dir: |
+    DL_DIR = "/mnt/yocto-download-mirror"
+  sstate_dir: |
+    SSTATE_DIR = "/mnt/yocto-sstate-cache"
+  sstate_mirror: |
+    unset SSTATE_MIRRORS
+  dl_mirror: |
+    unset SOURCE_MIRROR_URL
+    INHERIT_remove = " own-mirrors"

@@ -3,9 +3,6 @@
 
 header:
   version: 9
-  includes:
-    - "kas-irma6-jenkins-release-fetch.yml"
-    - "kas-irma6-jenkins-populate-caches-release.yml"
 
 local_conf_header:
   cve_scanning: |
@@ -14,6 +11,3 @@ local_conf_header:
   build_history: |
     INHERIT += "buildhistory"
     BUILDHISTORY_COMMIT = "1"
-
-  bb_threads_number: |
-    BB_NUMBER_THREADS = "4"

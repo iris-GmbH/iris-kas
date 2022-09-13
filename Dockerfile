@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
-# type can be set to jenkins. Override with "--build-arg type=jenkins" during build
+# type can be set to ci. Override with "--build-arg type=ci" during build
 ARG type=base
 
-ARG KAS_VER=2.6.1
+ARG KAS_VER=3.0.2
 ARG REPO_REV=v2.17.2
-ARG YQ_REV=v4.13.5
+ARG YQ_REV=v4.26.1
+ARG AWS_CLI_VER=2.7.27
 
 FROM golang:1.17 as builder
 ARG REPO_REV
@@ -32,8 +33,22 @@ RUN set -ex \
 COPY --from=builder /yq/yq /usr/bin/yq
 COPY --from=builder /repo/repo /usr/bin/repo
 
-FROM base as jenkins
-# Jenkins (and some other CI systems) override the entrypoint.
+FROM base as ci
+ARG AWS_CLI_VER
+ADD .aws-cli-public.key /tmp/.aws-cli-public.key
+RUN set -ex \
+    && gpg --import /tmp/.aws-cli-public.key \
+    && apt-get update \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VER}.zip" -o "awscliv2.zip" \
+    && curl -o awscliv2.sig "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VER}.zip.sig" \
+    && gpg --verify awscliv2.sig awscliv2.zip \
+    && unzip awscliv2.zip \
+    && sudo ./aws/install \
+    && rm -rf aws awscliv2.zip awscliv2.sig \
+    && apt-get install --no-install-recommends -y \
+        icecc \
+    && rm -rf /var/lib/apt/lists
+# GitLab (and some other CI systems) override the entrypoint.
 # As a result, a non-privileged user needs to be added manually.
 RUN set -ex \
     && adduser --gecos '' --uid=1000 --disabled-password builder
@@ -42,7 +57,7 @@ VOLUME /var/lib/docker
 USER builder
 
 # This FROM statement will cause the build to either use the "base" or
-# "jenkins" image layer as final image, depending on what the "type" argument is set to.
+# "ci" image layer as final image, depending on what the "type" argument is set to.
 FROM ${type} as final
 ARG REPO_REV
 ENV REPO_REV=${REPO_REV}
