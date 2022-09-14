@@ -34,6 +34,8 @@
       - find build/tmp/deploy/images -type l -exec rm -f {} \;
     # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
     move-artifacts-to-toplevel:
+      # ensure there are no artifacts left over from previous jobs
+      - rm -rf artifacts
       - mv build/tmp/deploy artifacts
 
   services:

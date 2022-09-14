@@ -7,6 +7,7 @@ ARG type=base
 ARG KAS_VER=3.0.2
 ARG REPO_REV=v2.17.2
 ARG YQ_REV=v4.26.1
+ARG AWS_CLI_VER=2.7.27
 
 FROM golang:1.17 as builder
 ARG REPO_REV
@@ -33,8 +34,17 @@ COPY --from=builder /yq/yq /usr/bin/yq
 COPY --from=builder /repo/repo /usr/bin/repo
 
 FROM base as ci
+ARG AWS_CLI_VER
+ADD .aws-cli-public.key /tmp/.aws-cli-public.key
 RUN set -ex \
+    && gpg --import /tmp/.aws-cli-public.key \
     && apt-get update \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VER}.zip" -o "awscliv2.zip" \
+    && curl -o awscliv2.sig "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VER}.zip.sig" \
+    && gpg --verify awscliv2.sig awscliv2.zip \
+    && unzip awscliv2.zip \
+    && sudo ./aws/install \
+    && rm -rf aws awscliv2.zip awscliv2.sig \
     && apt-get install --no-install-recommends -y \
         icecc \
     && rm -rf /var/lib/apt/lists

@@ -3,6 +3,9 @@
 
 .develop_template:
   rules:
+    # Do not run develop jobs on tagged commits
+    - if: $CI_COMMIT_TAG
+      when: never
     # Do not automatically build on draft MRs
     - if: '$CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
       when: never
@@ -14,8 +17,6 @@
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
     # Automatic build on merge request/changes to merge request targeting the default branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
-    # Automatic build on push to default branch (develop)
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     build-configuration:
       # depending on pipeline source, the name of the current branch is saved as different variables. Unify into a single variable
@@ -65,16 +66,7 @@
         fi
   artifacts:
     develop-artifacts:
-      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}"
-      # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
-      when: always
-      paths:
-        - "artifacts"
-        - "${FAILURE_LOG_DIR}"
-      untracked: false
-      expire_in: 7 days
-    develop-sdk-artifacts:
-      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-sdk"
+      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
       # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
       when: always
       paths:
@@ -83,6 +75,8 @@
       untracked: false
       expire_in: 7 days
     develop-qemu-artifacts:
-      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-qemu"
+      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
       paths:
         - "${MULTI_CONF}-deploy.tar.gz"
+      untracked: false
+      expire_in: 7 days
