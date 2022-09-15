@@ -8,4 +8,4 @@ header:
 repos:
   meta-iris:
     url: "ssh://git@bitbucket.iris-sensing.net:7999/gen6/meta-iris.git"
-    refspec: "feature/mk/APC-4992_PswWeb_R1"
+    refspec: "feature/mk/APC-4992_PswWeb_R1_R2"
