@@ -81,7 +81,7 @@ todocheck:
     - |-
         echo "{\"origin\": \"${JIRA_URL}\", \"issue_tracker\": \"JIRA\", \"custom_todos\": [\"ToDo\", \"todo\", \"HACK\", \"Hack\", \"hack\", \"FixMe\", \"FIXME\", \"Fixme\", \"fixme\"], \"auth\": {\"type\": \"apitoken\", \"options\": {\"username\": \"${JIRA_USERNAME}\"}}}" | yq > .todocheck.yaml
   script:
-    - todocheck -verbose
+    - TODOCHECK_AUTH_TOKEN=${TODOCHECK_AUTH_TOKEN} todocheck -verbose
 
 container-build:
   stage: setup
