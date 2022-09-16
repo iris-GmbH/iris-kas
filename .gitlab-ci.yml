@@ -45,7 +45,7 @@ variables:
     description: 'Set to "true" to build from scratch.'
   BUILD_IMAGE:
     value: "${CI_REGISTRY_IMAGE}:latest"
-    description: "Optionally override of the build image (e.g. useful for using the image built in the container-build stage. Use commit SHA hash as tag)."
+    description: "Optionally override of the build image (e.g. useful for using the image built in the setup stage. Use commit SHA hash as tag)."
 
 # default config for all jobs
 default:
@@ -99,6 +99,26 @@ container-build:
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${tag}"
 
+release-container-build:
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - gp
+  image:
+    # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
+    name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
+    entrypoint: [""]
+  stage: setup
+  # override default before script
+  before_script: []
+  script:
+    - >-
+      /kaniko/executor
+      --build-arg "type=ci"
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+
 wipe-sstate-caches:
   stage: wipe
   rules:
@@ -128,6 +148,7 @@ release-verify-fixed-refspecs:
   rules:
     - !reference [.release_template, rules]
   stage: yocto-setup
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     - echo "Ensuring that fixed refspecs are set..."
     - >
@@ -156,7 +177,8 @@ release-verify-distro-version:
 release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
-  stage: yocto-setup
+  stage: wipe
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
@@ -167,44 +189,56 @@ release-wipe-release-sstate-cache:
 release-base-build:
   rules:
     - !reference [.release_template, rules]
-  stage: build-base
+  stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+  tags:
+    - "iris-kas-release-s3-upload"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-base"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
+    S3_BUCKET_NAME: "iris-devops-opensource-iris-sensing-com"
+    S3_PATH_PREFIX: "sources/${CI_COMMIT_TAG}/"
+    S3_STORAGE_CLASS: "STANDARD_IA"
+    S3_ACL: "public-read"
+    ARTIFACT_SUFFIX: "-base-sources"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, create-source-artifact]
+    - ARTIFACT_NAME="${MULTI_CONF}-base-sources"
+    - !reference [.release_template, script, create-artifact-archive]
     # verify reproducibility of offline build
     - !reference [.release_template, script, offline-build]
-  artifacts: !reference [.release_template, artifacts, release-source-artifacts]
+    # upload base sources to public s3 bucket
+    - !reference [.release_template, script, s3-upload-sources]
 
 # Build the maintenance release artifacts
 release-build-maintenance-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
       - MULTI_CONF: [imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance-distros"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, create-source-artifact]
     - !reference [.release_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
@@ -215,30 +249,35 @@ release-build-qemu:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
-      - MULTI_CONF: [qemux86-64-r1]
+      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
         IMAGES: irma6-test
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    ARTIFACT_SUFFIX: "-qemu"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-other]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.common_template, script, create-artifact]
     - !reference [.release_template, script, build]
+    - !reference [.common_template, script, create-artifact]
   artifacts: !reference [.release_template, artifacts, release-qemu-artifacts]
 
 release-build-sdk:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   variables:
     BITBAKE_TASK: "-c populate_sdk"
+    ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
@@ -249,30 +288,55 @@ release-build-sdk:
     - !reference [.release_template, script, build]
   after_script:
     - !reference [.common_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-sdk-artifacts]
+  artifacts: !reference [.release_template, artifacts, release-artifacts]
 
-
-# Build the actual release artifacts
-release-build-deploy-distros:
+# Build the deploy image with dev keys
+release-build-dev-deploy-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  tags:
-    # build on release runner
-    - iris-kas-release
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6]
+      - MULTI_CONF: [imx8mp-irma6r2]
         IMAGES: "irma6-deploy"
   variables:
-    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml"
+    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+    ARTIFACT_SUFFIX: "-dev-deploy"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
     - !reference [.common_template, script, generate-build-targets-target]
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, create-source-artifact]
+    - !reference [.release_template, script, build]
+  after_script:
+    - !reference [.common_template, after_script, remove-symbolic-image-links]
+    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.release_template, artifacts, release-artifacts]
+
+# Build the deploy image with production keys
+release-build-deploy-distros:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+  tags:
+    # build on release runner
+    - iris-kas-release
+  parallel:
+    matrix:
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+        IMAGES: "irma6-deploy"
+  variables:
+    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml"
+    ARTIFACT_SUFFIX: "-deploy"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
@@ -287,6 +351,7 @@ release-test-qemu:
     - "release-build-qemu"
   dependencies:
     - "release-build-qemu"
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # present in openembedded-core and this can speed up the parsing
@@ -296,9 +361,10 @@ release-test-qemu:
   artifacts: !reference [.test_qemu_template, artifacts]
 
 release-sync-sstate-cache:
-  stage: wipe
+  stage: release
   rules:
     - !reference [.release_template, rules]
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     # don't overwrite develop sstate_cache during support release and RC tags
     - >
@@ -314,6 +380,7 @@ publish-release:
     - gp
   rules:
     - !reference [.release_template, rules]
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.13.0
   before_script: []
   script:
     - echo "Publishing release $CI_COMMIT_TAG"
@@ -338,6 +405,8 @@ develop-build-maintenance-distro-targets:
       - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance-distros"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -360,6 +429,8 @@ develop-build-deploy-distro-targets:
     matrix:
       - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
         IMAGES: "irma6-deploy"
+  variables:
+    ARTIFACT_SUFFIX: "-deploy"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -383,6 +454,8 @@ develop-build-qemu:
       - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
         IMAGES: irma6-test
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    ARTIFACT_SUFFIX: "-qemu"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -401,6 +474,7 @@ develop-build-sdk:
   stage: build
   variables:
     BITBAKE_TASK: "-c populate_sdk"
+    ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
@@ -414,7 +488,7 @@ develop-build-sdk:
     - !reference [.develop_template, script, build]
   after_script:
     - !reference [.common_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-sdk-artifacts]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-test-qemu:
   stage: test
