@@ -22,6 +22,9 @@ variables:
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
+  SKIP_FITIMAGE_NETBOOT_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the fitimage-netboot for the sensor targets.'
   USE_IDENTICAL_NAMED_LAYER_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named meta layer branches during the build'
@@ -228,11 +231,32 @@ release-build-maintenance-distros:
       - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance-distros"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, build]
+  after_script:
+    - !reference [.common_template, after_script, remove-symbolic-image-links]
+    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.release_template, artifacts, release-artifacts]
+
+release-build-fitimage-netboot:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+  parallel:
+    matrix:
       - MULTI_CONF: [imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
-    ARTIFACT_SUFFIX: "-maintenance-distros"
+    ARTIFACT_SUFFIX: "-fitimage-netboot"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -389,7 +413,6 @@ publish-release:
     tag_name: "$CI_COMMIT_TAG"
     description: "Release $CI_COMMIT_TAG created by GitLab CI."
 
-# develop build is used whenever we are not building a release
 develop-build-maintenance-distro-targets:
   rules:
     # skip if SKIP_MAINTENANCE_TARGET_BUILD is set to true
@@ -402,11 +425,33 @@ develop-build-maintenance-distro-targets:
       - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
         IMAGES: "irma6-maintenance irma6-dev"
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance-distros"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.common_template, after_script, remove-symbolic-image-links]
+    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+
+develop-build-fitimage-netboot:
+  rules:
+    # skip if SKIP_FITIMAGE_NETBOOT_BUILD is set to true
+    - if: '$SKIP_FITIMAGE_NETBOOT_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
       - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
-    ARTIFACT_SUFFIX: "-maintenance-distros"
+    ARTIFACT_SUFFIX: "-fitimage-netboot"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
