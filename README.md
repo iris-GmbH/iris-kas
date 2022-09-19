@@ -37,10 +37,7 @@
 
 
 ## Build status
-The current status of...
-
-- the develop branch is: [![develop status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/develop/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/develop)
-- the master branch is:  [![master status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/master/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/master)
+The current status of the develop branch is: [![develop status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/develop/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/develop)
 
 
 ## Maintainers
