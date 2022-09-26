@@ -43,6 +43,25 @@ variables:
   SKIP_CONTAINER_BUILD:
     value: "true"
     description: 'Set to "false" to build the iris-kas container on this branch. If the branch is not the default branch (develop), the image will be tagged with the commit SHA hash.'
+  SKIP_SYSTEMTEST_SMOKE:
+    value: "true"
+    description: 'Set to "false" to add execution of systemtest_smoke job. Skipping system smoke test will also skip any additional Systemtests.'
+  SYSTEMTEST_SW_NAME:
+    value: "sc573-gen6"
+    description: 'Set the name of the firmware to be programmed with systemtest_smoke job.'
+  SYSTEMTEST_BASE:
+    value: "76af3c92da6249e931de3f57a6c326db8202205e"
+    description: 'Set the version/revision to run all systemtest jobs from'
+  SKIP_SYSTEMTEST_RELIABILITY:
+    value: "true"
+    description: 'Set to "false" to add execution of systemtest_reliability job.'
+  SYSTEMTEST_RELIABILITY_DURATION:
+    value: "21600"
+    description: 'Set duration of systemtest_reliability job in seconds.'
+  SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
+  SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
+  GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
+  GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
   BUILD_FROM_SCRATCH:
     value: "false"
     description: 'Set to "true" to build from scratch.'
@@ -68,6 +87,7 @@ stages:
   - build-base
   - build
   - test
+  - reliability-test
   - release
 
 container-build:
@@ -553,3 +573,69 @@ develop-test-qemu:
   parallel: !reference [.test_qemu_template, parallel]
   script: !reference [.test_qemu_template, script]
   artifacts: !reference [.test_qemu_template, artifacts]
+
+systemtest_smoke:
+  stage: test
+  tags:
+    - special-test
+  resource_group: systemtest
+  variables:
+    SYSTEMTEST_PROJECT_DIR: systemtest
+    SENSOR1_IP: 172.16.127.3
+    SENSOR2_IP: 172.16.126.233
+  rules:
+    # skip if SKIP_SYSTEMTEST_SMOKE is set to true
+    - if: '$SKIP_SYSTEMTEST_SMOKE == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  needs:
+    - "develop-build-deploy-distro-targets"
+  dependencies:
+    - "develop-build-deploy-distro-targets"
+  before_script:
+    - !reference [.develop_template, before_script, prepare-systemtest]
+  script:
+    - cp -r ${CI_PROJECT_DIR}/artifacts/images/${SYSTEMTEST_SW_NAME}/update_files/ ${CI_PROJECT_DIR}/$SYSTEMTEST_PROJECT_DIR/systemtest/resources
+    - docker --config ./.gen6tools login ${CI_REGISTRY} -u ${GEN6_TOOLS_DOCKER_REG_USER} -p ${GEN6_TOOLS_DOCKER_REG_TOKEN}
+    - echo "executing systemtest smoke tests for ${SYSTEMTEST_SW_NAME}"
+    - ./systemtest_smoke.sh
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  artifacts:
+    when: always
+    paths:
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/report.html
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/log.html
+    reports:
+      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/output_xunit.xml
+
+systemtest_reliability:
+  stage: reliability-test
+  tags:
+    - special-test
+  resource_group: systemtest
+  variables:
+    SYSTEMTEST_PROJECT_DIR: systemtest
+    SENSOR1_IP: 172.16.127.3
+    SENSOR2_IP: 172.16.126.233
+  rules:
+    # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
+    - if: '$SKIP_SYSTEMTEST_RELIABILITY == "true" || $SKIP_SYSTEMTEST_SMOKE == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  needs:
+    - "systemtest_smoke"
+  before_script:
+    - !reference [.develop_template, before_script, prepare-systemtest]
+  script:
+    - echo "executing systemtest reliability tests for ${SYSTEMTEST_SW_NAME}"
+    - ./systemtest_reliability.sh ${SYSTEMTEST_RELIABILITY_DURATION}
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  artifacts:
+    when: always
+    paths:
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/report_combined.html
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
+    reports:
+      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
