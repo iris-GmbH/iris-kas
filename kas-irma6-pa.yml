@@ -8,4 +8,4 @@ header:
 repos:
   meta-iris:
     url: "ssh://git@bitbucket.iris-sensing.net:7999/gen6/meta-iris.git"
-    refspec: "develop"
+    refspec: "feature/mk/move_R2_script_to_right_folder"
