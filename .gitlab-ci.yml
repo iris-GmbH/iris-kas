@@ -50,7 +50,7 @@ variables:
     value: "sc573-gen6"
     description: 'Set the name of the firmware to be programmed with systemtest_smoke job.'
   SYSTEMTEST_BASE:
-    value: "76af3c92da6249e931de3f57a6c326db8202205e"
+    value: "0b32bbc835af29139752847437a22e42d291de49"
     description: 'Set the version/revision to run all systemtest jobs from'
   SKIP_SYSTEMTEST_RELIABILITY:
     value: "true"
