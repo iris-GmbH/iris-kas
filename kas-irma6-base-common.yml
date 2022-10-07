@@ -30,7 +30,7 @@ repos:
     refspec: "develop"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "dunfell"
+    refspec: "feature/ersc/mongoose_cmake_modules"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
