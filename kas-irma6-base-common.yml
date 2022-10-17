@@ -13,7 +13,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.1-dev"
+    IRMA6_DISTRO_VERSION = "2.1.0-dev-testversion_passwordprotected_webinterface_HDR3"
 
 defaults:
   repos:
@@ -27,7 +27,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "feature/hdr3"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "dunfell"
