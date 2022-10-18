@@ -5,16 +5,16 @@ Subject: [PATCH] Port cryptsetup patch to 2.3.7
 
 Signed-off-by: Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>
 ---
- ...Kernel-keyring-key-descriptor-in-PLA.patch | 40 ++++++++++---------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ ...Kernel-keyring-key-descriptor-in-PLA.patch | 41 ++++++++++---------
+ 1 file changed, 22 insertions(+), 19 deletions(-)
 
 diff --git a/recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch b/recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch
-index 87b3934..77b4774 100644
+index 87b3934..6c0a1a0 100644
 --- a/recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch
 +++ b/recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch
 @@ -1,4 +1,4 @@
 -From 1423387f44d5a38514e23c06a60ecac9fdf74d44 Mon Sep 17 00:00:00 2001
-+From 3a001aa3aa291da9663744b3ae9c19437bb30db3 Mon Sep 17 00:00:00 2001
++From f8b1f9844cf5510c9f7a0e5d4fe7883808e0d9a4 Mon Sep 17 00:00:00 2001
  From: Heiko Schocher <hs@denx.de>
  Date: Tue, 23 Jun 2020 09:36:41 +0200
  Subject: [PATCH] Allow passing a Kernel keyring key descriptor in PLAIN mode.
@@ -101,7 +101,7 @@ index 87b3934..77b4774 100644
   		r = crypt_activate_by_keyfile_device_offset(cd, action_argv[1],
   			CRYPT_ANY_SLOT, opt_key_file, key_size_max,
   			opt_keyfile_offset, activate_flags);
-@@ -108,14 +112,14 @@ index 129d64a..9cc7ccb 100644
+@@ -108,14 +112,13 @@ index 129d64a..9cc7ccb 100644
   	} else {
   		key_size_max = (opt_key_file && !params.hash) ? key_size : (size_t)opt_keyfile_size;
   		r = tools_get_key(NULL, &password, &passwordLen,
@@ -110,15 +110,14 @@ index 87b3934..77b4774 100644
   		{ "hash",              'h',  POPT_ARG_STRING, &opt_hash,                0, N_("The hash used to create the encryption key from the passphrase"), NULL },
   		{ "verify-passphrase", 'y',  POPT_ARG_NONE, &opt_verify_passphrase,     0, N_("Verifies the passphrase by asking for it twice"), NULL },
 - 		{ "key-file",          'd',  POPT_ARG_STRING, &opt_key_file,            6, N_("Read the key from a file"), NULL },
-+ 		{ "key-file",          'd',  POPT_ARG_STRING, NULL,                     6, N_("Read the key from a file"), NULL },
++		{ "key-file",          'd',  POPT_ARG_STRING, NULL,                     6, N_("Read the key from a file"), NULL },
  +		{ "key-desc",         '\0',  POPT_ARG_STRING, &opt_key_desc,            0, N_("Keyring descriptor to use"), NULL },
   		{ "master-key-file",  '\0',  POPT_ARG_STRING, &opt_master_key_file,     0, N_("Read the volume (master) key from file."), NULL },
   		{ "dump-master-key",  '\0',  POPT_ARG_NONE, &opt_dump_master_key,       0, N_("Dump volume (master) key instead of keyslots info"), NULL },
   		{ "key-size",          's',  POPT_ARG_INT, &opt_key_size,               0, N_("The size of the encryption key"), N_("BITS") },
  -- 
 -2.20.1
-+2.37.3
- 
+-
++2.38.0
 -- 
-2.37.3
-
+2.38.0
