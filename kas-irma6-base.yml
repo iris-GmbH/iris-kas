@@ -12,7 +12,7 @@ distro: "poky-iris"
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.0.4"
+    IRMA6_DISTRO_VERSION = "2.0.4-ia-1"
 defaults:
   repos:
     patches:
@@ -47,6 +47,8 @@ repos:
     patches:
       0001-add-repo-recipe:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
+      0002-googletest-branch:
+        path: "patches/0001-googletest-Switch-branch-from-master-to-main.patch"
   meta-ros: # provides yaml-cpp
     url: "https://github.com/ros/meta-ros.git"
     refspec: "d775fdbadfecd9173485aa5bd13aff0b979aaf53"

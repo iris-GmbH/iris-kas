@@ -9,5 +9,5 @@ header:
 
 repos:
   meta-iris:
-    url: "ssh://git@bitbucket.iris-sensing.net:7999/gen6/meta-iris.git"
-    refspec: "2.0.4"
+    url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
+    refspec: "2.0.4-ia-1"

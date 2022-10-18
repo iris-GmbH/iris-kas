@@ -1,0 +1,31 @@
+From 29e3a918ac80f98f3bad70eec50a9ada1a47fc41 Mon Sep 17 00:00:00 2001
+From: Peter Kjellerstedt <pkj@axis.com>
+Date: Tue, 1 Mar 2022 13:21:47 -0600
+Subject: [PATCH] googletest: Switch branch from master to main
+
+The master branch has been renamed to main in the github repo.
+
+Signed-off-by: Peter Kjellerstedt <peter.kjellerstedt@axis.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+Signed-off-by: Patrick Williams <patrick@stwcx.xyz>
+Signed-off-by: Armin Kuster <akuster808@gmail.com>
+---
+ meta-oe/recipes-test/googletest/googletest_git.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta-oe/recipes-test/googletest/googletest_git.bb b/meta-oe/recipes-test/googletest/googletest_git.bb
+index 898f23faf..35fe1bed0 100644
+--- a/meta-oe/recipes-test/googletest/googletest_git.bb
++++ b/meta-oe/recipes-test/googletest/googletest_git.bb
+@@ -11,7 +11,7 @@ PROVIDES += "gmock gtest"
+ 
+ S = "${WORKDIR}/git"
+ SRCREV = "703bd9caab50b139428cea1aaff9974ebee5742e"
+-SRC_URI = "git://github.com/google/googletest.git;branch=master;protocol=https"
++SRC_URI = "git://github.com/google/googletest.git;branch=main;protocol=https"
+ 
+ inherit cmake
+ 
+-- 
+2.20.1
+
