@@ -19,11 +19,12 @@ variables:
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
   FAILURE_LOG_DIR: "failure-log"
-  TODOCHECK_IMAGE: "registry.devops.defra01.iris-sensing.net/public-projects/it/container-images/todocheck-dockerized:latest"
-  JIRA_URL: "https://jira.iris-sensing.net"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
+  SKIP_FITIMAGE_NETBOOT_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the fitimage-netboot for the sensor targets.'
   USE_IDENTICAL_NAMED_LAYER_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named meta layer branches during the build'
@@ -42,6 +43,25 @@ variables:
   SKIP_CONTAINER_BUILD:
     value: "true"
     description: 'Set to "false" to build the iris-kas container on this branch. If the branch is not the default branch (develop), the image will be tagged with the commit SHA hash.'
+  SKIP_SYSTEMTEST_SMOKE:
+    value: "true"
+    description: 'Set to "false" to add execution of systemtest_smoke job. Skipping system smoke test will also skip any additional Systemtests.'
+  SYSTEMTEST_SW_NAME:
+    value: "sc573-gen6"
+    description: 'Set the name of the firmware to be programmed with systemtest_smoke job.'
+  SYSTEMTEST_BASE:
+    value: "0b32bbc835af29139752847437a22e42d291de49"
+    description: 'Set the version/revision to run all systemtest jobs from'
+  SKIP_SYSTEMTEST_RELIABILITY:
+    value: "true"
+    description: 'Set to "false" to add execution of systemtest_reliability job.'
+  SYSTEMTEST_RELIABILITY_DURATION:
+    value: "21600"
+    description: 'Set duration of systemtest_reliability job in seconds.'
+  SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
+  SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
+  GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
+  GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
   BUILD_FROM_SCRATCH:
     value: "false"
     description: 'Set to "true" to build from scratch.'
@@ -67,6 +87,7 @@ stages:
   - build-base
   - build
   - test
+  - reliability-test
   - release
 
 container-build:
@@ -100,20 +121,6 @@ container-build:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${tag}"
-
-todocheck:
-  stage: setup
-  rules:
-    - !reference [.develop_template, rules]
-  image: $TODOCHECK_IMAGE
-  tags:
-    - gp
-  before_script:
-    - apk add --no-cache yq
-    - |-
-        echo "{\"origin\": \"${JIRA_URL}\", \"issue_tracker\": \"JIRA\", \"custom_todos\": [\"ToDo\", \"todo\", \"HACK\", \"Hack\", \"hack\", \"FixMe\", \"FIXME\", \"Fixme\", \"fixme\"], \"auth\": {\"type\": \"apitoken\", \"options\": {\"username\": \"${JIRA_USERNAME}\"}}}" | yq > .todocheck.yaml
-  script:
-    - todocheck -verbose
 
 release-container-build:
   rules:
@@ -181,10 +188,10 @@ release-verify-distro-version:
     - !reference [.release_template, rules]
   stage: yocto-setup
   script:
-    - export $(kas shell -c "bitbake -e | grep IRMA6_DISTRO_VERSION | tail -n 1" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION)
+    - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
     - >
       if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
-        echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag ${CI_COMMIT_TAG}."
+        echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
         exit 1
       fi
 
@@ -244,11 +251,32 @@ release-build-maintenance-distros:
       - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance-distros"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, build]
+  after_script:
+    - !reference [.common_template, after_script, remove-symbolic-image-links]
+    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.release_template, artifacts, release-artifacts]
+
+release-build-fitimage-netboot:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+  parallel:
+    matrix:
       - MULTI_CONF: [imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
-    ARTIFACT_SUFFIX: "-maintenance-distros"
+    ARTIFACT_SUFFIX: "-fitimage-netboot"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -405,7 +433,6 @@ publish-release:
     tag_name: "$CI_COMMIT_TAG"
     description: "Release $CI_COMMIT_TAG created by GitLab CI."
 
-# develop build is used whenever we are not building a release
 develop-build-maintenance-distro-targets:
   rules:
     # skip if SKIP_MAINTENANCE_TARGET_BUILD is set to true
@@ -418,11 +445,33 @@ develop-build-maintenance-distro-targets:
       - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
         IMAGES: "irma6-maintenance irma6-dev"
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance-distros"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.common_template, after_script, remove-symbolic-image-links]
+    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+
+develop-build-fitimage-netboot:
+  rules:
+    # skip if SKIP_FITIMAGE_NETBOOT_BUILD is set to true
+    - if: '$SKIP_FITIMAGE_NETBOOT_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
       - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
-    ARTIFACT_SUFFIX: "-maintenance-distros"
+    ARTIFACT_SUFFIX: "-fitimage-netboot"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -524,3 +573,69 @@ develop-test-qemu:
   parallel: !reference [.test_qemu_template, parallel]
   script: !reference [.test_qemu_template, script]
   artifacts: !reference [.test_qemu_template, artifacts]
+
+systemtest_smoke:
+  stage: test
+  tags:
+    - special-test
+  resource_group: systemtest
+  variables:
+    SYSTEMTEST_PROJECT_DIR: systemtest
+    SENSOR1_IP: 172.16.127.3
+    SENSOR2_IP: 172.16.126.233
+  rules:
+    # skip if SKIP_SYSTEMTEST_SMOKE is set to true
+    - if: '$SKIP_SYSTEMTEST_SMOKE == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  needs:
+    - "develop-build-deploy-distro-targets"
+  dependencies:
+    - "develop-build-deploy-distro-targets"
+  before_script:
+    - !reference [.develop_template, before_script, prepare-systemtest]
+  script:
+    - cp -r ${CI_PROJECT_DIR}/artifacts/images/${SYSTEMTEST_SW_NAME}/update_files/ ${CI_PROJECT_DIR}/$SYSTEMTEST_PROJECT_DIR/systemtest/resources
+    - docker --config ./.gen6tools login ${CI_REGISTRY} -u ${GEN6_TOOLS_DOCKER_REG_USER} -p ${GEN6_TOOLS_DOCKER_REG_TOKEN}
+    - echo "executing systemtest smoke tests for ${SYSTEMTEST_SW_NAME}"
+    - ./systemtest_smoke.sh
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  artifacts:
+    when: always
+    paths:
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/report.html
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/log.html
+    reports:
+      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/output_xunit.xml
+
+systemtest_reliability:
+  stage: reliability-test
+  tags:
+    - special-test
+  resource_group: systemtest
+  variables:
+    SYSTEMTEST_PROJECT_DIR: systemtest
+    SENSOR1_IP: 172.16.127.3
+    SENSOR2_IP: 172.16.126.233
+  rules:
+    # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
+    - if: '$SKIP_SYSTEMTEST_RELIABILITY == "true" || $SKIP_SYSTEMTEST_SMOKE == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  needs:
+    - "systemtest_smoke"
+  before_script:
+    - !reference [.develop_template, before_script, prepare-systemtest]
+  script:
+    - echo "executing systemtest reliability tests for ${SYSTEMTEST_SW_NAME}"
+    - ./systemtest_reliability.sh ${SYSTEMTEST_RELIABILITY_DURATION}
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  artifacts:
+    when: always
+    paths:
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/report_combined.html
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
+    reports:
+      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml

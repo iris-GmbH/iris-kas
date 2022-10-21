@@ -24,10 +24,10 @@ clean:
 	${KAS_COMMAND} shell -c 'rm -rf $${BUILDDIR}' kas-irma6-base-common.yml
 
 pull:
-	${KAS_COMMAND} checkout --update kas-irma6-pa.yml
+	${KAS_COMMAND} checkout --update ${MAINTENANCE_PA_KAS_CONFIG}
 
 force-pull:
-	${KAS_COMMAND} checkout --update --force-checkout kas-irma6-pa.yml
+	${KAS_COMMAND} checkout --update --force-checkout ${MAINTENANCE_PA_KAS_CONFIG}
 
 build-sdk-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
@@ -57,7 +57,7 @@ build-qemu-r2:
 build-qemu: build-qemu-${RELEASE}
 
 run-qemu:
-	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" kas-irma6-pa.yml
+	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${MAINTENANCE_PA_KAS_CONFIG}
 
 build-base-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml

@@ -17,6 +17,19 @@
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
     # Automatic build on merge request/changes to merge request targeting the default branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+    # Automatic build on push to default branch (develop)
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+  before_script:
+    prepare-systemtest:
+      - docker login ${CI_REGISTRY} -u ${SYSTEMTEST_DOCKER_REG_USER} -p ${SYSTEMTEST_DOCKER_REG_TOKEN}
+      - echo "checkout systemtest repository"
+      - BASE_URL=`echo $CI_REPOSITORY_URL | sed "s;\/*$CI_PROJECT_PATH.*;;"`
+      - REPO_URL="$BASE_URL/rd-t/irma-six/systemtest.git"
+      - git clone $REPO_URL $SYSTEMTEST_PROJECT_DIR
+      - cd $SYSTEMTEST_PROJECT_DIR
+      - git checkout $SYSTEMTEST_BASE
+
   script:
     build-configuration:
       # depending on pipeline source, the name of the current branch is saved as different variables. Unify into a single variable

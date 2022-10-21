@@ -33,14 +33,11 @@
 # iris-kas
 
 ## Latest release
-[![Latest Release](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/badges/release.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/releases)
+[![Latest Release](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/-/badges/release.svg)](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/-/releases)
 
 
 ## Build status
-The current status of...
-
-- the develop branch is: [![develop status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/develop/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/develop)
-- the master branch is:  [![master status](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/badges/master/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/MIRROR/iris-kas/-/commits/master)
+The current status of the develop branch is: [![develop status](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/badges/develop/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/-/commits/develop)
 
 
 ## Maintainers

@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.0"
+    IRMA6_DISTRO_VERSION = "2.1.1"
 defaults:
   repos:
     patches:
@@ -23,14 +23,14 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "2.0.9"
+    refspec: "2.0.10"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "cb2abda7237bfc0921fdd1a6424ce1178f610412"
+    refspec: "6d79821dc787399e7a221dab9e3d62e476bf0ad1"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "afd213cc8e71976f2e52177927563a6868a2bed7"
+    refspec: "90a6f6a110ab14890e2f6a1616e74ee259fc0f8f"
     layers:
       meta:
       meta-poky:
@@ -41,7 +41,7 @@ repos:
         path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "f22bf6efaae61a8fd9272be64e7d75223c58922e"
+    refspec: "6792ebdd966aa0fb662989529193a0940fbfee00"
     layers:
       meta-oe:
       meta-python:
@@ -50,19 +50,15 @@ repos:
     patches:
       0001-add-repo-recipe:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
-  meta-ros: # provides yaml-cpp
-    url: "https://github.com/ros/meta-ros.git"
-    refspec: "cd2e0d0625385ca821aa5129d20805640ac80734"
-    layers:
-      meta-ros-backports-gatesgarth:
-      meta-ros-backports-hardknott:
-      meta-ros-common:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     refspec: "7b3622e918e4b80fd748516fff9c49fc48481407"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    refspec: "639cd0d947e830a638c250061a6a40705f758d3b"
+    refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
+    patches:
+      0001-Port-cryptsetup-patch-to-2.3.7:
+        path: "patches/0001-Port-cryptsetup-patch-to-2.3.7.patch"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
@@ -73,13 +69,13 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "c4347b507c2ba0d7eb3917303f83631244bf5048"
+    refspec: "ae2001935fdd7cf7ee7e3b8a4826d7b59202be6d"
     patches:
       0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "88773cbb6367496b1a2ddca683afcd352be3cd58"
+    refspec: "f37f72a85ba273b27347169b727c889f42b91d6c"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
     refspec: "5d882cdf079b3bde0bd9869ce3ca3db411acbf3b"
