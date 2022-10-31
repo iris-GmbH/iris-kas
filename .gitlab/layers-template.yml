@@ -38,14 +38,33 @@ variables:
     description: 'Set to "true" to build from scratch.'
 
 stages:
-  - iris-kas
+  - setup
+  - build
 
 .trigger-kas-pipeline_template:
-  stage: iris-kas
+  stage: build
   trigger:
     project: public-projects/yocto/iris-kas
-    branch: develop
+    branch: gitlab-pipeline
     strategy: depend
+
+# workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
+update-non-protected-branch:
+  stage: setup
+  tags:
+    - gp
+  image: bitnami/git:2.38.1
+  before_script:
+  - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
+  script:
+    - git clone https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
+    - cd iris-kas
+    - |
+      if ! git checkout gitlab-pipeline; then
+        git checkout -b gitlab-pipeline
+      fi
+    - git reset --hard origin/${CI_DEFAULT_BRANCH}
+    - git push --force --set-upstream origin gitlab-pipeline
 
 web-trigger-kas-pipeline:
   rules:
