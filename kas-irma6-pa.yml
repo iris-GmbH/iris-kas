@@ -8,4 +8,4 @@ header:
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    refspec: "52b9a756e5eb5362260eda9ccc64bd522617fd9d"
+    refspec: "feature/pago/APC-4830_vehicle_to_ip"
