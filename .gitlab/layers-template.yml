@@ -7,6 +7,7 @@ workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
     - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 variables:
   SKIP_SDK_BUILD:
@@ -66,9 +67,10 @@ update-non-protected-branch:
     - git reset --hard origin/${CI_DEFAULT_BRANCH}
     - git push --force --set-upstream origin gitlab-pipeline
 
-web-trigger-kas-pipeline:
+trigger-kas-pipeline:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   variables:
     BRANCH_NAME: $CI_COMMIT_BRANCH
     USE_IDENTICAL_NAMED_LAYER_BRANCHES: "true"
@@ -83,7 +85,6 @@ web-trigger-kas-pipeline:
     BUILD_FROM_SCRATCH: $BUILD_FROM_SCRATCH
   stage: !reference [.trigger-kas-pipeline_template, stage]
   trigger: !reference [.trigger-kas-pipeline_template, trigger]
-
 
 merge-trigger-kas-pipeline:
   rules:
