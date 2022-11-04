@@ -9,6 +9,7 @@ include:
 
 variables:
   RELEASE_BRANCH: "master"
+  BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: "^https?://[^/]*(?:/.*(?<!iris-GmbH))?/([^/]*?)(?:.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
   MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
@@ -19,6 +20,16 @@ variables:
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
   FAILURE_LOG_DIR: "failure-log"
+  # Refspec of the systemtest_base repo to use
+  SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
+  # Set the name of the firmware to be programmed with systemtest_smoke job
+  SYSTEMTEST_SW_NAME: "sc573-gen6"
+  # Set duration of systemtest_reliability job in seconds
+  SYSTEMTEST_RELIABILITY_DURATION: "21600"
+  SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
+  SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
+  GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
+  GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -40,34 +51,36 @@ variables:
   SKIP_QEMU_TESTS:
     value: "false"
     description: 'Set to "true" to skip the QEMU tests.'
-  SKIP_CONTAINER_BUILD:
-    value: "true"
-    description: 'Set to "false" to build the iris-kas container on this branch. If the branch is not the default branch (develop), the image will be tagged with the commit SHA hash.'
+  FORCE_CONTAINER_BUILD:
+    value: "false"
+    description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
   SKIP_SYSTEMTEST_SMOKE:
     value: "true"
     description: 'Set to "false" to add execution of systemtest_smoke job. Skipping system smoke test will also skip any additional Systemtests.'
-  SYSTEMTEST_SW_NAME:
-    value: "sc573-gen6"
-    description: 'Set the name of the firmware to be programmed with systemtest_smoke job.'
-  SYSTEMTEST_BASE:
-    value: "0b32bbc835af29139752847437a22e42d291de49"
-    description: 'Set the version/revision to run all systemtest jobs from'
   SKIP_SYSTEMTEST_RELIABILITY:
     value: "true"
     description: 'Set to "false" to add execution of systemtest_reliability job.'
-  SYSTEMTEST_RELIABILITY_DURATION:
-    value: "21600"
-    description: 'Set duration of systemtest_reliability job in seconds.'
-  SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
-  SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
-  GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
-  GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
   BUILD_FROM_SCRATCH:
     value: "false"
     description: 'Set to "true" to build from scratch.'
-  BUILD_IMAGE:
-    value: "${CI_REGISTRY_IMAGE}:latest"
-    description: "Optionally override of the build image (e.g. useful for using the image built in the setup stage. Use commit SHA hash as tag)."
+
+workflow:
+  rules:
+    # Do not run merge pipeline on draft MRs
+    - if: '$CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
+      when: never
+    # Allow scheduled builds
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    # Allow manually triggering a build from the webinterface
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    # Allow triggering from upstream pipeline
+    - if: '$CI_PIPELINE_SOURCE == "pipeline"'
+    # Automatic build on merge request/changes to merge request targeting the default branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+    # Trigger an automatic build if a new, valid tag is pushed.
+    # examples for valid tags:
+    # 1.0.1, 1.0.1-RC1, 1.0.1-support-release
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+(-.+)?/'
 
 # default config for all jobs
 default:
@@ -93,10 +106,16 @@ stages:
 container-build:
   stage: setup
   rules:
-    # skip container image build when SKIP_CONTAINER_BUILD is true
-    - if: '$SKIP_CONTAINER_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    # build on merge requests with changes to dockerfile
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - Dockerfile
+      when: always
+    # build on releases
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - if: '$FORCE_CONTAINER_BUILD == "true"'
+      when: always
   tags:
     - gp
   image:
@@ -107,11 +126,14 @@ container-build:
     # Default branch = latest tag
     # All other branches are tagged with the currently built commit SHA hash
     - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+      if test "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH"; then
         tag="latest"
         echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+      elif test -n "$CI_COMMIT_TAG"; then
+        echo "Running on tag '$CI_COMMIT_TAG': tag = '$CI_COMMIT_TAG'"
+        tag="$CI_COMMIT_TAG"
       else
-        tag="$CI_COMMIT_SHA"
+        tag="git-${CI_COMMIT_SHORT_SHA}"
         echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
       fi
   script:
@@ -121,33 +143,16 @@ container-build:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${tag}"
-
-release-container-build:
-  rules:
-    - !reference [.release_template, rules]
-  tags:
-    - gp
-  image:
-    # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
-    name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
-    entrypoint: [""]
-  stage: setup
-  # override default before script
-  before_script: []
-  script:
-    - >-
-      /kaniko/executor
-      --build-arg "type=ci"
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
+    - echo BUILD_IMAGE="${CI_REGISTRY_IMAGE}:${tag}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
 
 wipe-sstate-caches:
   stage: wipe
   rules:
-    - if: '$WIPE_SSTATE_CACHE == "false"'
-      when: never 
-    - !reference [.develop_template, rules]
+    - if: '$WIPE_SSTATE_CACHE == "true"'
+      when: always 
   script:
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
@@ -157,9 +162,8 @@ wipe-sstate-caches:
 download-mirror-maintenance:
   stage: yocto-setup
   rules:
-    - if: '$RUN_MAINTENANCE == "false"'
-      when: never
-    - !reference [.develop_template, rules]
+    - if: '$RUN_MAINTENANCE == "true"'
+      when: always
   script:
     - echo "Finding and deleting faulty mirror items..."
     - find "${DOWNLOAD_MIRROR}" -name '*bad-checksum*' -exec sh -c 'echo "Found faulty mirror item {}. Deleting..."; rm -f {} $(echo {} | sed -r "s/_bad-checksum.*/.done/g")' \;
@@ -171,7 +175,6 @@ release-verify-fixed-refspecs:
   rules:
     - !reference [.release_template, rules]
   stage: yocto-setup
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     - echo "Ensuring that fixed refspecs are set..."
     - >
@@ -201,7 +204,6 @@ release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
   stage: wipe
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
@@ -213,7 +215,6 @@ release-base-build:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   tags:
     - "iris-kas-release-s3-upload"
   parallel:
@@ -245,7 +246,6 @@ release-build-maintenance-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
@@ -269,7 +269,6 @@ release-build-fitimage-netboot:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
       - MULTI_CONF: [imx8mp-irma6r2]
@@ -293,7 +292,6 @@ release-build-qemu:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
       - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
@@ -315,7 +313,6 @@ release-build-sdk:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   variables:
     BITBAKE_TASK: "-c populate_sdk"
     ARTIFACT_SUFFIX: "-sdk"
@@ -339,7 +336,6 @@ release-build-dev-deploy-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   parallel:
     matrix:
       - MULTI_CONF: [imx8mp-irma6r2]
@@ -364,7 +360,6 @@ release-build-deploy-distros:
   rules:
     - !reference [.release_template, rules]
   stage: build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   tags:
     # build on release runner
     - iris-kas-release
@@ -395,7 +390,6 @@ release-test-qemu:
     - "release-build-qemu"
   dependencies:
     - "release-build-qemu"
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # present in openembedded-core and this can speed up the parsing
@@ -408,7 +402,6 @@ release-sync-sstate-cache:
   stage: release
   rules:
     - !reference [.release_template, rules]
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}"
   script:
     # don't overwrite develop sstate_cache during support release and RC tags
     - >
@@ -585,15 +578,14 @@ systemtest_smoke:
     SENSOR2_IP: 172.16.126.233
   rules:
     # skip if SKIP_SYSTEMTEST_SMOKE is set to true
-    - if: '$SKIP_SYSTEMTEST_SMOKE == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
+      when: always
   needs:
     - "develop-build-deploy-distro-targets"
   dependencies:
     - "develop-build-deploy-distro-targets"
   before_script:
-    - !reference [.develop_template, before_script, prepare-systemtest]
+    - !reference [.common_template, before_script, prepare-systemtest]
   script:
     - cp -r ${CI_PROJECT_DIR}/artifacts/images/${SYSTEMTEST_SW_NAME}/update_files/ ${CI_PROJECT_DIR}/$SYSTEMTEST_PROJECT_DIR/systemtest/resources
     - docker --config ./.gen6tools login ${CI_REGISTRY} -u ${GEN6_TOOLS_DOCKER_REG_USER} -p ${GEN6_TOOLS_DOCKER_REG_TOKEN}
@@ -620,13 +612,12 @@ systemtest_reliability:
     SENSOR2_IP: 172.16.126.233
   rules:
     # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
-    - if: '$SKIP_SYSTEMTEST_RELIABILITY == "true" || $SKIP_SYSTEMTEST_SMOKE == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
+      when: always
   needs:
     - "systemtest_smoke"
   before_script:
-    - !reference [.develop_template, before_script, prepare-systemtest]
+    - !reference [.common_template, before_script, prepare-systemtest]
   script:
     - echo "executing systemtest reliability tests for ${SYSTEMTEST_SW_NAME}"
     - ./systemtest_reliability.sh ${SYSTEMTEST_RELIABILITY_DURATION}
