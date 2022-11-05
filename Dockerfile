@@ -9,7 +9,7 @@ ARG REPO_REV=v2.17.2
 ARG YQ_REV=v4.26.1
 ARG AWS_CLI_VER=2.7.27
 
-FROM golang:1.17 as builder
+FROM golang:1.19 as builder
 ARG REPO_REV
 ARG YQ_REV
 RUN set -ex \
