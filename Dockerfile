@@ -3,50 +3,33 @@
 
 # type can be set to ci. Override with "--build-arg type=ci" during build
 ARG type=base
-
-ARG KAS_VER=3.0.2
 ARG REPO_REV=v2.17.2
-ARG YQ_REV=v4.26.1
-ARG AWS_CLI_VER=2.7.27
 
-FROM golang:1.17 as builder
+FROM mikefarah/yq:4.29.2 AS yq
+
+FROM alpine:3.16 AS git
 ARG REPO_REV
-ARG YQ_REV
-RUN set -ex \
-    && apt-get update \
-    && apt-get install --no-install-recommends -y \
+RUN apk add --no-cache \
         git \
-        ca-certificates \
-    && git clone --single-branch -b ${YQ_REV} https://github.com/mikefarah/yq.git /yq \
-    && cd /yq \
-    && CGO_ENABLED=0 go build . \
     && git clone --single-branch -b ${REPO_REV} https://android.googlesource.com/tools/repo /repo \
     && chmod +x /repo/repo
 
-FROM ghcr.io/siemens/kas/kas:${KAS_VER} as base
+FROM ghcr.io/siemens/kas/kas:3.1 AS base
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
         cmake \
     && rm -rf /var/lib/apt/lists
-COPY --from=builder /yq/yq /usr/bin/yq
-COPY --from=builder /repo/repo /usr/bin/repo
+COPY --from=yq /usr/bin/yq /usr/local/bin/yq
+COPY --from=git /repo/repo /usr/local/bin/repo
 
-FROM base as ci
-ARG AWS_CLI_VER
-ADD .aws-cli-public.key /tmp/.aws-cli-public.key
+FROM base AS ci
 RUN set -ex \
-    && gpg --import /tmp/.aws-cli-public.key \
     && apt-get update \
-    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VER}.zip" -o "awscliv2.zip" \
-    && curl -o awscliv2.sig "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VER}.zip.sig" \
-    && gpg --verify awscliv2.sig awscliv2.zip \
-    && unzip awscliv2.zip \
-    && sudo ./aws/install \
-    && rm -rf aws awscliv2.zip awscliv2.sig \
     && apt-get install --no-install-recommends -y \
         icecc \
+        awscli \
     && rm -rf /var/lib/apt/lists
 # GitLab (and some other CI systems) override the entrypoint.
 # As a result, a non-privileged user needs to be added manually.
@@ -58,6 +41,6 @@ USER builder
 
 # This FROM statement will cause the build to either use the "base" or
 # "ci" image layer as final image, depending on what the "type" argument is set to.
-FROM ${type} as final
+FROM ${type} AS final
 ARG REPO_REV
 ENV REPO_REV=${REPO_REV}
