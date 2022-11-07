@@ -2,6 +2,16 @@
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
 .common_template:
+  before_script:
+    prepare-systemtest:
+      - docker login ${CI_REGISTRY} -u ${SYSTEMTEST_DOCKER_REG_USER} -p ${SYSTEMTEST_DOCKER_REG_TOKEN}
+      - echo "checkout systemtest repository"
+      - BASE_URL=`echo $CI_REPOSITORY_URL | sed "s;\/*$CI_PROJECT_PATH.*;;"`
+      - REPO_URL="$BASE_URL/rd-t/irma-six/systemtest.git"
+      - git clone $REPO_URL $SYSTEMTEST_PROJECT_DIR
+      - cd $SYSTEMTEST_PROJECT_DIR
+      - git checkout $SYSTEMTEST_BASE
+
   script:
     create-artifact:
       # create a tar.gz for archiving the yocto "deploy" folder. Useful, when linux permissions need to be preserved.
