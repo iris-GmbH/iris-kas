@@ -342,7 +342,7 @@ release-build-qemu:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+      - MULTI_CONF: [qemuarm64-r1, qemuarm64-r2]
         IMAGES: irma6-test
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
@@ -433,7 +433,7 @@ release-build-deploy-distros:
 release-test-qemu:
   stage: test
   tags:
-    - kas
+    - qemu
   rules:
     - !reference [.release_template, rules]
   needs:
@@ -628,7 +628,7 @@ develop-build-qemu:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+      - MULTI_CONF: [qemuarm64-r1, qemuarm64-r2]
         IMAGES: irma6-test
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
@@ -670,7 +670,7 @@ develop-build-sdk:
 develop-test-qemu:
   stage: test
   tags:
-    - kas
+    - qemu
   rules:
     # skip if SKIP_QEMU_TESTS is set to true
     - if: '$SKIP_QEMU_TESTS == "true"'
