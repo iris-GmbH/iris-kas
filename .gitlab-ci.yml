@@ -97,6 +97,8 @@ default:
 # List of stages for jobs, and their order of execution
 stages:
   - setup
+  - build-build-container
+  - merge-build-container
   - wipe
   - yocto-setup
   - build-base
@@ -105,50 +107,76 @@ stages:
   - reliability-test
   - release
 
-container-build:
+container-get-tag:
   stage: setup
   rules:
-    # build on merge requests with changes to dockerfile
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes:
-        - Dockerfile
-      when: always
-    # build on releases
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - if: '$FORCE_CONTAINER_BUILD == "true"'
-      when: always
+    - !reference [.common_template, rules, build_container_rules]
   tags:
     - gp
+  image:
+    name: alpine:3.16
+  before_script: []
+  script:
+    # Default branch = latest tag
+    # Release = release tag
+    # All other branches are tagged with the currently built commit SHA hash
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        BUILD_VERSION_TAG="latest"
+      elif [[ -n "$CI_COMMIT_TAG" ]]; then
+        BUILD_VERSION_TAG="$CI_COMMIT_TAG"
+      else
+        BUILD_VERSION_TAG="git-${CI_COMMIT_SHORT_SHA}"
+      fi
+    - echo "BUILD_VERSION_TAG set to ${BUILD_VERSION_TAG}."
+    - echo "BUILD_IMAGE=${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+build-iris-kas-container:
+  stage: build-build-container
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+  parallel:
+    matrix:
+      - TAG: gp
+        ARCH: amd64
+      - TAG: gp-arm
+        ARCH: arm64
+  tags:
+    - ${TAG}
   image:
     # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
     name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
     entrypoint: [""]
-  before_script:
-    # Default branch = latest tag
-    # All other branches are tagged with the currently built commit SHA hash
-    - |
-      if test "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH"; then
-        tag="latest"
-        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
-      elif test -n "$CI_COMMIT_TAG"; then
-        echo "Running on tag '$CI_COMMIT_TAG': tag = '$CI_COMMIT_TAG'"
-        tag="$CI_COMMIT_TAG"
-      else
-        tag="git-${CI_COMMIT_SHORT_SHA}"
-        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
-      fi
+  before_script: []
   script:
     - >-
       /kaniko/executor
       --build-arg "type=ci"
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${tag}"
-    - echo BUILD_IMAGE="${CI_REGISTRY_IMAGE}:${tag}" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
+      --destination "${BUILD_IMAGE}-${ARCH}"
+
+merge-container-manifests:
+  stage: merge-build-container
+  tags:
+    - gp
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+  image:
+    name: mplatform/manifest-tool:alpine-v2.0.6
+  before_script: []
+  script:
+    - >-
+      manifest-tool
+      --username=${CI_REGISTRY_USER}
+      --password=${CI_REGISTRY_PASSWORD}
+      push from-args
+      --platforms linux/amd64,linux/arm64
+      --template ${BUILD_IMAGE}-ARCH
+      --target ${BUILD_IMAGE}
 
 wipe-sstate-caches:
   stage: wipe
@@ -386,11 +414,13 @@ release-build-deploy-distros:
 
 release-test-qemu:
   stage: test
+  tags:
+    - kas
   rules:
     - !reference [.release_template, rules]
   needs:
-    - "release-build-qemu"
-  dependencies:
+    - job: "container-get-tag"
+      optional: true
     - "release-build-qemu"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
@@ -552,14 +582,16 @@ develop-build-sdk:
 
 develop-test-qemu:
   stage: test
+  tags:
+    - kas
   rules:
     # skip if SKIP_QEMU_TESTS is set to true
     - if: '$SKIP_QEMU_TESTS == "true"'
       when: never 
     - !reference [.develop_template, rules]
   needs:
-    - "develop-build-qemu"
-  dependencies:
+    - job: "container-get-tag"
+      optional: true
     - "develop-build-qemu"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
@@ -583,8 +615,8 @@ systemtest_smoke:
     - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
       when: always
   needs:
-    - "develop-build-deploy-distro-targets"
-  dependencies:
+    - job: "container-get-tag"
+      optional: true
     - "develop-build-deploy-distro-targets"
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
@@ -617,6 +649,8 @@ systemtest_reliability:
     - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
       when: always
   needs:
+    - job: "container-get-tag"
+      optional: true
     - "systemtest_smoke"
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
