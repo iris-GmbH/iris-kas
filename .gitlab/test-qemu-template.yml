@@ -4,7 +4,8 @@
 .test_qemu_template:
   parallel:
     matrix:
-    - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+    - MULTI_CONF: [qemuarm64-r1, qemuarm64-r2]
+      ARCH: arm64
   script:
     # prepare kas environment for qemu testing
     # we need to rebuild the qemu-native parts here due to absolute paths in the linked libraries.
@@ -17,7 +18,7 @@
     # start QEMU in background, use 70% of total RAM and use slirp networking, which does not require root
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # contained in openembedded-core and this can speed up the parsing
-    - kas shell -c "runqemu qemux86-64 qemuparams=\"-m $(($(free -m | awk '/Mem:/ {print $2}') /100 *70))\" slirp" ${MAIN_KAS_FILES} &
+    - kas shell -c "runqemu qemu${ARCH} qemuparams=\"-m $(($(free -m | awk '/Mem:/ {print $2}') /100 *70))\" slirp" ${MAIN_KAS_FILES} &
     # wait for SSH to become available in QEMU
     - "echo Info: Waiting for SSH to become available..."
     - export TIMEOUT=0;
