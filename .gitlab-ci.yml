@@ -272,6 +272,11 @@ release-base-build:
     - !reference [.release_template, script, offline-build]
     # upload base sources to public s3 bucket
     - !reference [.release_template, script, s3-upload-sources]
+    - echo "BASE_SOURCES_S3_BUCKET_NAME=$S3_BUCKET_NAME" >> build.env
+    - echo "BASE_SOURCES_S3_PATH_PREFIX=$S3_PATH_PREFIX" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
 
 # Build the maintenance release artifacts
 release-build-maintenance-distros:
@@ -496,12 +501,16 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP-IRMA6R2-SDK}.tar.gz"
         - name: "${IMX8MP-IRMA6R2-FITIMAGE-NETBOOT}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP-IRMA6R2-FITIMAGE-NETBOOT}.tar.gz"
+        - name: "${IMX8MP-IRMA6R2-BASESOURCES}"
+          url: "${IMX8MP-IRMA6R2-BASESOURCES_URL}"
         - name: "${SC573-GEN6-DEPLOY}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573-GEN6-DEPLOY}.tar.gz"
         - name: "${SC573-GEN6-MAINTENANCE-DISTROS}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573-GEN6-MAINTENANCE-DISTROS}.tar.gz"
         - name: "${SC573-GEN6-SDK}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573-GEN6-SDK}.tar.gz"
+        - name: "${SC573-GEN6-BASESOURCES}"
+          url: "${SC573-GEN6-BASESOURCES_URL}"
 
 develop-build-maintenance-distro-targets:
   rules:
