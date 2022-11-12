@@ -479,16 +479,38 @@ publish-release:
     IMX8MP-IRMA6R2-MAINTENANCE-DISTROS: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance-distros
     IMX8MP-IRMA6R2-SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
     IMX8MP-IRMA6R2-FITIMAGE-NETBOOT: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-fitimage-netboot
+    IMX8MP-IRMA6R2-BASESOURCES: imx8mp-irma6r2-base-sources
+    IMX8MP-IRMA6R2-BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP-IRMAR2-BASESOURCES}.tar.gz
     SC573-GEN6-DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
     SC573-GEN6-MAINTENANCE-DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
     SC573-GEN6-SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
+    SC573-GEN6-BASESOURCES: sc573-gen6-base-sources
+    SC573-GEN6-BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573-GEN6-BASESOURCES}.tar.gz
   before_script: []
   script:
     - echo "Publishing release $CI_COMMIT_TAG"
   release:
     name: "Release $CI_COMMIT_TAG"
     tag_name: "$CI_COMMIT_TAG"
-    description: "Release $CI_COMMIT_TAG created by GitLab CI."
+    description: |
+      # Assets
+      ## IMX8MP-IRMA6R2 (IRMA6 HW Release 2)
+      | Asset Name | Description | Clearance |
+      | ---------- | ----------- | --------- |
+      | ${IMX8MP-IRMA6R2-DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
+      | ${IMX8MP-IRMA6R2-DEV-DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
+      | ${IMX8MP-IRMA6R2-MAINTENANCE-DISTROS} | Firmware package containing images for debugging. | Internal |
+      | ${IMX8MP-IRMA6R2-SDK} | Yocto SDK used for cross-compiling. | Internal |
+      | ${IMX8MP-IRMA6R2-FITIMAGE-NETBOOT} | Image used during provisioning | Internal |
+      | ${IMX8MP-IRMA6R2-BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
+
+      ## SC573-GEN6 (IRMA6 HW Release 1)
+      | Asset Name | Description | Clearance |
+      | ---------- | ----------- | --------- |
+      | ${SC573-GEN6-DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
+      | ${SC573-GEN6-MAINTENANCE-DISTROS} | Firmware package containing images for debugging. | Internal |
+      | ${SC573-GEN6-SDK} | Yocto SDK used for cross-compiling. | Internal |
+      | ${SC573-GEN6-BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
     assets:
       links:
         - name: "${IMX8MP-IRMA6R2-DEPLOY}"
