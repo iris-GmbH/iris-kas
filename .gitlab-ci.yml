@@ -474,18 +474,18 @@ publish-release:
     - !reference [.release_template, rules]
   image: registry.gitlab.com/gitlab-org/release-cli:v0.14.0
   variables:
-    IMX8MP-IRMA6R2-DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy
-    IMX8MP-IRMA6R2-DEV-DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
-    IMX8MP-IRMA6R2-MAINTENANCE-DISTROS: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance-distros
-    IMX8MP-IRMA6R2-SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
-    IMX8MP-IRMA6R2-FITIMAGE-NETBOOT: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-fitimage-netboot
-    IMX8MP-IRMA6R2-BASESOURCES: imx8mp-irma6r2-base-sources
-    IMX8MP-IRMA6R2-BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP-IRMAR2-BASESOURCES}.tar.gz
-    SC573-GEN6-DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
-    SC573-GEN6-MAINTENANCE-DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
-    SC573-GEN6-SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
-    SC573-GEN6-BASESOURCES: sc573-gen6-base-sources
-    SC573-GEN6-BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573-GEN6-BASESOURCES}.tar.gz
+    IMX8MP_IRMA6R2_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy
+    IMX8MP_IRMA6R2_DEV_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
+    IMX8MP_IRMA6R2_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance-distros
+    IMX8MP_IRMA6R2_SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
+    IMX8MP_IRMA6R2_FITIMAGE_NETBOOT: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-fitimage-netboot
+    IMX8MP_IRMA6R2_BASESOURCES: imx8mp-irma6r2-base-sources
+    IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP-IRMAR2-BASESOURCES}.tar.gz
+    SC573_GEN6_DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
+    SC573_GEN6_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
+    SC573_GEN6_SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
+    SC573_GEN6_BASESOURCES: sc573-gen6-base-sources
+    SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
   before_script: []
   script:
     - echo "Publishing release $CI_COMMIT_TAG"
@@ -497,42 +497,42 @@ publish-release:
       ## IMX8MP-IRMA6R2 (IRMA6 HW Release 2)
       | Asset Name | Description | Clearance |
       | ---------- | ----------- | --------- |
-      | ${IMX8MP-IRMA6R2-DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
-      | ${IMX8MP-IRMA6R2-DEV-DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
-      | ${IMX8MP-IRMA6R2-MAINTENANCE-DISTROS} | Firmware package containing images for debugging. | Internal |
-      | ${IMX8MP-IRMA6R2-SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${IMX8MP-IRMA6R2-FITIMAGE-NETBOOT} | Image used during provisioning | Internal |
-      | ${IMX8MP-IRMA6R2-BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
+      | ${IMX8MP_IRMA6R2_DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
+      | ${IMX8MP_IRMA6R2_DEV_DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
+      | ${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
+      | ${IMX8MP_IRMA6R2_SDK} | Yocto SDK used for cross-compiling. | Internal |
+      | ${IMX8MP_IRMA6R2_FITIMAGE_NETBOOT} | Image used during provisioning. | Internal |
+      | ${IMX8MP_IRMA6R2_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
 
       ## SC573-GEN6 (IRMA6 HW Release 1)
       | Asset Name | Description | Clearance |
       | ---------- | ----------- | --------- |
-      | ${SC573-GEN6-DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
-      | ${SC573-GEN6-MAINTENANCE-DISTROS} | Firmware package containing images for debugging. | Internal |
-      | ${SC573-GEN6-SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${SC573-GEN6-BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
+      | ${SC573_GEN6_DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
+      | ${SC573_GEN6_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
+      | ${SC573_GEN6_SDK} | Yocto SDK used for cross-compiling. | Internal |
+      | ${SC573_GEN6_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
     assets:
       links:
-        - name: "${IMX8MP-IRMA6R2-DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP-IRMA6R2-DEPLOY}.tar.gz"
-        - name: "${IMX8MP-IRMA6R2-DEV-DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP-IRMA6R2-DEV-DEPLOY}.tar.gz"
-        - name: "${IMX8MP-IRMA6R2-MAINTENANCE-DISTROS}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP-IRMA6R2-MAINTENANCE-DISTROS}.tar.gz"
-        - name: "${IMX8MP-IRMA6R2-SDK}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP-IRMA6R2-SDK}.tar.gz"
-        - name: "${IMX8MP-IRMA6R2-FITIMAGE-NETBOOT}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP-IRMA6R2-FITIMAGE-NETBOOT}.tar.gz"
-        - name: "${IMX8MP-IRMA6R2-BASESOURCES}"
-          url: "${IMX8MP-IRMA6R2-BASESOURCES_URL}"
-        - name: "${SC573-GEN6-DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573-GEN6-DEPLOY}.tar.gz"
-        - name: "${SC573-GEN6-MAINTENANCE-DISTROS}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573-GEN6-MAINTENANCE-DISTROS}.tar.gz"
-        - name: "${SC573-GEN6-SDK}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573-GEN6-SDK}.tar.gz"
-        - name: "${SC573-GEN6-BASESOURCES}"
-          url: "${SC573-GEN6-BASESOURCES_URL}"
+        - name: "${IMX8MP_IRMA6R2_DEPLOY}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_DEV-DEPLOY}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV-DEPLOY}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_SDK}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_FITIMAGE-NETBOOT}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_FITIMAGE-NETBOOT}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
+          url: "${IMX8MP_IRMA6R2_BASESOURCES_URL}"
+        - name: "${SC573_GEN6_DEPLOY}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEPLOY}.tar.gz"
+        - name: "${SC573_GEN6_MAINTENANCE_DISTROS}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_MAINTENANCE_DISTROS}.tar.gz"
+        - name: "${SC573_GEN6_SDK}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
+        - name: "${SC573_GEN6_BASESOURCES}"
+          url: "${SC573_GEN6_BASESOURCES_URL}"
 
 develop-build-maintenance-distro-targets:
   rules:
