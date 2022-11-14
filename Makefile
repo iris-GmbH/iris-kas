@@ -93,6 +93,9 @@ build-r2-evk:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
 
+patch-thirdparty-hostbuild:
+	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} -c do_patch" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
+
 git-flow:
 	git flow init -d
 
