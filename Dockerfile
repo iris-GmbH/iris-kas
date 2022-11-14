@@ -5,7 +5,7 @@
 ARG type=base
 ARG REPO_REV=v2.17.2
 
-FROM mikefarah/yq:4.29.2 AS yq
+FROM mikefarah/yq:4.30.2 AS yq
 
 FROM alpine:3.16 AS git
 ARG REPO_REV
