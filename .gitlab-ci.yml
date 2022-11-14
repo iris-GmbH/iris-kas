@@ -437,7 +437,7 @@ develop-build-maintenance-distro-targets:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
         IMAGES: "irma6-maintenance irma6-dev"
   variables:
@@ -462,7 +462,7 @@ develop-build-fitimage-netboot:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [imx8mp-evk, imx8mp-irma6r2]
+      - MULTI_CONF: [imx8mp-irma6r2]
         IMAGES: "irma6-fitimage-netboot"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
@@ -487,7 +487,7 @@ develop-build-deploy-distro-targets:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-deploy"
   variables:
     ARTIFACT_SUFFIX: "-deploy"
@@ -537,7 +537,7 @@ develop-build-sdk:
     ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-evk, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
