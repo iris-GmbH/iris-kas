@@ -10,6 +10,7 @@ include:
 variables:
   RELEASE_BRANCH: "master"
   BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: "^https?://[^/]*(?:/.*(?<!iris-GmbH))?/([^/]*?)(?:.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
   MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
@@ -97,58 +98,87 @@ default:
 # List of stages for jobs, and their order of execution
 stages:
   - setup
+  - build-build-container
+  - merge-build-container
   - wipe
   - yocto-setup
   - build-base
   - build
   - test
   - reliability-test
+  - upload-artifacts
   - release
 
-container-build:
+container-get-tag:
   stage: setup
   rules:
-    # build on merge requests with changes to dockerfile
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes:
-        - Dockerfile
-      when: always
-    # build on releases
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - if: '$FORCE_CONTAINER_BUILD == "true"'
-      when: always
+    - !reference [.common_template, rules, build_container_rules]
   tags:
     - gp
+  image:
+    name: alpine:3.16
+  before_script: []
+  script:
+    # Default branch = latest tag
+    # Release = release tag
+    # All other branches are tagged with the currently built commit SHA hash
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        BUILD_VERSION_TAG="latest"
+      elif [[ -n "$CI_COMMIT_TAG" ]]; then
+        BUILD_VERSION_TAG="$CI_COMMIT_TAG"
+      else
+        BUILD_VERSION_TAG="git-${CI_COMMIT_SHORT_SHA}"
+      fi
+    - echo "BUILD_VERSION_TAG set to ${BUILD_VERSION_TAG}."
+    - echo "BUILD_IMAGE=${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+build-iris-kas-container:
+  stage: build-build-container
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+  parallel:
+    matrix:
+      - TAG: gp
+        ARCH: amd64
+      - TAG: gp-arm
+        ARCH: arm64
+  tags:
+    - ${TAG}
   image:
     # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
     name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
     entrypoint: [""]
-  before_script:
-    # Default branch = latest tag
-    # All other branches are tagged with the currently built commit SHA hash
-    - |
-      if test "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH"; then
-        tag="latest"
-        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
-      elif test -n "$CI_COMMIT_TAG"; then
-        echo "Running on tag '$CI_COMMIT_TAG': tag = '$CI_COMMIT_TAG'"
-        tag="$CI_COMMIT_TAG"
-      else
-        tag="git-${CI_COMMIT_SHORT_SHA}"
-        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
-      fi
+  before_script: []
   script:
     - >-
       /kaniko/executor
       --build-arg "type=ci"
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${tag}"
-    - echo BUILD_IMAGE="${CI_REGISTRY_IMAGE}:${tag}" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
+      --destination "${BUILD_IMAGE}-${ARCH}"
+
+merge-container-manifests:
+  stage: merge-build-container
+  tags:
+    - gp
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+  image:
+    name: mplatform/manifest-tool:alpine-v2.0.6
+  before_script: []
+  script:
+    - >-
+      manifest-tool
+      --username=${CI_REGISTRY_USER}
+      --password=${CI_REGISTRY_PASSWORD}
+      push from-args
+      --platforms linux/amd64,linux/arm64
+      --template ${BUILD_IMAGE}-ARCH
+      --target ${BUILD_IMAGE}
 
 wipe-sstate-caches:
   stage: wipe
@@ -242,6 +272,11 @@ release-base-build:
     - !reference [.release_template, script, offline-build]
     # upload base sources to public s3 bucket
     - !reference [.release_template, script, s3-upload-sources]
+    - echo "BASE_SOURCES_S3_BUCKET_NAME=$S3_BUCKET_NAME" >> build.env
+    - echo "BASE_SOURCES_S3_PATH_PREFIX=$S3_PATH_PREFIX" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
 
 # Build the maintenance release artifacts
 release-build-maintenance-distros:
@@ -264,7 +299,7 @@ release-build-maintenance-distros:
     - !reference [.release_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 release-build-fitimage-netboot:
@@ -287,7 +322,7 @@ release-build-fitimage-netboot:
     - !reference [.release_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 release-build-qemu:
@@ -330,7 +365,7 @@ release-build-sdk:
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
   after_script:
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 # Build the deploy image with dev keys
@@ -354,7 +389,7 @@ release-build-dev-deploy-distros:
     - !reference [.release_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 # Build the deploy image with production keys
@@ -381,16 +416,18 @@ release-build-deploy-distros:
     - !reference [.release_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 release-test-qemu:
   stage: test
+  tags:
+    - kas
   rules:
     - !reference [.release_template, rules]
   needs:
-    - "release-build-qemu"
-  dependencies:
+    - job: "container-get-tag"
+      optional: true
     - "release-build-qemu"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
@@ -413,6 +450,22 @@ release-sync-sstate-cache:
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
+release-upload-artifacts:
+  stage: upload-artifacts
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - gp
+  image: curlimages/curl:7.85.0
+  before_script: []
+  script:
+    - >
+      for ARTIFACT in irma6-*; do
+        tar -czvf ${ARTIFACT}.tar.gz ${ARTIFACT}
+        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${ARTIFACT}.tar.gz"
+        rm ${ARTIFACT}.tar.gz
+      done
+
 publish-release:
   stage: release
   tags:
@@ -420,13 +473,66 @@ publish-release:
   rules:
     - !reference [.release_template, rules]
   image: registry.gitlab.com/gitlab-org/release-cli:v0.14.0
+  variables:
+    IMX8MP_IRMA6R2_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy
+    IMX8MP_IRMA6R2_DEV_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
+    IMX8MP_IRMA6R2_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance-distros
+    IMX8MP_IRMA6R2_SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
+    IMX8MP_IRMA6R2_FITIMAGE_NETBOOT: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-fitimage-netboot
+    IMX8MP_IRMA6R2_BASESOURCES: imx8mp-irma6r2-base-sources
+    IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP-IRMAR2-BASESOURCES}.tar.gz
+    SC573_GEN6_DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
+    SC573_GEN6_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
+    SC573_GEN6_SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
+    SC573_GEN6_BASESOURCES: sc573-gen6-base-sources
+    SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
   before_script: []
   script:
     - echo "Publishing release $CI_COMMIT_TAG"
   release:
     name: "Release $CI_COMMIT_TAG"
     tag_name: "$CI_COMMIT_TAG"
-    description: "Release $CI_COMMIT_TAG created by GitLab CI."
+    description: |
+      # Assets
+      ## IMX8MP-IRMA6R2 (IRMA6 HW Release 2)
+      | Asset Name | Description | Clearance |
+      | ---------- | ----------- | --------- |
+      | ${IMX8MP_IRMA6R2_DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
+      | ${IMX8MP_IRMA6R2_DEV_DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
+      | ${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
+      | ${IMX8MP_IRMA6R2_SDK} | Yocto SDK used for cross-compiling. | Internal |
+      | ${IMX8MP_IRMA6R2_FITIMAGE_NETBOOT} | Image used during provisioning. | Internal |
+      | ${IMX8MP_IRMA6R2_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
+
+      ## SC573-GEN6 (IRMA6 HW Release 1)
+      | Asset Name | Description | Clearance |
+      | ---------- | ----------- | --------- |
+      | ${SC573_GEN6_DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Customer |
+      | ${SC573_GEN6_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
+      | ${SC573_GEN6_SDK} | Yocto SDK used for cross-compiling. | Internal |
+      | ${SC573_GEN6_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
+    assets:
+      links:
+        - name: "${IMX8MP_IRMA6R2_DEPLOY}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_DEV-DEPLOY}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV-DEPLOY}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_SDK}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_FITIMAGE-NETBOOT}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_FITIMAGE-NETBOOT}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
+          url: "${IMX8MP_IRMA6R2_BASESOURCES_URL}"
+        - name: "${SC573_GEN6_DEPLOY}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEPLOY}.tar.gz"
+        - name: "${SC573_GEN6_MAINTENANCE_DISTROS}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_MAINTENANCE_DISTROS}.tar.gz"
+        - name: "${SC573_GEN6_SDK}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
+        - name: "${SC573_GEN6_BASESOURCES}"
+          url: "${SC573_GEN6_BASESOURCES_URL}"
 
 develop-build-maintenance-distro-targets:
   rules:
@@ -450,7 +556,7 @@ develop-build-maintenance-distro-targets:
     - !reference [.develop_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-fitimage-netboot:
@@ -475,7 +581,7 @@ develop-build-fitimage-netboot:
     - !reference [.develop_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-deploy-distro-targets:
@@ -499,7 +605,7 @@ develop-build-deploy-distro-targets:
     - !reference [.develop_template, script, build]
   after_script:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-qemu:
@@ -547,19 +653,21 @@ develop-build-sdk:
     - !reference [.develop_template, script, build-configuration]
     - !reference [.develop_template, script, build]
   after_script:
-    - !reference [.common_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-test-qemu:
   stage: test
+  tags:
+    - kas
   rules:
     # skip if SKIP_QEMU_TESTS is set to true
     - if: '$SKIP_QEMU_TESTS == "true"'
       when: never 
     - !reference [.develop_template, rules]
   needs:
-    - "develop-build-qemu"
-  dependencies:
+    - job: "container-get-tag"
+      optional: true
     - "develop-build-qemu"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
@@ -583,8 +691,8 @@ systemtest_smoke:
     - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
       when: always
   needs:
-    - "develop-build-deploy-distro-targets"
-  dependencies:
+    - job: "container-get-tag"
+      optional: true
     - "develop-build-deploy-distro-targets"
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
@@ -617,6 +725,8 @@ systemtest_reliability:
     - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
       when: always
   needs:
+    - job: "container-get-tag"
+      optional: true
     - "systemtest_smoke"
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
