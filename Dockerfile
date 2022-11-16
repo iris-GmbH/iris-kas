@@ -5,7 +5,7 @@
 ARG type=base
 ARG REPO_REV=v2.17.2
 
-FROM mikefarah/yq:4.30.3 AS yq
+FROM mikefarah/yq:4.30.4 AS yq
 
 FROM alpine:3.16 AS git
 ARG REPO_REV
@@ -21,8 +21,10 @@ RUN set -ex \
     && apt-get install --no-install-recommends -y \
         cmake \
     && rm -rf /var/lib/apt/lists
-COPY --from=yq /usr/bin/yq /usr/local/bin/yq
-COPY --from=git /repo/repo /usr/local/bin/repo
+COPY --from=yq /usr/bin/yq /usr/bin/yq
+COPY --from=git /repo/repo /usr/bin/repo
+RUN repo --version \
+    && yq --version
 
 FROM base AS ci
 RUN set -ex \
