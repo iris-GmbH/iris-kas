@@ -149,8 +149,7 @@ build-iris-kas-container:
   tags:
     - ${TAG}
   image:
-    # use image tag with gitlab-ci helper support, see https://github.com/GoogleContainerTools/kaniko/pull/2040#issuecomment-1095364532
-    name: gcr.io/kaniko-project/executor:f930b75b8b2c310b3d7fc4e1d8ddb30859cee9aa-debug
+    name: gcr.io/kaniko-project/executor:v1.9.1-debug
     entrypoint: [""]
   before_script: []
   script:
