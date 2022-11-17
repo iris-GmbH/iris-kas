@@ -455,7 +455,7 @@ release-upload-artifacts:
     - !reference [.release_template, rules]
   tags:
     - gp
-  image: curlimages/curl:7.85.0
+  image: curlimages/curl:7.86.0
   before_script: []
   script:
     - >
