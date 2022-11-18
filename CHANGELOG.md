@@ -16,6 +16,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 - [DEVOPS-542] Add HAB signing for R2 releases
 - [RD-1240] Add makefile option for setting fixed refspecs on thirdparty meta layers
 - [DEVOPS-524] Add netboot image to CI pipeline
+- [DEVOPS-590] Add make directive to supply the patched sources of given packages
 
 
 ### Changed
