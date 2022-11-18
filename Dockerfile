@@ -7,7 +7,7 @@ ARG REPO_REV=v2.17.2
 
 FROM mikefarah/yq:4.30.4 AS yq
 
-FROM alpine:3.16 AS git
+FROM alpine:3.17 AS git
 ARG REPO_REV
 RUN apk add --no-cache \
         git \
