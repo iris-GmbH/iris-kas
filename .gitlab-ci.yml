@@ -185,7 +185,7 @@ wipe-sstate-caches:
     - if: '$WIPE_SSTATE_CACHE == "true"'
       when: always 
   script:
-    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} + 
 
 # Under certain circumstances a mirror item may fail due to invalid checksums.
 # Unfortunately, yocto does not automatically remove these
