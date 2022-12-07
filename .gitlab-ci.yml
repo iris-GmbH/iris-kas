@@ -9,6 +9,7 @@ include:
 
 variables:
   RELEASE_BRANCH: "master"
+  FF_ENABLE_JOB_CLEANUP: "true"
   BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
