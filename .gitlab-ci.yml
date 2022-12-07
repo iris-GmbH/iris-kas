@@ -90,8 +90,8 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     # Allow triggering from upstream pipeline
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
-    # Automatic build on merge request/changes to merge request targeting the default branch
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+    # Automatic build on merge request/changes to merge request
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     # Trigger an automatic build if a new, valid tag is pushed.
     # examples for valid tags:
     # 1.0.1, 1.0.1-RC1, 1.0.1-support-release
@@ -753,3 +753,17 @@ systemtest_reliability:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
     reports:
       junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
+
+# We do not want to run a pipeline on merges to non-default branch.
+# During a release process (merge target branch master), we are interested in the release candidate builds, not the merge request
+# builds, as the development and release pipelines work fundamentally different.
+# However, since a merge request is blocked regardless of branch, as long as no pipeline is run, we need a empty placeholder
+# job for the pipeline to "turn green".
+skip-non-default-branch-merge-pipeline:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+  stage: setup
+  tags:
+    - gp
+  script:
+    - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
