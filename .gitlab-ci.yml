@@ -467,18 +467,17 @@ release-upload-artifacts:
     - !reference [.release_template, rules]
   tags:
     - gp
-  image: curlimages/curl:7.86.0
   before_script: []
   script:
     - >
       for ARTIFACT in irma6-*; do
-        tar -czvf ${ARTIFACT}.tar.gz ${ARTIFACT}
+        sudo tar 2>&1 -czvf ${ARTIFACT}.tar.gz ${ARTIFACT}
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${ARTIFACT}.tar.gz"
       done
     # separate packages only containing customer cleared files
     - >
       for FOLDER in ${IMX8MP_IRMA6R2_DEPLOY} ${SC573_GEN6_DEPLOY}; do
-        tar --ignore-failed-read -czvf ${FOLDER}-customer.tar.gz ${FOLDER}/licenses $(find ${FOLDER} -type d -name 'update_files') $(find ${FOLDER} -type f -name '*.swu')
+        sudo tar 2>&1 --ignore-failed-read -czvf ${FOLDER}-customer.tar.gz ${FOLDER}/licenses $(find ${FOLDER} -type d -name 'update_files') $(find ${FOLDER} -type f -name '*.swu')
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${FOLDER}-customer.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${FOLDER}-customer.tar.gz"
       done
 
