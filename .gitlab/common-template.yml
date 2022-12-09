@@ -2,6 +2,32 @@
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
 .common_template:
+  rules:
+    build_container_rules:
+      # build on merge requests with changes to dockerfile
+      - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+        changes:
+          - Dockerfile
+        when: always
+      - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+        changes:
+          - Dockerfile
+        when: always
+      # build on releases
+      - if: '$CI_COMMIT_TAG'
+        when: always
+      - if: '$FORCE_CONTAINER_BUILD == "true"'
+        when: always
+  before_script:
+    prepare-systemtest:
+      - docker login ${CI_REGISTRY} -u ${SYSTEMTEST_DOCKER_REG_USER} -p ${SYSTEMTEST_DOCKER_REG_TOKEN}
+      - echo "checkout systemtest repository"
+      - BASE_URL=`echo $CI_REPOSITORY_URL | sed "s;\/*$CI_PROJECT_PATH.*;;"`
+      - REPO_URL="$BASE_URL/rd-t/irma-six/systemtest.git"
+      - git clone $REPO_URL $SYSTEMTEST_PROJECT_DIR
+      - cd $SYSTEMTEST_PROJECT_DIR
+      - git checkout $SYSTEMTEST_BASE
+
   script:
     create-artifact:
       # create a tar.gz for archiving the yocto "deploy" folder. Useful, when linux permissions need to be preserved.
@@ -32,11 +58,6 @@
     # remove symbolic shortlinks to image build artifacts, as these do not work on Windows machines and just cause confusion
     remove-symbolic-image-links:
       - find build/tmp/deploy/images -type l -exec rm -f {} \;
-    # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
-    move-artifacts-to-toplevel:
-      # ensure there are no artifacts left over from previous jobs
-      - rm -rf artifacts
-      - mv build/tmp/deploy artifacts
 
   services:
     icecc-daemon:

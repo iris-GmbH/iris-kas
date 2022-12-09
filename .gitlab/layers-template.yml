@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+
+# This is a shared template to be included by meta-layers
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+variables:
+  SKIP_SDK_BUILD:
+    value: "true"
+    description: 'Set to "false" to run the SDK build.'
+  SKIP_FITIMAGE_NETBOOT_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the fitimage-netboot for the sensor targets.'
+  SKIP_DEPLOY_TARGET_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the deploy firmware build for the sensor targets.'
+  SKIP_MAINTENANCE_TARGET_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
+  SKIP_QEMU_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the firmware build for the QEMU targets. Will be ignored if SKIP_QEMU_TESTS is set to false.'
+  SKIP_QEMU_TESTS:
+    value: "false"
+    description: 'Set to "true" to skip the QEMU tests.'
+  SKIP_SYSTEMTEST_SMOKE:
+    value: "true"
+    description: 'Set to "false" to add execution of systemtest_smoke job. Skipping system smoke test will also skip any additional Systemtests.'
+  SKIP_SYSTEMTEST_RELIABILITY:
+    value: "true"
+    description: 'Set to "false" to add execution of systemtest_reliability job.'
+  BUILD_FROM_SCRATCH:
+    value: "false"
+    description: 'Set to "true" to build from scratch.'
+
+stages:
+  - setup
+  - build
+
+.trigger-kas-pipeline_template:
+  stage: build
+  trigger:
+    project: public-projects/yocto/iris-kas
+    branch: gitlab-pipeline
+    strategy: depend
+
+# workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
+update-non-protected-branch:
+  stage: setup
+  tags:
+    - gp
+  image: bitnami/git:2.38.1
+  before_script:
+  - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
+  script:
+    - git clone https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
+    - cd iris-kas
+    - |
+      if ! git checkout gitlab-pipeline; then
+        git checkout -b gitlab-pipeline
+      fi
+    - git reset --hard origin/${CI_DEFAULT_BRANCH}
+    - git push --force --set-upstream origin gitlab-pipeline
+
+trigger-kas-pipeline:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  variables:
+    BRANCH_NAME: $CI_COMMIT_BRANCH
+    USE_IDENTICAL_NAMED_LAYER_BRANCHES: "true"
+    SKIP_SDK_BUILD: $SKIP_SDK_BUILD
+    SKIP_FITIMAGE_NETBOOT_BUILD: $SKIP_FITIMAGE_NETBOOT_BUILD
+    SKIP_DEPLOY_TARGET_BUILD: $SKIP_DEPLOY_TARGET_BUILD
+    SKIP_MAINTENANCE_TARGET_BUILD: $SKIP_MAINTENANCE_TARGET_BUILD
+    SKIP_QEMU_BUILD: $SKIP_QEMU_BUILD
+    SKIP_QEMU_TESTS: $SKIP_QEMU_TESTS
+    SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
+    SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
+    BUILD_FROM_SCRATCH: $BUILD_FROM_SCRATCH
+  stage: !reference [.trigger-kas-pipeline_template, stage]
+  trigger: !reference [.trigger-kas-pipeline_template, trigger]
+
+merge-trigger-kas-pipeline:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+  variables:
+    BRANCH_NAME: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    USE_IDENTICAL_NAMED_LAYER_BRANCHES: "true"
+  stage: !reference [.trigger-kas-pipeline_template, stage]
+  trigger: !reference [.trigger-kas-pipeline_template, trigger]
