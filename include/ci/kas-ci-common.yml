@@ -9,6 +9,3 @@ local_conf_header:
     BB_NUMBER_THREADS = "10"
   prservice: |
     PRSERV_HOST = "yocto-prservice.yocto-prservice:8585"
-  icecc: |
-    INHERIT += "icecc"
-    ICECC_USER_PACKAGE_BL += "pango"
