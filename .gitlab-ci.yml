@@ -38,13 +38,11 @@ variables:
   IMX8MP_IRMA6R2_SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
   IMX8MP_IRMA6R2_FITIMAGE_NETBOOT: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-fitimage-netboot
   IMX8MP_IRMA6R2_BASESOURCES: imx8mp-irma6r2-base-sources
-  IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP-IRMAR2-BASESOURCES}.tar.gz
   SC573_GEN6_DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
   SC573_GEN6_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy-customer
   SC573_GEN6_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
   SC573_GEN6_SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
   SC573_GEN6_BASESOURCES: sc573-gen6-base-sources
-  SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -469,18 +467,17 @@ release-upload-artifacts:
     - !reference [.release_template, rules]
   tags:
     - gp
-  image: curlimages/curl:7.86.0
   before_script: []
   script:
     - >
       for ARTIFACT in irma6-*; do
-        tar -czvf ${ARTIFACT}.tar.gz ${ARTIFACT}
+        sudo tar 2>&1 -czvf ${ARTIFACT}.tar.gz ${ARTIFACT}
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${ARTIFACT}.tar.gz"
       done
     # separate packages only containing customer cleared files
     - >
       for FOLDER in ${IMX8MP_IRMA6R2_DEPLOY} ${SC573_GEN6_DEPLOY}; do
-        tar -czvf ${FOLDER}-customer.tar.gz ${FOLDER}/licenses $(find ${FOLDER} -type d -name 'update_files') $(find ${FOLDER} -type f -name '*.swu')
+        sudo tar 2>&1 --ignore-failed-read -czvf ${FOLDER}-customer.tar.gz ${FOLDER}/licenses $(find ${FOLDER} -type d -name 'update_files') $(find ${FOLDER} -type f -name '*.swu')
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${FOLDER}-customer.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${FOLDER}-customer.tar.gz"
       done
 
@@ -490,6 +487,9 @@ publish-release:
     - gp
   rules:
     - !reference [.release_template, rules]
+  variables:
+    IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz
+    SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
   image: registry.gitlab.com/gitlab-org/release-cli:v0.14.0
   before_script: []
   script:
@@ -524,14 +524,14 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_DEV-DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV-DEPLOY}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_DEV_DEPLOY}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV_DEPLOY}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_SDK}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_FITIMAGE-NETBOOT}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_FITIMAGE-NETBOOT}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_FITIMAGE_NETBOOT}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_FITIMAGE_NETBOOT}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
           url: "${IMX8MP_IRMA6R2_BASESOURCES_URL}"
         - name: "${SC573_GEN6_DEPLOY}"
