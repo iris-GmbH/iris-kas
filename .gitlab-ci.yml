@@ -767,3 +767,11 @@ skip-non-default-branch-merge-pipeline:
     - gp
   script:
     - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
+
+test-kvm:
+  stage: build
+  image: debian:11
+  tags:
+    - qemu
+  script:
+    - sleep 2h
