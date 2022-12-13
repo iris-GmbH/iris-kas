@@ -475,8 +475,8 @@ publish-release:
       ## IMX8MP-IRMA6R2 (IRMA6 HW Release 2)
       | Asset Name | Description | Clearance |
       | ---------- | ----------- | --------- |
-      | ${IMX8MP_IRMA6R2_DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Internal |
-      | ${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER} | Update package for the production firmware (deploy). | Customer |
+      | ${IMX8MP_IRMA6R2_DEPLOY} | Production Firmware package - all artifacts. | Internal |
+      | ${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER} | Production Firmware - update file only. | Customer |
       | ${IMX8MP_IRMA6R2_DEV_DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
       | ${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
       | ${IMX8MP_IRMA6R2_SDK} | Yocto SDK used for cross-compiling. | Internal |
