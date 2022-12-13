@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.3-RC1"
+    IRMA6_DISTRO_VERSION = "2.1.2"
 defaults:
   repos:
     patches:
@@ -30,7 +30,7 @@ repos:
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "3155eb565fb1758ba426ab7f5ea710004ccbeb58"
+    refspec: "aa0073041806c9f417a33b0b7f747d2a86289eda"
     layers:
       meta:
       meta-poky:
