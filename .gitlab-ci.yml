@@ -36,7 +36,6 @@ variables:
   IMX8MP_IRMA6R2_DEV_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
   IMX8MP_IRMA6R2_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance-distros
   IMX8MP_IRMA6R2_SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
-  IMX8MP_IRMA6R2_FITIMAGE_NETBOOT: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-fitimage-netboot
   IMX8MP_IRMA6R2_BASESOURCES: imx8mp-irma6r2-base-sources
   SC573_GEN6_DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
   SC573_GEN6_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy-customer
@@ -46,9 +45,6 @@ variables:
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
-  SKIP_FITIMAGE_NETBOOT_BUILD:
-    value: "true"
-    description: 'Set to "false" to build the fitimage-netboot for the sensor targets.'
   USE_IDENTICAL_NAMED_LAYER_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named meta layer branches during the build'
@@ -313,29 +309,6 @@ release-build-maintenance-distros:
     - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
-release-build-fitimage-netboot:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [imx8mp-irma6r2]
-        IMAGES: "irma6-fitimage-netboot"
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    ARTIFACT_SUFFIX: "-fitimage-netboot"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
-
 release-build-qemu:
   rules:
     - !reference [.release_template, rules]
@@ -507,7 +480,6 @@ publish-release:
       | ${IMX8MP_IRMA6R2_DEV_DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
       | ${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
       | ${IMX8MP_IRMA6R2_SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${IMX8MP_IRMA6R2_FITIMAGE_NETBOOT} | Image used during provisioning. | Internal |
       | ${IMX8MP_IRMA6R2_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
 
       ## SC573-GEN6 (IRMA6 HW Release 1)
@@ -530,8 +502,6 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_SDK}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_FITIMAGE_NETBOOT}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_FITIMAGE_NETBOOT}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
           url: "${IMX8MP_IRMA6R2_BASESOURCES_URL}"
         - name: "${SC573_GEN6_DEPLOY}"
@@ -559,31 +529,6 @@ develop-build-maintenance-distro-targets:
         IMAGES: "irma6-maintenance irma6-dev"
   variables:
     ARTIFACT_SUFFIX: "-maintenance-distros"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
-
-develop-build-fitimage-netboot:
-  rules:
-    # skip if SKIP_FITIMAGE_NETBOOT_BUILD is set to true
-    - if: '$SKIP_FITIMAGE_NETBOOT_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [imx8mp-irma6r2]
-        IMAGES: "irma6-fitimage-netboot"
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    ARTIFACT_SUFFIX: "-fitimage-netboot"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
