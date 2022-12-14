@@ -42,11 +42,7 @@
       - >
         if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
           export BUILD_TARGETS="$(for i in ${IMAGES}; do \
-            if [ "${i}" != "irma6-fitimage-netboot" ]; then \
-              echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
-            else \
-              echo -n "mc:${MULTI_CONF}:${i}"; \
-            fi; \
+            echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
           done)"
         else
           export BUILD_TARGETS="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
