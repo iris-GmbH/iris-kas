@@ -614,6 +614,7 @@ develop-build-sdk:
 
 develop-test-qemu:
   stage: test
+  timeout: 1 hour
   tags:
     - kas
   rules:
