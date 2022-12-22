@@ -32,7 +32,7 @@
             sleep 5;
           fi;
         done
-    - GTEST_RESULT_FILE=($ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "mktemp /tmp/gtest.XXXXX")
+    - GTEST_RESULT_FILE=$(ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "mktemp /tmp/gtest.XXXXX")
     - ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:$GTEST_RESULT_FILE" || true
     - scp -P 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1:$GTEST_RESULT_FILE ${MULTI_CONF}-gtest_results.xml
   artifacts:
