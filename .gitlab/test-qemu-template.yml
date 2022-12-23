@@ -32,7 +32,7 @@
             sleep 5;
           fi;
         done
-    - ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_filter=*RAL_NetworkServices_Mdns_ITests_PublisherImpl* --gtest_output=xml:/tmp/gtest_results.xml" || true
+    - ssh -p 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1 "test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_filter=-RAL_NetworkServices_Mdns_ITests_PublisherImpl* --gtest_output=xml:/tmp/gtest_results.xml" || true
     - scp -P 2222 -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml ${MULTI_CONF}-gtest_results.xml
   artifacts:
     when: always
