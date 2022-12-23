@@ -21,6 +21,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 ### Changed
 - [DEVOPS-519] Move basic config from local.conf to distro.conf in meta-iris
 - [DEVOPS-531] Split distro configs into deploy and maintenance
+- QEMU tests job timeout limited to 1 hour
 
 
 ### Deprecated
