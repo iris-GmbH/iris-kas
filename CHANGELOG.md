@@ -36,6 +36,7 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 
 ### Fixed
 - Fix makefile commands for support release and setting fixed refspecs (during release)
+- [APC-5780] Fail qemu if tests were aborted prematurely
 
 
 ### Simulation only
