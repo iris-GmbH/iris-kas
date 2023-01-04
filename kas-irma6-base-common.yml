@@ -64,6 +64,11 @@ repos:
       0001-Port-cryptsetup-patch-to-2.3.7:
         path: "patches/0001-Port-cryptsetup-patch-to-2.3.7.patch"
 
+  # repos for testing
+  meta-virtualization:
+    url: "https://git.yoctoproject.org/meta-virtualization"
+    refspec: "dunfell"
+
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
