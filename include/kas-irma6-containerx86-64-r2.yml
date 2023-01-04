@@ -6,3 +6,11 @@ header:
 
 target:
   - multiconfig:containerx86-64-r2
+
+local_conf_header:
+  # This does not really have an effect, when using the appropriate multi-conf,
+  # as the distro feature is already there. However, as Yocto will parse
+  # multiple configurations, the log will print a missleading warning message
+  # about virtualization not enabled. This setting will prevent that.
+  virtualization:
+    DISTRO_FEATURES_append = " virtualization"
