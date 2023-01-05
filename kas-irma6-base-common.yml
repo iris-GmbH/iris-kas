@@ -69,6 +69,9 @@ repos:
   meta-virtualization:
     url: "https://git.yoctoproject.org/meta-virtualization"
     refspec: "dunfell"
+    patches:
+      0001-oci-image-tools-update-to-1.0.0-rc3:
+        path: "patches/0001-oci-image-tools-update-to-1.0.0-rc3.patch"
 
   # irma6 HWv1 repos
   lnxdsp-adi-meta:

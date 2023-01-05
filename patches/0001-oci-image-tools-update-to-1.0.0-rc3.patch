@@ -1,0 +1,40 @@
+From 170fcedca03393bc081cb75155c8cec290d859ed Mon Sep 17 00:00:00 2001
+From: Bruce Ashfield <bruce.ashfield@gmail.com>
+Date: Tue, 8 Mar 2022 08:51:16 -0500
+Subject: [PATCH] oci-image-tools: update to 1.0.0-rc3
+
+Bumping image-tools to version v1.0.0-rc3-6-g11f9988, which comprises the following commits:
+
+    8899fa9 README: add summary of project status
+    c6e5a1b version: back to development
+    25e557a version: update to 1.0.0-rc3
+    e324098 update email in MAINTAINERS
+    c3f8284 Revert "Relax LGTMs"
+
+Signed-off-by: Bruce Ashfield <bruce.ashfield@gmail.com>
+
+Backported to dunfell
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ recipes-containers/oci-image-tools/oci-image-tools_git.bb | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/recipes-containers/oci-image-tools/oci-image-tools_git.bb b/recipes-containers/oci-image-tools/oci-image-tools_git.bb
+index 1351930..c2950b4 100644
+--- a/recipes-containers/oci-image-tools/oci-image-tools_git.bb
++++ b/recipes-containers/oci-image-tools/oci-image-tools_git.bb
+@@ -16,8 +16,8 @@ SRC_URI = "git://github.com/opencontainers/image-tools.git;branch=master;protoco
+            file://0001-config-make-Config.User-mapping-errors-a-warning.patch \
+            file://0001-tool-respect-GO-and-GOBUILDFLAGS-when-building.patch"
+ 
+-SRCREV = "93db3b16e6738bf9b8bee47d86ac93be5340838b"
+-PV = "0.2.0-dev+git${SRCPV}"
++SRCREV = "11f9988298305d36f64248a6ee55318e60bf170b"
++PV = "1.0.0-rc3+git${SRCPV}"
+ GO_IMPORT = "import"
+ 
+ inherit goarch
+-- 
+2.39.0
+
