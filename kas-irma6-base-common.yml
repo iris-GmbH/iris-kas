@@ -30,22 +30,22 @@ repos:
     refspec: "develop"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "dunfell"
+    refspec: "feature/ersc/APC-5794_kirkstone"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "dunfell"
+    refspec: "kirkstone"
     layers:
       meta:
       meta-poky:
-    patches:
-      0001-prservice-https-support:
-        path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
-      0002-fixup-repo-fetcher:
-        path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
+    #patches:
+      #0001-prservice-https-support:
+      #  path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
+      #0002-fixup-repo-fetcher:
+      #  path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "dunfell"
+    refspec: "kirkstone"
     layers:
       meta-oe:
       meta-python:
@@ -56,13 +56,19 @@ repos:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "dunfell"
+    refspec: "kirkstone"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "dunfell"
     patches:
-      0001-Port-cryptsetup-patch-to-2.3.7:
-        path: "patches/0001-Port-cryptsetup-patch-to-2.3.7.patch"
+      #0001-Port-cryptsetup-patch-to-2.3.7:
+      #  path: "patches/0001-Port-cryptsetup-patch-to-2.3.7.patch"
+      0002-kirkstone.patch:
+        path: "patches/0002-kirkstone.patch"
+      0003-override-syntax.patch:
+        path: "patches/0003-override-syntax.patch"
+      0004-remove-cryptsetup.patch:
+        path: "patches/0004-remove-cryptsetup.patch"
 
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
@@ -75,13 +81,13 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "dunfell"
-    patches:
-      0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
-        path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
+    refspec: "kirkstone"
+    #patches:
+    #  0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
+    #    path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "dunfell"
+    refspec: "kirkstone"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    refspec: "dunfell"
+    refspec: "kirkstone"

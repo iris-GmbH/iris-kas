@@ -1,0 +1,25 @@
+From 7cf24d5559c4a191b2b2820ab3a82c17fe2f079c Mon Sep 17 00:00:00 2001
+From: Erik Schumacher <erik.schumacher@iris-sensing.com>
+Date: Tue, 10 Jan 2023 10:47:26 +0100
+Subject: [PATCH] kirkstone
+
+---
+ conf/layer.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/conf/layer.conf b/conf/layer.conf
+index 0d0ca8c..561a541 100644
+--- a/conf/layer.conf
++++ b/conf/layer.conf
+@@ -12,7 +12,7 @@ LICENSE_PATH += "${LAYERDIR}/licenses"
+ SECURE_BASE := '${LAYERDIR}'
+ 
+ # Layer dependencies
+-LAYERSERIES_COMPAT_secure-imx = "dunfell"
++LAYERSERIES_COMPAT_secure-imx = "dunfell kirkstone"
+ LAYERDEPENDS_secure-imx = "core openembedded-layer"
+ 
+ # The dynamic-layers directory hosts the extensions and layer specific
+-- 
+2.39.0
+
