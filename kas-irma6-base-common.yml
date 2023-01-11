@@ -27,7 +27,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "feature/ersc/APC-5794_kirkstone"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "feature/ersc/APC-5794_kirkstone"
@@ -77,6 +77,9 @@ repos:
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
+    patches:
+      0001-WIP-force-kirkstone-compatibility.patch:
+        path: "patches/0001-WIP-force-kirkstone-compatibility.patch"
 
   # irma6 HWv2 repos
   meta-freescale:
