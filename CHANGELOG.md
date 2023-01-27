@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [APR's Version Numbering](https://apr.apache.org/versioning.html).
 
-## [1.1.26] -dev (HEAD) - n/a
+## [2.1.3]
+
+### Fixed
+- Fix issues with firmware certificates in HW rel 2 builds
+
+## [1.1.26]
 ### Added
 - [APC-4244]: Introduce webserver and iris-thirdparty dependencies
 - [DEVOPS-511] Build uuu files in Jenkins

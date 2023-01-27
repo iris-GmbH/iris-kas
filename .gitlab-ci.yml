@@ -711,5 +711,6 @@ skip-non-default-branch-merge-pipeline:
   stage: setup
   tags:
     - gp
+  before_script: []
   script:
     - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
