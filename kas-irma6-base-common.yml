@@ -38,9 +38,6 @@ repos:
     layers:
       meta:
       meta-poky:
-    patches:
-      0001-prservice-https-support:
-        path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
     refspec: "kirkstone"
