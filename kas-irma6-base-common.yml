@@ -55,6 +55,8 @@ repos:
     patches:
       0001-APC-5918-Remove-bbappend-for-cryptsetup:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
+      0002-meta-secure-imx-Update-to-new-override-syntax:
+        path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
 
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
