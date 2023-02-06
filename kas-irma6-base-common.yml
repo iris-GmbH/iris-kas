@@ -65,6 +65,9 @@ repos:
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
+    patches:
+      0001-lnxdsp-adi-meta-Update-to-new-override-syntax:
+        path: "patches/0001-lnxdsp-adi-meta-Update-to-new-override-syntax.patch"
 
   # irma6 HWv2 repos
   meta-freescale:
