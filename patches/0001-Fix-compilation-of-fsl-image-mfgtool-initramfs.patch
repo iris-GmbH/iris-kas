@@ -1,0 +1,24 @@
+From b888ec473bdeb40066776555f525bbc56c64c30a Mon Sep 17 00:00:00 2001
+From: Erik Schumacher <erik.schumacher@iris-sensing.com>
+Date: Mon, 6 Feb 2023 14:50:08 +0100
+Subject: [PATCH] Fix compilation of fsl-image-mfgtool-initramfs
+
+Set different BOOT_TOOLS directory for mfgtools recipe
+---
+ recipes-bsp/u-boot/u-boot-mfgtool.inc | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/recipes-bsp/u-boot/u-boot-mfgtool.inc b/recipes-bsp/u-boot/u-boot-mfgtool.inc
+index 92d055bf..96651b75 100644
+--- a/recipes-bsp/u-boot/u-boot-mfgtool.inc
++++ b/recipes-bsp/u-boot/u-boot-mfgtool.inc
+@@ -19,3 +19,6 @@ UBOOT_IMAGE = "u-boot-${MACHINE}-mfgtool-${PV}-${PR}.${UBOOT_SUFFIX}"
+ UBOOT_SYMLINK = "u-boot-${MACHINE}-mfgtool.${UBOOT_SUFFIX}"
+ SPL_IMAGE = "${SPL_BINARYNAME}-${MACHINE}-mfgtool-${PV}-${PR}"
+ SPL_SYMLINK = "${SPL_BINARYNAME}-mfgtool-${MACHINE}"
++
++# Let 'mfgtool' deploy to a different directory to avoid conflicts
++BOOT_TOOLS = "imx-mfgtool"
+-- 
+2.39.1
+
