@@ -8,4 +8,4 @@ local_conf_header:
   bb_threads_number: |
     BB_NUMBER_THREADS = "10"
   prservice: |
-    PRSERV_HOST = "yocto-prservice.yocto-prservice:8585"
+    PRSERV_HOST = "yocto-prservice-kirkstone:8585"
