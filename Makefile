@@ -83,15 +83,15 @@ build-base-dump: build-base-dump-${RELEASE}
 
 build-r1:
 	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
-	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
+	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-debug" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
 
 build-r2:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-maintenance mc:imx8mp-irma6r2:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-maintenance mc:imx8mp-irma6r2:irma6-debug" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml
 
 build-r2-evk:
 	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
+	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-debug" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
 
 patch-thirdparty-hostbuild:
 	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} -c do_patch" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
