@@ -27,10 +27,10 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "feature/ersc/APC-5569_seasocks_patches"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "dunfell"
+    refspec: "feature/ersc/add_seasocks_1_4_5"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
