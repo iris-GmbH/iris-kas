@@ -293,7 +293,7 @@ release-build-maintenance-distros:
   parallel:
     matrix:
       - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
-        IMAGES: "irma6-maintenance irma6-dev"
+        IMAGES: "irma6-maintenance irma6-debug"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
     ARTIFACT_SUFFIX: "-maintenance-distros"
@@ -526,7 +526,7 @@ develop-build-maintenance-distro-targets:
     matrix:
       - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-        IMAGES: "irma6-maintenance irma6-dev"
+        IMAGES: "irma6-maintenance irma6-debug"
   variables:
     ARTIFACT_SUFFIX: "-maintenance-distros"
   services:
