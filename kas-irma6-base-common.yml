@@ -15,7 +15,13 @@ local_conf_header:
     # adjust on release and reintegrate
     IRMA6_DISTRO_VERSION = "2.1.4-dev"
   fortran_fix: |
-    FORTRAN = ",fortran"
+    FORTRAN:forcevariable = ",fortran"
+  mongoose_provider: |
+    # mongoose is also provided by suitesparse. But we want the "real" mongoose recipe
+    PREFERRED_PROVIDER_mongoose = "mongoose"
+  libdevmapper_provider: |
+    # Multiple providers are available ... (libdevmapper-native, lvm2-native)
+    PREFERRED_RPROVIDER_libdevmapper-native = "libdevmapper-native"
 
 defaults:
   repos:
