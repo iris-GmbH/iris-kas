@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.4-dev"
+    IRMA6_DISTRO_VERSION = "2.1.4-RC1"
 defaults:
   repos:
     patches:
@@ -23,10 +23,10 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "c8afe320b1c11bc120a77c4ab71dbffaef58f38e"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "dunfell"
+    refspec: "ee98c3f23e44063b0681127a907c993bb255d02b"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
