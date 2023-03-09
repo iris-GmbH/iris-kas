@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.3"
+    IRMA6_DISTRO_VERSION = "2.1.4"
 defaults:
   repos:
     patches:
@@ -23,14 +23,14 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "2.0.11"
+    refspec: "c8afe320b1c11bc120a77c4ab71dbffaef58f38e"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "6d79821dc787399e7a221dab9e3d62e476bf0ad1"
+    refspec: "ee98c3f23e44063b0681127a907c993bb255d02b"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "aa0073041806c9f417a33b0b7f747d2a86289eda"
+    refspec: "76180110391373ce9ff6ecb8dc8d986784f75c13"
     layers:
       meta:
       meta-poky:
@@ -41,7 +41,7 @@ repos:
         path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "7203130ed8b58c0df75cb72222ac2bcf546bce44"
+    refspec: "87571345059f82fb7599e3aa82e6fdcfbd361098"
     layers:
       meta-oe:
       meta-python:
@@ -52,7 +52,7 @@ repos:
         path: "patches/0001-Add-recipe-for-repo-2.19.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "c34fadc139dbad4179054d9bede949daa8992057"
+    refspec: "c8358f2e0c3d6727cc31721924770f557af49d39"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
@@ -69,13 +69,13 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "ae2001935fdd7cf7ee7e3b8a4826d7b59202be6d"
+    refspec: "325c08c0773a2f1c54d28ea8aeda7c3d110d88a3"
     patches:
       0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "f37f72a85ba273b27347169b727c889f42b91d6c"
+    refspec: "4c0a166fa2809f74c93bd4c56d9a0f7ccb7818c8"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
     refspec: "5d882cdf079b3bde0bd9869ce3ca3db411acbf3b"
