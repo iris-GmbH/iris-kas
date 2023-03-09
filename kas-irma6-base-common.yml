@@ -41,8 +41,6 @@ repos:
     patches:
       0001-prservice-https-support:
         path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
-      0002-fixup-repo-fetcher:
-        path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
     refspec: "dunfell"
@@ -51,9 +49,6 @@ repos:
       meta-python:
       meta-networking:
       meta-webserver:
-    patches:
-      0001-add-repo-recipe:
-        path: "patches/0001-Add-recipe-for-repo-2.19.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     refspec: "dunfell"
