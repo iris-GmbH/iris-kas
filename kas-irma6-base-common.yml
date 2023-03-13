@@ -3,19 +3,23 @@
 #
 #
 # The KAS base configuration file for the irma6
+
 header:
   version: 9
   includes:
     - "include/kas-irma6-base-config.yml"
     - "include/kas-targets.yml"
+
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.4"
+    IRMA6_DISTRO_VERSION = "2.1.5-dev"
+
 defaults:
   repos:
     patches:
       repo: "this"
+
 repos:
   # the iris-kas repo
   this:
@@ -23,14 +27,14 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "c8afe320b1c11bc120a77c4ab71dbffaef58f38e"
+    refspec: "develop"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "ee98c3f23e44063b0681127a907c993bb255d02b"
+    refspec: "dunfell"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "76180110391373ce9ff6ecb8dc8d986784f75c13"
+    refspec: "dunfell"
     layers:
       meta:
       meta-poky:
@@ -39,7 +43,7 @@ repos:
         path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "87571345059f82fb7599e3aa82e6fdcfbd361098"
+    refspec: "dunfell"
     layers:
       meta-oe:
       meta-python:
@@ -47,30 +51,32 @@ repos:
       meta-webserver:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "c8358f2e0c3d6727cc31721924770f557af49d39"
+    refspec: "dunfell"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
+    refspec: "dunfell"
     patches:
       0001-Port-cryptsetup-patch-to-2.3.7:
         path: "patches/0001-Port-cryptsetup-patch-to-2.3.7.patch"
+
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    refspec: "ad2203c11723b07727589a8eebe33f3129cc236a"
+    refspec: "release/yocto-1.0.0"
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
+
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "325c08c0773a2f1c54d28ea8aeda7c3d110d88a3"
+    refspec: "dunfell"
     patches:
       0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "4c0a166fa2809f74c93bd4c56d9a0f7ccb7818c8"
+    refspec: "dunfell"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    refspec: "5d882cdf079b3bde0bd9869ce3ca3db411acbf3b"
+    refspec: "dunfell"
