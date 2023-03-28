@@ -27,7 +27,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "feature/phsc/APC-6160_nts"
+    refspec: "feature/phsc/APC-6160_nts_debug"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "dunfell"
