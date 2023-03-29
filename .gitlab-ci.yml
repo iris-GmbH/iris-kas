@@ -42,6 +42,18 @@ variables:
   SC573_GEN6_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
   SC573_GEN6_SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
   SC573_GEN6_BASESOURCES: sc573-gen6-base-sources
+  RENOVATE_PLATFORM: "gitlab"
+  RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
+  RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
+  RENOVATE_REVIEWERS: "[ \"${GITLAB_USER_LOGIN}\" ]"
+  RENOVATE_PR_CONCURRENT_LIMIT: "0"
+  RENOVATE_PR_HOURLY_LIMIT: "0"
+  RENOVATE_EXTRA_FLAGS:
+    value: ""
+    description: "Set extra flags for the renovate bot"
+  RENOVATE_DRY_RUN:
+    description: "Whether to do a renovate bot dry run"
+    value: "false"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -116,6 +128,26 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
+  - renovate
+
+renovate-dry-run:
+  stage: renovate
+  needs: []
+  rules:
+    - if: $RENOVATE_DRY_RUN == "true"
+  image: renovate/renovate:35.12.0
+  script:
+    - renovate --dry-run=full ${RENOVATE_EXTRA_FLAGS}
+  allow_failure: true
+
+renovate:
+  stage: renovate
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  image: renovate/renovate:35.12.0
+  script:
+    - renovate ${RENOVATE_EXTRA_FLAGS}
 
 container-get-tag:
   stage: setup
