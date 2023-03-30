@@ -13,4 +13,4 @@ local_conf_header:
     unset SSTATE_MIRRORS
   dl_mirror: |
     unset SOURCE_MIRROR_URL
-    INHERIT_remove = " own-mirrors"
+    INHERIT:remove = " own-mirrors"
