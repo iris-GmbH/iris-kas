@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [APR's Version Numbering](https://apr.apache.org/versioning.html).
 
-## [2.1.5] -dev (HEAD) - n/a
+## [3.0.0] -dev (HEAD) - n/a
+- [APC-5918](https://jira.iris-sensing.net/browse/APC-5918): Update Yocto to kirkstone
 
 ## [2.1.4]
 

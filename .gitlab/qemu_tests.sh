@@ -13,7 +13,7 @@ echo "Info: Booting firmware in QEMU VM..."
 # start QEMU in background, use 70% of total RAM and use slirp networking, which does not require root
 # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
 # contained in openembedded-core and this can speed up the parsing
-kas shell -c "runqemu qemux86-64 qemuparams=\"-m $(($(free -m | awk '/Mem:/ {print $2}') *70 /100))\" slirp" "${MAIN_KAS_FILES}" &
+kas shell -c "runqemu qemux86-64 qemuparams=\"-m $(($(free -m | awk '/Mem:/ {print $2}') *70 /100))\" slirp nographic" "${MAIN_KAS_FILES}" &
 
 # wait for SSH to become available in QEMU
 echo "Info: Waiting for SSH to become available..."

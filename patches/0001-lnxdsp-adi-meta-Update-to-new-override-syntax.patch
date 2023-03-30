@@ -1,0 +1,1347 @@
+From 2988834c615aa399463cab45cc386377bcc66e36 Mon Sep 17 00:00:00 2001
+From: Erik Schumacher <erik.schumacher@iris-sensing.com>
+Date: Mon, 6 Feb 2023 15:19:23 +0100
+Subject: [PATCH] [lnxdsp-adi-meta] Update to new override syntax
+
+---
+ .../conf/distro/adi-distro.conf               |  4 +-
+ .../conf/machine/include/adsp-sc5xx.inc       |  2 +-
+ .../initramfs-init/initramfs-init_1.0.bb      |  2 +-
+ meta-adi-adsp-sc5xx/recipes-adi/play/play.bb  |  2 +-
+ .../tests/dmacopy-module/dmacopy_module.c     |  4 +-
+ .../recipes-adi/tests/gadgetfs-test.bb        |  2 +-
+ .../tests/l2-alloc-module/hello_l2_alloc.c    |  4 +-
+ .../recipes-adi/tests/linuxptp_%.bbappend     |  6 +--
+ .../recipes-adi/tests/malloc-perf-test.bb     |  2 +-
+ .../recipes-adi/tests/pthread-test.bb         |  2 +-
+ .../recipes-adi/tests/rtc-test.bb             |  2 +-
+ .../recipes-adi/tests/rtscts-test.bb          |  2 +-
+ .../recipes-adi/tests/sqlite-test.bb          |  4 +-
+ .../recipes-adi/tests/sram-mmap-test.bb       |  2 +-
+ .../recipes-adi/tests/v4l2-video-test.bb      |  2 +-
+ .../recipes-adi/tests/video-test.bb           |  2 +-
+ .../recipes-adi/version/version.bb            |  2 +-
+ .../recipes-benchmark/oprofile/oprofile.inc   | 12 ++---
+ .../oprofile/oprofile_1.1.0.bb                |  2 +-
+ .../alsa-state/alsa-state.bbappend            |  2 +-
+ .../recipes-bsp/u-boot/u-boot-adi-external.bb |  2 +-
+ .../recipes-bsp/u-boot/u-boot-adi.bb          |  4 +-
+ .../recipes-bsp/u-boot/u-boot-adi.inc         | 10 ++--
+ .../wireless-tools/wireless-tools_30.pre9.bb  | 14 ++---
+ .../base-files/base-files_%.bbappend          |  2 +-
+ .../busybox/busybox-watchdog-init.bb          |  2 +-
+ .../recipes-core/busybox/busybox_%.bbappend   |  2 +-
+ .../recipes-devtools/qemu/qemu_3.0.0.bbappend |  2 +-
+ .../recipes-extended/diffutils/diffutils.inc  |  2 +-
+ .../diffutils/diffutils_3.3.bb                |  2 +-
+ .../recipes-extended/pound/pound_2.7.bb       |  4 +-
+ .../recipes-icc/libmcapi/libmcapi.bb          |  4 +-
+ .../linux-firmware/linux-firmware_%.bbappend  |  6 +--
+ .../recipes-kernel/linux/linux-adi.inc        |  4 +-
+ .../recipes-kernel/linux/linux-adi_4.19.bb    | 10 ++--
+ .../alsa/alsa-lib_%.bbappend                  |  2 +-
+ .../alsa/alsa-utils_%.bbappend                |  2 +-
+ .../libgpg-error/libgpg-error_1.32.bbappend   |  2 +-
+ .../classes/common-license.bbclass            |  2 +-
+ .../external-toolchain-cross-canadian.bbclass | 10 ++--
+ .../classes/external-toolchain.bbclass        | 54 +++++++++----------
+ .../classes/sanity-external-toolchain.bbclass |  2 +-
+ .../conf/distro/include/tcmode-external.inc   | 14 ++---
+ meta-adi-external-toolchain/conf/layer.conf   |  2 +-
+ .../systemd-boot/systemd-boot_%.bbappend      |  4 +-
+ .../meta/buildtools-tarball.bbappend          |  2 +-
+ .../meta/meta-environment-extsdk.bbappend     |  2 +-
+ .../meta/meta-environment.bbappend            |  2 +-
+ .../binutils/binutils-cross_%.bbappend        |  2 +-
+ .../core/recipes-devtools/gdb/gdb_%.bbappend  |  6 +--
+ .../recipes-extended/bash/bash_%.bbappend     |  2 +-
+ .../lib/oe/external.py                        |  2 +-
+ .../binutils-external-cross-canadian.bb       |  4 +-
+ .../binutils/binutils-external-cross.bb       |  2 +-
+ .../gcc/gcc-external-cross-canadian.bb        |  6 +--
+ .../gcc/gcc-runtime-external.bb               | 12 ++---
+ .../recipes-external/gcc/libgcc-external.bb   |  8 +--
+ .../gcc/libgfortran-external.bb               |  6 +--
+ .../gdb/gdb-external-cross-canadian.bb        |  4 +-
+ .../gdb/gdbserver-external.bb                 |  4 +-
+ .../recipes-external/glibc/glibc-external.bb  | 26 ++++-----
+ .../glibc/glibc-package-adjusted.inc          | 48 ++++++++---------
+ .../oprofile/oprofile-external.bb             |  6 +--
+ .../sdk-env-external-toolchain.bb             |  2 +-
+ 64 files changed, 186 insertions(+), 186 deletions(-)
+
+diff --git a/meta-adi-adsp-sc5xx/conf/distro/adi-distro.conf b/meta-adi-adsp-sc5xx/conf/distro/adi-distro.conf
+index 6fdf368..ba512ae 100644
+--- a/meta-adi-adsp-sc5xx/conf/distro/adi-distro.conf
++++ b/meta-adi-adsp-sc5xx/conf/distro/adi-distro.conf
+@@ -1,5 +1,5 @@
+ require conf/distro/poky.conf
+ 
+-DISTRO_FEATURES_remove = ""
++DISTRO_FEATURES:remove = ""
+ 
+-DISTRO_FEATURES_append = ""
++DISTRO_FEATURES:append = ""
+diff --git a/meta-adi-adsp-sc5xx/conf/machine/include/adsp-sc5xx.inc b/meta-adi-adsp-sc5xx/conf/machine/include/adsp-sc5xx.inc
+index 39e634a..f5e4366 100644
+--- a/meta-adi-adsp-sc5xx/conf/machine/include/adsp-sc5xx.inc
++++ b/meta-adi-adsp-sc5xx/conf/machine/include/adsp-sc5xx.inc
+@@ -1,5 +1,5 @@
+ 
+-SOC_FAMILY_append = ":adsp-sc5xx"
++SOC_FAMILY:append = ":adsp-sc5xx"
+ SOC_FAMILY = "adi-soc"
+ 
+ require conf/machine/include/soc-family.inc
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/initramfs-init/initramfs-init_1.0.bb b/meta-adi-adsp-sc5xx/recipes-adi/initramfs-init/initramfs-init_1.0.bb
+index 678f0d1..545b435 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/initramfs-init/initramfs-init_1.0.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/initramfs-init/initramfs-init_1.0.bb
+@@ -11,4 +11,4 @@ do_install() {
+ 
+ inherit allarch
+ 
+-FILES_${PN} += "/init"
++FILES:${PN} += "/init"
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/play/play.bb b/meta-adi-adsp-sc5xx/recipes-adi/play/play.bb
+index e4cd421..b81af00 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/play/play.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/play/play.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/play"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/dmacopy-module/dmacopy_module.c b/meta-adi-adsp-sc5xx/recipes-adi/tests/dmacopy-module/dmacopy_module.c
+index 52ea6c0..1496dd3 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/dmacopy-module/dmacopy_module.c
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/dmacopy-module/dmacopy_module.c
+@@ -406,7 +406,7 @@ static int adi_dmacopy_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int adi_dmacopy_remove(struct platform_device *pdev)
++static int adi_dmacopy:remove(struct platform_device *pdev)
+ {
+ 	printk(KERN_INFO "Goodbye, cruel world\n");
+ 	return 0;
+@@ -414,7 +414,7 @@ static int adi_dmacopy_remove(struct platform_device *pdev)
+ 
+ static struct platform_driver adi_dmacopy_driver = {
+ 	.probe = adi_dmacopy_probe,
+-	.remove = adi_dmacopy_remove,
++	.remove = adi_dmacopy:remove,
+ 	.driver = {
+ 		.name = "adi_dmacopy",
+ 		.of_match_table = of_match_ptr(adi_dmacopy_of_match),
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/gadgetfs-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/gadgetfs-test.bb
+index 64f962d..85119cc 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/gadgetfs-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/gadgetfs-test.bb
+@@ -29,7 +29,7 @@ do_install(){
+ 	install -m 755 ${B}/gadgetfs-test ${D}/usr/bin/
+ }
+ 
+-FILES_${PN} += " \
++FILES:${PN} += " \
+ 	/usr/bin \
+ 	/usr/bin/gadgetfs-test \
+ "
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/l2-alloc-module/hello_l2_alloc.c b/meta-adi-adsp-sc5xx/recipes-adi/tests/l2-alloc-module/hello_l2_alloc.c
+index fc86350..1a445b6 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/l2-alloc-module/hello_l2_alloc.c
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/l2-alloc-module/hello_l2_alloc.c
+@@ -64,7 +64,7 @@ static int hello_l2_alloc_probe(struct platform_device *pdev)
+     return 0;
+ }
+ 
+-static int hello_l2_alloc_remove(struct platform_device *pdev)
++static int hello_l2_alloc:remove(struct platform_device *pdev)
+ {
+     int i;
+ 	for (i = 0; i < 10; i++) {
+@@ -78,7 +78,7 @@ static int hello_l2_alloc_remove(struct platform_device *pdev)
+ 
+ static struct platform_driver hello_l2_alloc_driver = {
+      .probe = hello_l2_alloc_probe,
+-     .remove = hello_l2_alloc_remove,
++     .remove = hello_l2_alloc:remove,
+      .driver = {
+          .name = "hello_l2_alloc",
+          .of_match_table = of_match_ptr(hello_l2_alloc_of_match),
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/linuxptp_%.bbappend b/meta-adi-adsp-sc5xx/recipes-adi/tests/linuxptp_%.bbappend
+index 0f017a2..6c1e674 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/linuxptp_%.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/linuxptp_%.bbappend
+@@ -1,17 +1,17 @@
+ SUMMARY = "PTP 1588 clock support"
+ DESCRIPTION = "This binary provide PTP 1588 clock support for ADI sc5xx boards"
+ 
+-FILESEXTRAPATHS_prepend := "${THISDIR}/linuxptp-test:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/linuxptp-test:"
+ 
+ SRC_URI += " file://0001-Add-linuxptp-adi-patch-for-testptp.patch \
+ "
+ 
+-do_compile_append() {
++do_compile:append() {
+ 	cd ${S}
+ 	${CC} ${CFLAGS} ${LDFLAGS} testptp.c -o testptp -lrt
+ }
+ 
+-do_install_append() {
++do_install:append() {
+ 	install -d ${D}/usr/bin
+ 	install -d ${D}${sysconfdir}
+ 	install -m 755 ${S}/testptp ${D}/usr/bin/
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/malloc-perf-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/malloc-perf-test.bb
+index 9a80f54..1dfc1d6 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/malloc-perf-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/malloc-perf-test.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/malloc-perf"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/pthread-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/pthread-test.bb
+index 356475f..98be373 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/pthread-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/pthread-test.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/pthread_test"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/rtc-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/rtc-test.bb
+index d984b70..ddd99ec 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/rtc-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/rtc-test.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/rtc-test"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/rtscts-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/rtscts-test.bb
+index b4fbd2b..d2ddfc6 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/rtscts-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/rtscts-test.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/rtscts_test"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/sqlite-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/sqlite-test.bb
+index 19b38be..943f7bf 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/sqlite-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/sqlite-test.bb
+@@ -9,7 +9,7 @@ DEPENDS = "sqlite3"
+ 
+ S = "${WORKDIR}/sqlite_test"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+@@ -20,6 +20,6 @@ do_install(){
+ 	install -m 755 ${S}/wishlist.sql ${D}/usr/
+ }
+ 
+-FILES_${PN} += " \
++FILES:${PN} += " \
+ 	/usr/wishlist.sql \
+ "
+\ No newline at end of file
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/sram-mmap-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/sram-mmap-test.bb
+index df929f1..f22b932 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/sram-mmap-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/sram-mmap-test.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/sram_mmap_test"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/v4l2-video-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/v4l2-video-test.bb
+index e634d5a..d54d8ae 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/v4l2-video-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/v4l2-video-test.bb
+@@ -8,7 +8,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/v4l2_video_test"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/tests/video-test.bb b/meta-adi-adsp-sc5xx/recipes-adi/tests/video-test.bb
+index fd967ae..b6c374e 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/tests/video-test.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/tests/video-test.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/video_test"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-adi/version/version.bb b/meta-adi-adsp-sc5xx/recipes-adi/version/version.bb
+index 9327745..e884cb6 100644
+--- a/meta-adi-adsp-sc5xx/recipes-adi/version/version.bb
++++ b/meta-adi-adsp-sc5xx/recipes-adi/version/version.bb
+@@ -7,7 +7,7 @@ SRC_URI = " \
+ 
+ S = "${WORKDIR}/version"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile.inc b/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile.inc
+index 4b01654..625e9bc 100644
+--- a/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile.inc
++++ b/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile.inc
+@@ -11,12 +11,12 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f \
+ SECTION = "devel"
+ 
+ DEPENDS = "popt binutils"
+-RDEPENDS_${PN} = "binutils-symlinks"
+-RRECOMMENDS_${PN} = "kernel-vmlinux"
++RDEPENDS:${PN} = "binutils-symlinks"
++RRECOMMENDS:${PN} = "kernel-vmlinux"
+ 
+-FILES_${PN} = "${bindir} ${libdir}/${BPN}/lib*${SOLIBS} ${datadir}/${BPN}"
+-FILES_${PN}-dev += "${libdir}/${BPN}/lib*${SOLIBSDEV} ${libdir}/${BPN}/lib*.la"
+-FILES_${PN}-staticdev += "${libdir}/${BPN}/lib*.a"
++FILES:${PN} = "${bindir} ${libdir}/${BPN}/lib*${SOLIBS} ${datadir}/${BPN}"
++FILES:${PN}-dev += "${libdir}/${BPN}/lib*${SOLIBSDEV} ${libdir}/${BPN}/lib*.la"
++FILES:${PN}-staticdev += "${libdir}/${BPN}/lib*.a"
+ 
+ SRC_URI = "${SOURCEFORGE_MIRROR}/${BPN}/${BPN}-${PV}.tar.gz \
+            file://acinclude.m4 \
+@@ -30,7 +30,7 @@ SRC_URI = "${SOURCEFORGE_MIRROR}/${BPN}/${BPN}-${PV}.tar.gz \
+ UPSTREAM_CHECK_REGEX = "oprofile-(?P<pver>\d+(\.\d+)+)/"
+ UPSTREAM_CHECK_URI = "https://sourceforge.net/projects/oprofile/files/oprofile/"
+ 
+-SRC_URI_append_libc-musl = " file://musl.patch"
++SRC_URI:append:libc-musl = " file://musl.patch"
+ 
+ inherit autotools pkgconfig ptest
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile_1.1.0.bb b/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile_1.1.0.bb
+index 92a94ad..13f7627 100644
+--- a/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile_1.1.0.bb
++++ b/meta-adi-adsp-sc5xx/recipes-benchmark/oprofile/oprofile_1.1.0.bb
+@@ -1,7 +1,7 @@
+ require oprofile.inc
+ 
+ DEPENDS += "virtual/kernel"
+-DEPENDS_append_powerpc64 = " libpfm4"
++DEPENDS:append:powerpc64 = " libpfm4"
+ 
+ SRC_URI[md5sum] = "248c4c069f9476f427fa7195563f9867"
+ SRC_URI[sha256sum] = "cf759a6de1a6033d5dfc93bda129a9f2e128aecc4238cc657feb0801d1b0366c"
+diff --git a/meta-adi-adsp-sc5xx/recipes-bsp/alsa-state/alsa-state.bbappend b/meta-adi-adsp-sc5xx/recipes-bsp/alsa-state/alsa-state.bbappend
+index 72d991c..4fc41d0 100644
+--- a/meta-adi-adsp-sc5xx/recipes-bsp/alsa-state/alsa-state.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-bsp/alsa-state/alsa-state.bbappend
+@@ -1 +1 @@
+-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
+diff --git a/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi-external.bb b/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi-external.bb
+index 6bf6f2d..5eecf77 100644
+--- a/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi-external.bb
++++ b/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi-external.bb
+@@ -9,7 +9,7 @@ UBOOT_BRANCH ?= "release/yocto-1.0.0"
+ 
+ SRCREV = "${AUTOREV}"
+ 
+-FILES_${PN} = " \
++FILES:${PN} = " \
+ 	u-boot.ldr \
+ 	u-boot \
+ "
+diff --git a/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.bb b/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.bb
+index 7ff643b..b25fd48 100644
+--- a/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.bb
++++ b/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.bb
+@@ -13,7 +13,7 @@ SRC_URI += " \
+ 	file://arm-poky-linux-gnueabi-ldr \
+ "
+ 
+-FILES_${PN} = " \
++FILES:${PN} = " \
+ 	u-boot-${BOARD}.ldr \
+ 	u-boot-${BOARD} \
+ 	init-${BOARD}.elf \
+@@ -21,7 +21,7 @@ FILES_${PN} = " \
+ 
+ INIT_PATH = "${@ 'arch/arm/cpu/armv7/%s' %('sc57x' if MACHINE == 'adsp-sc573-ezkit' else 'sc58x')}"
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	#Use U-boot's FDT header files, not Linux's (in case they are different)
+ 	cp ${WORKDIR}/git/include/libfdt_env.h ${WORKDIR}/recipe-sysroot-native/usr/include/libfdt_env.h
+ 	cp ${WORKDIR}/git/include/libfdt.h ${WORKDIR}/recipe-sysroot-native/usr/include/libfdt.h
+diff --git a/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.inc b/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.inc
+index dd53f6c..44335ac 100644
+--- a/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.inc
++++ b/meta-adi-adsp-sc5xx/recipes-bsp/u-boot/u-boot-adi.inc
+@@ -4,7 +4,7 @@ inherit analog-devices-baremetal autotools
+ 
+ require ${COREBASE}/meta/recipes-bsp/u-boot/u-boot.inc
+ 
+-FILESEXTRAPATHS_prepend := "${THISDIR}/u-boot-adi:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/u-boot-adi:"
+ 
+ UBOOT_GIT_URI ?= "git://github.com/analogdevicesinc/u-boot-sharc.git"
+ UBOOT_GIT_PROTOCOL = "https"
+@@ -16,13 +16,13 @@ SRC_URI += " \
+     ${WATCHDOG_PATCH} \
+ "
+ 
+-PV_append = "+git${SRCPV}"
++PV:append = "+git${SRCPV}"
+ 
+ DEPENDS += "dtc-native bc-native lzop-native"
+ 
+ PROVIDES += "u-boot"
+-PKG_${PN} = "u-boot"
+-PKG_${PN}-dev = "u-boot-dev"
+-PKG_${PN}-dbg = "u-boot-dbg"
++PKG:${PN} = "u-boot"
++PKG:${PN}-dev = "u-boot-dev"
++PKG:${PN}-dbg = "u-boot-dbg"
+ 
+ S = "${WORKDIR}/git"
+diff --git a/meta-adi-adsp-sc5xx/recipes-connectivity/wireless-tools/wireless-tools_30.pre9.bb b/meta-adi-adsp-sc5xx/recipes-connectivity/wireless-tools/wireless-tools_30.pre9.bb
+index 0a34207..31934dc 100644
+--- a/meta-adi-adsp-sc5xx/recipes-connectivity/wireless-tools/wireless-tools_30.pre9.bb
++++ b/meta-adi-adsp-sc5xx/recipes-connectivity/wireless-tools/wireless-tools_30.pre9.bb
+@@ -41,10 +41,10 @@ do_install() {
+ 
+ PACKAGES = "libiw libiw-dev libiw-doc ifrename-doc ifrename ${PN} ${PN}-doc ${PN}-dbg"
+ 
+-FILES_libiw = "${libdir}/*.so.*"
+-FILES_libiw-dev = "${libdir}/*.a ${libdir}/*.so ${includedir}"
+-FILES_libiw-doc = "${mandir}/man7"
+-FILES_ifrename = "${sbindir}/ifrename"
+-FILES_ifrename-doc = "${mandir}/man8/ifrename.8 ${mandir}/man5/iftab.5"
+-FILES_${PN} = "${bindir} ${sbindir}/iw* ${base_sbindir} ${base_bindir} ${sysconfdir}/network"
+-FILES_${PN}-doc = "${mandir}"
++FILES:libiw = "${libdir}/*.so.*"
++FILES:libiw-dev = "${libdir}/*.a ${libdir}/*.so ${includedir}"
++FILES:libiw-doc = "${mandir}/man7"
++FILES:ifrename = "${sbindir}/ifrename"
++FILES:ifrename-doc = "${mandir}/man8/ifrename.8 ${mandir}/man5/iftab.5"
++FILES:${PN} = "${bindir} ${sbindir}/iw* ${base_sbindir} ${base_bindir} ${sysconfdir}/network"
++FILES:${PN}-doc = "${mandir}"
+diff --git a/meta-adi-adsp-sc5xx/recipes-core/base-files/base-files_%.bbappend b/meta-adi-adsp-sc5xx/recipes-core/base-files/base-files_%.bbappend
+index c07d206..1eae1e2 100644
+--- a/meta-adi-adsp-sc5xx/recipes-core/base-files/base-files_%.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-core/base-files/base-files_%.bbappend
+@@ -1,4 +1,4 @@
+-FILESEXTRAPATHS_append := "${THISDIR}/${PN}:"
++FILESEXTRAPATHS:append := "${THISDIR}/${PN}:"
+ 
+ do_install_basefilesissue () {
+ 	if [ "${hostname}" ]; then
+diff --git a/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox-watchdog-init.bb b/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox-watchdog-init.bb
+index ff73e50..8370a33 100644
+--- a/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox-watchdog-init.bb
++++ b/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox-watchdog-init.bb
+@@ -1,4 +1,4 @@
+-FILESEXTRAPATHS_prepend := "${THISDIR}/busybox:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/busybox:"
+ 
+ LICENSE = "CLOSED"
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox_%.bbappend b/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox_%.bbappend
+index dea9b1c..a4b6414 100644
+--- a/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox_%.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-core/busybox/busybox_%.bbappend
+@@ -1,4 +1,4 @@
+-FILESEXTRAPATHS_prepend := "${THISDIR}/busybox:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/busybox:"
+ 
+ SRC_URI += " \
+ 	file://defconfig \
+diff --git a/meta-adi-adsp-sc5xx/recipes-devtools/qemu/qemu_3.0.0.bbappend b/meta-adi-adsp-sc5xx/recipes-devtools/qemu/qemu_3.0.0.bbappend
+index ca384ea..54123c3 100644
+--- a/meta-adi-adsp-sc5xx/recipes-devtools/qemu/qemu_3.0.0.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-devtools/qemu/qemu_3.0.0.bbappend
+@@ -1,4 +1,4 @@
+-FILESEXTRAPATHS_prepend := "${THISDIR}/qemu:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/qemu:"
+ SRC_URI += " \
+            file://0001-linux-user-assume-__NR_gettid-always-exists.patch \
+            file://0001-linux-user-rename-gettid-to-sys_gettid-to-avoid-clas.patch \
+diff --git a/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils.inc b/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils.inc
+index 243341a..e477385 100644
+--- a/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils.inc
++++ b/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils.inc
+@@ -13,6 +13,6 @@ inherit autotools texinfo update-alternatives gettext
+ # see diffutils.mk in buildroot)
+ EXTRA_OECONF_libc-uclibc = "--without-included-regex"
+ 
+-ALTERNATIVE_${PN} = "diff cmp"
++ALTERNATIVE:${PN} = "diff cmp"
+ ALTERNATIVE_PRIORITY = "100"
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils_3.3.bb b/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils_3.3.bb
+index 5008690..e35e16f 100644
+--- a/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils_3.3.bb
++++ b/meta-adi-adsp-sc5xx/recipes-extended/diffutils/diffutils_3.3.bb
+@@ -10,7 +10,7 @@ SRC_URI = "${GNU_MIRROR}/diffutils/diffutils-${PV}.tar.xz \
+ 
+ EXTRA_OECONF += "--without-libsigsegv-prefix"
+ 
+-do_configure_prepend () {
++do_configure:prepend () {
+ 	# Need to remove gettext macros with weird mix of versions
+ 	for i in codeset.m4 gettext_gl.m4 intlmacosx.m4 inttypes-pri.m4 lib-ld_gl.m4 lib-prefix_gl.m4 po_gl.m4 ssize_t.m4 wchar_t.m4 wint_t.m4; do
+ 		rm -f ${S}/m4/$i
+diff --git a/meta-adi-adsp-sc5xx/recipes-extended/pound/pound_2.7.bb b/meta-adi-adsp-sc5xx/recipes-extended/pound/pound_2.7.bb
+index 38e9955..88ff971 100644
+--- a/meta-adi-adsp-sc5xx/recipes-extended/pound/pound_2.7.bb
++++ b/meta-adi-adsp-sc5xx/recipes-extended/pound/pound_2.7.bb
+@@ -20,7 +20,7 @@ DEPENDS = "kernel-devsrc linux-adi openssl10"
+ 
+ TARGET_CFLAGS += " -I${STAGING_KERNEL_DIR}/include -DHAVE_SYSLOG_H=1 -DVERSION=${PV} -pthread -DNEED_STACK -DEMBED -D_REENTRANT -D_THREAD_SAFE -DUPER"
+ 
+-do_configure_append(){
++do_configure:append(){
+ 	cp ${WORKDIR}/dh512.h ${B}/dh512.h
+ 	cp ${WORKDIR}/dh2048.h ${B}/dh2048.h
+ }
+@@ -48,7 +48,7 @@ do_install(){
+ 	install -m 755 ${WORKDIR}/pound.cfg ${D}/usr/local/etc/pound.cfg
+ }
+ 
+-FILES_${PN} += " \
++FILES:${PN} += " \
+   /usr/local \
+   /usr/local/etc \
+   /usr/local/etc/pound.cfg \
+diff --git a/meta-adi-adsp-sc5xx/recipes-icc/libmcapi/libmcapi.bb b/meta-adi-adsp-sc5xx/recipes-icc/libmcapi/libmcapi.bb
+index db41169..925f111 100644
+--- a/meta-adi-adsp-sc5xx/recipes-icc/libmcapi/libmcapi.bb
++++ b/meta-adi-adsp-sc5xx/recipes-icc/libmcapi/libmcapi.bb
+@@ -19,11 +19,11 @@ DEPENDS = "kernel-devsrc linux-adi"
+ 
+ EXTRA_OEMAKE += ' CFLAGS="${CFLAGS} -I${STAGING_KERNEL_DIR}/arch/blackfin/include -I${STAGING_KERNEL_DIR}/drivers/staging/icc/include"'
+ 
+-do_configure_prepend () {
++do_configure:prepend () {
+ 	cd ${S} && ./autogen.sh
+ }
+ 
+-do_compile_prepend(){
++do_compile:prepend(){
+ 	cd ${S}
+ }
+ 
+diff --git a/meta-adi-adsp-sc5xx/recipes-kernel/linux-firmware/linux-firmware_%.bbappend b/meta-adi-adsp-sc5xx/recipes-kernel/linux-firmware/linux-firmware_%.bbappend
+index a2fc529..2bafe02 100644
+--- a/meta-adi-adsp-sc5xx/recipes-kernel/linux-firmware/linux-firmware_%.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-kernel/linux-firmware/linux-firmware_%.bbappend
+@@ -1,7 +1,7 @@
+ SUMMARY = "Linux kernel firmware files from ADI distribution"
+ DESCRIPTION = "These binaries provide kernel support for ADI sc5xx boards"
+ 
+-FILESEXTRAPATHS_prepend := "${THISDIR}/linux-firmware:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/linux-firmware:"
+ SRC_URI += "file://adau1761.bin \
+ 			file://LICENSE.adau1761 \
+ 			"
+@@ -10,14 +10,14 @@ LIC_FILES_CHKSUM = "file://${WORKDIR}/LICENSE.adau1761;md5=dff5777c9526c7f6db0a0
+ 
+ FILEPATH = "/lib/firmware"
+ 
+-do_install_append() {
++do_install:append() {
+ 	install -m 0644 ${WORKDIR}/LICENSE.adau1761 ${D}${FILEPATH}
+ 	install -m 0644 ${WORKDIR}/adau1761.bin ${D}${FILEPATH}
+ }
+ 
+ PACKAGES =+ "${PN}-adau1761"
+ 
+-FILES_${PN}-adau1761 = " \
++FILES:${PN}-adau1761 = " \
+ 		${FILEPATH}/LICENSE.adau1761 \
+ 		${FILEPATH}/adau1761.bin \
+ 		"
+diff --git a/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi.inc b/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi.inc
+index 34d9735..1eb6772 100644
+--- a/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi.inc
++++ b/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi.inc
+@@ -11,14 +11,14 @@ SRC_URI += " \
+ "
+ 
+ # Pull in the devicetree files into the rootfs
+-# RDEPENDS_kernel-base += "kernel-devicetree"
++# RDEPENDS:kernel-base += "kernel-devicetree"
+ 
+ KERNEL_EXTRA_ARGS += "LOADADDR=${UBOOT_ENTRYPOINT}"
+ 
+ S = "${WORKDIR}/git"
+ 
+ # Append to the MACHINE_KERNEL_PR so that a new SRCREV will cause a rebuild
+-MACHINE_KERNEL_PR_append = "a"
++MACHINE_KERNEL_PR:append = "a"
+ PR = "${MACHINE_KERNEL_PR}"
+ 
+ # Use DEFCONFIGs for configuring linux-adi kernels
+diff --git a/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi_4.19.bb b/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi_4.19.bb
+index f5c5961..d22b05e 100644
+--- a/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi_4.19.bb
++++ b/meta-adi-adsp-sc5xx/recipes-kernel/linux/linux-adi_4.19.bb
+@@ -16,9 +16,9 @@ KERNEL_EXTRA_FEATURES ?= "feature/cfg/nfs.cfg \
+ 						  feature/cfg/cpufreq.cfg \
+ 						  feature/cfg/crypto.cfg \
+ 						  "
+-KERNEL_FEATURES_append = " ${KERNEL_EXTRA_FEATURES}"
++KERNEL_FEATURES:append = " ${KERNEL_EXTRA_FEATURES}"
+ 
+-KERNEL_FEATURES_append_adsp-sc589-ezkit = " feature/snd_ezkit.scc"
+-KERNEL_FEATURES_append_adsp-sc584-ezkit = " feature/snd_ezkit.scc"
+-KERNEL_FEATURES_append_adsp-sc573-ezkit = " feature/snd_ezkit.scc"
+-KERNEL_FEATURES_append_adsp-sc589-mini = " feature/snd_mini.scc"
++KERNEL_FEATURES:append_adsp-sc589-ezkit = " feature/snd_ezkit.scc"
++KERNEL_FEATURES:append_adsp-sc584-ezkit = " feature/snd_ezkit.scc"
++KERNEL_FEATURES:append_adsp-sc573-ezkit = " feature/snd_ezkit.scc"
++KERNEL_FEATURES:append_adsp-sc589-mini = " feature/snd_mini.scc"
+diff --git a/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-lib_%.bbappend b/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-lib_%.bbappend
+index 7561d03..f7835e3 100644
+--- a/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-lib_%.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-lib_%.bbappend
+@@ -1,4 +1,4 @@
+-FILESEXTRAPATHS_prepend := "${THISDIR}/alsa-lib:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/alsa-lib:"
+ 
+ SRC_URI += " \
+ 	file://alsa-lib-01-adi-audio-codec-config.patch \
+diff --git a/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-utils_%.bbappend b/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-utils_%.bbappend
+index 5891d0b..18456f8 100644
+--- a/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-utils_%.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-multimedia/alsa/alsa-utils_%.bbappend
+@@ -1,4 +1,4 @@
+-FILESEXTRAPATHS_prepend := "${THISDIR}/alsa-utils:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/alsa-utils:"
+ 
+ SRC_URI += " \
+ 	file://0001-fix-invalid-file-size-check-for-non-regular-files.patch \
+diff --git a/meta-adi-adsp-sc5xx/recipes-support/libgpg-error/libgpg-error_1.32.bbappend b/meta-adi-adsp-sc5xx/recipes-support/libgpg-error/libgpg-error_1.32.bbappend
+index 4196dc8..975f72d 100644
+--- a/meta-adi-adsp-sc5xx/recipes-support/libgpg-error/libgpg-error_1.32.bbappend
++++ b/meta-adi-adsp-sc5xx/recipes-support/libgpg-error/libgpg-error_1.32.bbappend
+@@ -1,4 +1,4 @@
+-FILESEXTRAPATHS_prepend := "${THISDIR}/libgpg-error:"
++FILESEXTRAPATHS:prepend := "${THISDIR}/libgpg-error:"
+ SRC_URI += " \
+ 	file://0001-namespace-conflict.patch \
+ 	"
+diff --git a/meta-adi-external-toolchain/classes/common-license.bbclass b/meta-adi-external-toolchain/classes/common-license.bbclass
+index 41298de..276fda4 100644
+--- a/meta-adi-external-toolchain/classes/common-license.bbclass
++++ b/meta-adi-external-toolchain/classes/common-license.bbclass
+@@ -16,7 +16,7 @@ python () {
+     #; Set LIC_FILES_CHKSUM to a common license if it's unset and LICENSE is set
+     licensestr = d.getVar('LICENSE', True)
+     for pkg in d.getVar('PACKAGES', True).split():
+-        pkg_lic = d.getVar('LICENSE_%s' % pkg, True)
++        pkg_lic = d.getVar('LICENSE:%s' % pkg, True)
+         if pkg_lic:
+             licensestr += ' ' + pkg_lic
+ 
+diff --git a/meta-adi-external-toolchain/classes/external-toolchain-cross-canadian.bbclass b/meta-adi-external-toolchain/classes/external-toolchain-cross-canadian.bbclass
+index 3adedcf..24399a5 100644
+--- a/meta-adi-external-toolchain/classes/external-toolchain-cross-canadian.bbclass
++++ b/meta-adi-external-toolchain/classes/external-toolchain-cross-canadian.bbclass
+@@ -5,7 +5,7 @@ inherit external-toolchain cross-canadian
+ STRIP_task-package = "strip"
+ STRIP_task-populate-sysroot = "strip"
+ OBJCOPY_task-package = "objcopy"
+-PACKAGE_DEPENDS_remove = "virtual/${TARGET_PREFIX}binutils"
++PACKAGE_DEPENDS:remove = "virtual/${TARGET_PREFIX}binutils"
+ 
+ # Scan just toolchains root directory, but include some additional mirrors
+ EXTERNAL_INSTALL_SOURCE_PATHS = "${EXTERNAL_TOOLCHAIN}"
+@@ -27,9 +27,9 @@ libdir = "${exec_prefix}/lib"
+ libexecdir = "${exec_prefix}/libexec"
+ 
+ # We're relying on a compatible host libc, not one from a nativesdk build
+-INSANE_SKIP_${PN} += "build-deps file-rdeps"
++INSANE_SKIP:${PN} += "build-deps file-rdeps"
+ 
+-do_install_append () {
++do_install:append () {
+     for i in ${D}${bindir}/${EXTERNAL_TARGET_SYS}-*; do
+         if [ -e "$i" ]; then
+             j="$(basename "$i")"
+@@ -43,12 +43,12 @@ python add_files_links () {
+     full_prefix = os.path.join(d.getVar('bindir'), prefix)
+     new_prefix = d.getVar('TARGET_PREFIX')
+     for pkg in d.getVar('PACKAGES').split():
+-        files = (d.getVar('FILES_%s' % pkg) or '').split()
++        files = (d.getVar('FILES:%s' % pkg) or '').split()
+         new_files = []
+         for f in files:
+             if f.startswith(full_prefix):
+                 new_files.append(f.replace(prefix, new_prefix))
+         if new_files:
+-            d.appendVar('FILES_%s' % pkg, ' ' + ' '.join(new_files))
++            d.appendVar('FILES:%s' % pkg, ' ' + ' '.join(new_files))
+ }
+ do_package[prefuncs] += "add_files_links"
+diff --git a/meta-adi-external-toolchain/classes/external-toolchain.bbclass b/meta-adi-external-toolchain/classes/external-toolchain.bbclass
+index 17ba492..077ef2e 100644
+--- a/meta-adi-external-toolchain/classes/external-toolchain.bbclass
++++ b/meta-adi-external-toolchain/classes/external-toolchain.bbclass
+@@ -21,7 +21,7 @@ S = "${WORKDIR}"
+ INHIBIT_DEFAULT_DEPS = "1"
+ 
+ # Missing build deps don't matter when we don't build anything
+-INSANE_SKIP_${PN} += "build-deps"
++INSANE_SKIP:${PN} += "build-deps"
+ 
+ EXTERNAL_PN ?= "${@PN.replace('-external', '')}"
+ PROVIDES += "${EXTERNAL_PN}"
+@@ -36,14 +36,14 @@ do_compile[noexec] = "1"
+ 
+ EXTERNAL_PV_PREFIX ?= ""
+ EXTERNAL_PV_SUFFIX ?= ""
+-PV_prepend = "${@'${EXTERNAL_PV_PREFIX}' if '${EXTERNAL_PV_PREFIX}' else ''}"
+-PV_append = "${@'${EXTERNAL_PV_SUFFIX}' if '${EXTERNAL_PV_SUFFIX}' else ''}"
++PV:prepend = "${@'${EXTERNAL_PV_PREFIX}' if '${EXTERNAL_PV_PREFIX}' else ''}"
++PV:append = "${@'${EXTERNAL_PV_SUFFIX}' if '${EXTERNAL_PV_SUFFIX}' else ''}"
+ 
+ EXTERNAL_EXTRA_FILES ?= ""
+ 
+ # Skip this recipe if we don't have files in the external toolchain
+ EXTERNAL_AUTO_PROVIDE ?= "0"
+-EXTERNAL_AUTO_PROVIDE_class-target ?= "1"
++EXTERNAL_AUTO_PROVIDE:class-target ?= "1"
+ 
+ # We don't care if this path references other variables
+ EXTERNAL_TOOLCHAIN[vardepvalue] = "${EXTERNAL_TOOLCHAIN}"
+@@ -126,13 +126,13 @@ python external_toolchain_do_install () {
+     external_toolchain_propagate_mode(d, installdest)
+     subprocess.check_call(['chown', '-R', 'root:root', installdest])
+ }
+-external_toolchain_do_install[vardeps] += "${@' '.join('FILES_%s' % pkg for pkg in '${PACKAGES}'.split())}"
++external_toolchain_do_install[vardeps] += "${@' '.join('FILES:%s' % pkg for pkg in '${PACKAGES}'.split())}"
+ 
+ # Change do_install's CWD to EXTERNAL_TOOLCHAIN for convenience
+ do_install[dirs] = "${D} ${EXTERNAL_TOOLCHAIN}"
+ 
+ python () {
+-    # Deal with any do_install_append
++    # Deal with any do_install:append
+     install = d.getVar('do_install', False)
+     try:
+         base, appended = install.split('# Sentinel', 1)
+@@ -141,32 +141,32 @@ python () {
+     else:
+         d.setVar('do_install', base)
+         if appended.strip():
+-            d.setVar('do_install_appended', appended)
+-            d.setVarFlag('do_install_appended', 'func', '1')
+-            d.appendVarFlag('do_install', 'postfuncs', ' do_install_appended')
++            d.setVar('do_install:appended', appended)
++            d.setVarFlag('do_install:appended', 'func', '1')
++            d.appendVarFlag('do_install', 'postfuncs', ' do_install:appended')
+ }
+ 
+ # Toolchain shipped binaries weren't necessarily built ideally
+-WARN_QA_remove = "ldflags textrel"
+-ERROR_QA_remove = "ldflags textrel"
++WARN_QA:remove = "ldflags textrel"
++ERROR_QA:remove = "ldflags textrel"
+ 
+ # Debug files may well have already been split out, or stripped out
+-WARN_QA_remove = "already-stripped"
+-ERROR_QA_remove = "already-stripped"
+-
+-RPROVIDES_${PN} += "${EXTERNAL_PN}"
+-RPROVIDES_${PN}-dev += "${EXTERNAL_PN}-dev"
+-RPROVIDES_${PN}-staticdev += "${EXTERNAL_PN}-staticdev"
+-RPROVIDES_${PN}-dbg += "${EXTERNAL_PN}-dbg"
+-RPROVIDES_${PN}-doc += "${EXTERNAL_PN}-doc"
+-RPROVIDES_${PN}-locale += "${EXTERNAL_PN}-locale"
++WARN_QA:remove = "already-stripped"
++ERROR_QA:remove = "already-stripped"
++
++RPROVIDES:${PN} += "${EXTERNAL_PN}"
++RPROVIDES:${PN}-dev += "${EXTERNAL_PN}-dev"
++RPROVIDES:${PN}-staticdev += "${EXTERNAL_PN}-staticdev"
++RPROVIDES:${PN}-dbg += "${EXTERNAL_PN}-dbg"
++RPROVIDES:${PN}-doc += "${EXTERNAL_PN}-doc"
++RPROVIDES:${PN}-locale += "${EXTERNAL_PN}-locale"
+ LOCALEBASEPN = "${EXTERNAL_PN}"
+ 
+-FILES_${PN} = ""
+-FILES_${PN}-dev = ""
+-FILES_${PN}-staticdev = ""
+-FILES_${PN}-doc = ""
+-FILES_${PN}-locale = ""
++FILES:${PN} = ""
++FILES:${PN}-dev = ""
++FILES:${PN}-staticdev = ""
++FILES:${PN}-doc = ""
++FILES:${PN}-locale = ""
+ 
+ def debug_paths(d):
+     l = d.createCopy()
+@@ -179,7 +179,7 @@ def debug_paths(d):
+     for p in l.getVar('PACKAGES', True).split():
+         if p.endswith('-dbg'):
+             continue
+-        for f in (l.getVar('FILES_%s' % p, True) or '').split():
++        for f in (l.getVar('FILES:%s' % p, True) or '').split():
+             if any((f == x or f.startswith(x + '/')) for x in exclude):
+                 continue
+             d = os.path.dirname(f)
+@@ -189,4 +189,4 @@ def debug_paths(d):
+             paths.append('{0}/.debug/{1}.debug'.format(d, b))
+     return set(paths)
+ 
+-FILES_${PN}-dbg = "${@' '.join(debug_paths(d))}"
++FILES:${PN}-dbg = "${@' '.join(debug_paths(d))}"
+diff --git a/meta-adi-external-toolchain/classes/sanity-external-toolchain.bbclass b/meta-adi-external-toolchain/classes/sanity-external-toolchain.bbclass
+index b977a4c..09f018c 100644
+--- a/meta-adi-external-toolchain/classes/sanity-external-toolchain.bbclass
++++ b/meta-adi-external-toolchain/classes/sanity-external-toolchain.bbclass
+@@ -47,7 +47,7 @@ def check_toolchain_sanity(d, generate_events=False):
+         l = d.createCopy()
+         l.setVar('TOOLCHAIN_OPTIONS', '')
+         l.setVar('TARGET_PREFIX', '${EXTERNAL_TARGET_SYS}-')
+-        l.setVar('HOST_CC_ARCH_remove', '--no-sysroot-suffix')
++        l.setVar('HOST_CC_ARCH:remove', '--no-sysroot-suffix')
+         cmd = l.expand('${EXTERNAL_TOOLCHAIN}/bin/${CC} ${CFLAGS} ${LDFLAGS} test.c -o test')
+         exttc_sanity_run(shlex.split(cmd), d, generate_events, tmpdir)
+ 
+diff --git a/meta-adi-external-toolchain/conf/distro/include/tcmode-external.inc b/meta-adi-external-toolchain/conf/distro/include/tcmode-external.inc
+index e1bc61f..2e5e06a 100644
+--- a/meta-adi-external-toolchain/conf/distro/include/tcmode-external.inc
++++ b/meta-adi-external-toolchain/conf/distro/include/tcmode-external.inc
+@@ -30,7 +30,7 @@ PREFERRED_PROVIDER_gdb-cross-canadian-${TRANSLATED_TARGET_ARCH} ??= "gdb-externa
+ PREFERRED_PROVIDER_libgcc = "libgcc-external"
+ 
+ # Pass --no-sysroot-suffix when using an external toolchain with the SDK
+-TOOLCHAIN_TARGET_TASK_append = " sdk-env-external-toolchain"
++TOOLCHAIN_TARGET_TASK:append = " sdk-env-external-toolchain"
+ 
+ # Sanity check the toolchain configuration and toolchain
+ INHERIT += "sanity-external-toolchain"
+@@ -62,7 +62,7 @@ PNBLACKLIST_DYNAMIC += "\
+ 
+ # We need our -cross recipes to rebuild when the external toolchain changes,
+ # to recreate the links / wrapper scripts
+-BB_HASHBASE_WHITELIST_remove = "EXTERNAL_TOOLCHAIN"
++BB_HASHBASE_WHITELIST:remove = "EXTERNAL_TOOLCHAIN"
+ 
+ # For a toolchain built with multilibs, we don't want any suffix implicitly
+ # added to the oe sysroot path, as those dirs will not exist.
+@@ -75,9 +75,9 @@ HOST_CC_ARCH += "--no-sysroot-suffix"
+ LDEMULATION = ""
+ LDEMULATION_ENDIAN = "${@'bt' if 'bigendian' in '${TUNE_FEATURES}'.split() else 'lt'}"
+ LDEMULATION_BITS = "${@'64' if 'n64' in '${TUNE_FEATURES}'.split() else '32'}"
+-LDEMULATION_mips64 = "elf${LDEMULATION_BITS}${LDEMULATION_ENDIAN}smip${@bb.utils.contains('TUNE_FEATURES', 'n32', 'n32', '', d)}"
+-LDEMULATION_x86-64 = "elf_${TARGET_ARCH}"
+-LDEMULATION_x86-64_linux-gnux32 = "elf32_${TARGET_ARCH}"
++LDEMULATION:mips64 = "elf${LDEMULATION_BITS}${LDEMULATION_ENDIAN}smip${@bb.utils.contains('TUNE_FEATURES', 'n32', 'n32', '', d)}"
++LDEMULATION:x86-64 = "elf_${TARGET_ARCH}"
++LDEMULATION:x86-64:linux-gnux32 = "elf32_${TARGET_ARCH}"
+ TUNE_LDARGS += "${@'-m ${LDEMULATION}' if '${LDEMULATION}' else ''}"
+ 
+ # Additional search path for compiler component programs, to let us rebuild
+@@ -86,7 +86,7 @@ gcc_bindir = "${STAGING_BINDIR_TOOLCHAIN}/gcc"
+ TUNE_CCARGS += "-B${gcc_bindir}"
+ 
+ TCMODEOVERRIDES = "tcmode-external"
+-TCMODEOVERRIDES_append = ":tcmode-${TCMODE}"
++TCMODEOVERRIDES:append = ":tcmode-${TCMODE}"
+ OVERRIDES =. "${TCMODEOVERRIDES}:"
+ 
+ python toolchain_metadata_setup () {
+@@ -109,6 +109,6 @@ GCC_VERSION[vardepvalue] = "${GCC_VERSION}"
+ 
+ # macro-prefix-map was introduced in gcc 8
+ # REMOVE_MACRO_PREFIX_MAP = "-fmacro-prefix-map=${WORKDIR}=/usr/src/debug/${PN}/${EXTENDPE}${PV}-${PR}"
+-# DEBUG_PREFIX_MAP_remove = "${@'${REMOVE_MACRO_PREFIX_MAP}' if '${GCC_VERSION}' and [int(v) for v in '${GCC_VERSION}'.split('.')] < [8,0] else ''}"
++# DEBUG_PREFIX_MAP:remove = "${@'${REMOVE_MACRO_PREFIX_MAP}' if '${GCC_VERSION}' and [int(v) for v in '${GCC_VERSION}'.split('.')] < [8,0] else ''}"
+ 
+ BUILDCFG_VARS += "EXTERNAL_TOOLCHAIN EXTERNAL_TARGET_SYS GCC_VERSION"
+diff --git a/meta-adi-external-toolchain/conf/layer.conf b/meta-adi-external-toolchain/conf/layer.conf
+index af9616e..81ec71f 100644
+--- a/meta-adi-external-toolchain/conf/layer.conf
++++ b/meta-adi-external-toolchain/conf/layer.conf
+@@ -22,7 +22,7 @@ SIGGEN_EXCLUDERECIPES_ABISAFE += "\
+ "
+ 
+ # Needed for external_run() for PV & LICENSE in the recipes, to be able to parse
+-INHERIT_append = " external-common"
++INHERIT:append = " external-common"
+ 
+ # Fallback default for when the tcmode isn't sourced
+ GCC_VERSION ?= "0.0"
+diff --git a/meta-adi-external-toolchain/core/recipes-bsp/systemd-boot/systemd-boot_%.bbappend b/meta-adi-external-toolchain/core/recipes-bsp/systemd-boot/systemd-boot_%.bbappend
+index dbeb9c3..85e0317 100644
+--- a/meta-adi-external-toolchain/core/recipes-bsp/systemd-boot/systemd-boot_%.bbappend
++++ b/meta-adi-external-toolchain/core/recipes-bsp/systemd-boot/systemd-boot_%.bbappend
+@@ -2,6 +2,6 @@
+ # the default for the toolchain, which isn't necessarily correct for an
+ # external toolchain.
+ EFI_TUNE_ARCH = "-m32"
+-EFI_TUNE_ARCH_x86-64 = "-m64"
++EFI_TUNE_ARCH:x86-64 = "-m64"
+ EFI_CC_tcmode-external = "${@'${CC}'.split()[0]} ${EFI_TUNE_ARCH}"
+-EXTRA_OECONF_append_tcmode-external = " 'EFI_CC=${EFI_CC}'"
++EXTRA_OECONF:append_tcmode-external = " 'EFI_CC=${EFI_CC}'"
+diff --git a/meta-adi-external-toolchain/core/recipes-core/meta/buildtools-tarball.bbappend b/meta-adi-external-toolchain/core/recipes-core/meta/buildtools-tarball.bbappend
+index be543d3..caf2941 100644
+--- a/meta-adi-external-toolchain/core/recipes-core/meta/buildtools-tarball.bbappend
++++ b/meta-adi-external-toolchain/core/recipes-core/meta/buildtools-tarball.bbappend
+@@ -1,5 +1,5 @@
+ # buildtools-tarball is host only, and does not add TOOLCHAIN_TARGET_TASK to
+-# RDEPENDS. Forcibly empty it, otherwise a TOOLCHAIN_TARGET_TASK_append at the
++# RDEPENDS. Forcibly empty it, otherwise a TOOLCHAIN_TARGET_TASK:append at the
+ # config level will break the buildtools-tarball build
+ python () {
+     d.setVar('TOOLCHAIN_TARGET_TASK', '')
+diff --git a/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment-extsdk.bbappend b/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment-extsdk.bbappend
+index dabfa15..5b80152 100644
+--- a/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment-extsdk.bbappend
++++ b/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment-extsdk.bbappend
+@@ -1,4 +1,4 @@
+ 
+ # Don't dump the -B${gcc_bindir} appended to TUNE_CCARGS and subsequently
+ # to TARGET_CC_ARCH, since it consists of local machine toolchain paths.
+-TUNE_CCARGS_remove = "-B${gcc_bindir}"
++TUNE_CCARGS:remove = "-B${gcc_bindir}"
+diff --git a/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment.bbappend b/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment.bbappend
+index dabfa15..5b80152 100644
+--- a/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment.bbappend
++++ b/meta-adi-external-toolchain/core/recipes-core/meta/meta-environment.bbappend
+@@ -1,4 +1,4 @@
+ 
+ # Don't dump the -B${gcc_bindir} appended to TUNE_CCARGS and subsequently
+ # to TARGET_CC_ARCH, since it consists of local machine toolchain paths.
+-TUNE_CCARGS_remove = "-B${gcc_bindir}"
++TUNE_CCARGS:remove = "-B${gcc_bindir}"
+diff --git a/meta-adi-external-toolchain/core/recipes-devtools/binutils/binutils-cross_%.bbappend b/meta-adi-external-toolchain/core/recipes-devtools/binutils/binutils-cross_%.bbappend
+index 4acd7dc..c970ffa 100644
+--- a/meta-adi-external-toolchain/core/recipes-devtools/binutils/binutils-cross_%.bbappend
++++ b/meta-adi-external-toolchain/core/recipes-devtools/binutils/binutils-cross_%.bbappend
+@@ -1,4 +1,4 @@
+-do_install_append_tcmode-external () {
++do_install:append_tcmode-external () {
+     install -d ${D}${bindir}/gcc
+     for i in ${D}${bindir}/${TARGET_PREFIX}*; do
+         ln -s ../$(basename "$i") ${D}${bindir}/gcc/${i##*/${TARGET_PREFIX}}
+diff --git a/meta-adi-external-toolchain/core/recipes-devtools/gdb/gdb_%.bbappend b/meta-adi-external-toolchain/core/recipes-devtools/gdb/gdb_%.bbappend
+index 227cd75..ee688ea 100644
+--- a/meta-adi-external-toolchain/core/recipes-devtools/gdb/gdb_%.bbappend
++++ b/meta-adi-external-toolchain/core/recipes-devtools/gdb/gdb_%.bbappend
+@@ -1,7 +1,7 @@
+ PREFERRED_PROVIDER_gdbserver ?= "gdb"
+-PROVIDES_append_tcmode-external = " ${@'gdbserver' if '${PREFERRED_PROVIDER_gdbserver}' == '${PN}' else ''}"
++PROVIDES:append_tcmode-external = " ${@'gdbserver' if '${PREFERRED_PROVIDER_gdbserver}' == '${PN}' else ''}"
+ 
+ # Disable build of gdbserver if is provided by external-sourcery-toolchain
+-PACKAGES_remove_tcmode-external = "${@'gdbserver' if '${PREFERRED_PROVIDER_gdbserver}' != '${PN}' else ''}"
++PACKAGES:remove_tcmode-external = "${@'gdbserver' if '${PREFERRED_PROVIDER_gdbserver}' != '${PN}' else ''}"
+ DISABLE_GDBSERVER = "${@'--disable-gdbserver' if '${PREFERRED_PROVIDER_gdbserver}' != '${PN}' else ''}"
+-EXTRA_OECONF_append_tcmode-external = " ${DISABLE_GDBSERVER}"
++EXTRA_OECONF:append_tcmode-external = " ${DISABLE_GDBSERVER}"
+diff --git a/meta-adi-external-toolchain/core/recipes-extended/bash/bash_%.bbappend b/meta-adi-external-toolchain/core/recipes-extended/bash/bash_%.bbappend
+index 75a9207..039c884 100644
+--- a/meta-adi-external-toolchain/core/recipes-extended/bash/bash_%.bbappend
++++ b/meta-adi-external-toolchain/core/recipes-extended/bash/bash_%.bbappend
+@@ -1,4 +1,4 @@
+-do_compile_append () {
++do_compile:append () {
+     if [ -e support/bash.pc ] ; then
+         sed -i -e 's#-B${gcc_bindir}##' support/bash.pc
+     fi
+diff --git a/meta-adi-external-toolchain/lib/oe/external.py b/meta-adi-external-toolchain/lib/oe/external.py
+index c5231c9..7fcfcfa 100644
+--- a/meta-adi-external-toolchain/lib/oe/external.py
++++ b/meta-adi-external-toolchain/lib/oe/external.py
+@@ -48,7 +48,7 @@ def gather_pkg_files(d):
+     import itertools
+     files = []
+     for pkg in d.getVar('PACKAGES').split():
+-        files = itertools.chain(files, (d.getVar('EXTERNAL_FILES_{}'.format(pkg)) or d.getVar('FILES_{}'.format(pkg)) or '').split())
++        files = itertools.chain(files, (d.getVar('EXTERNAL_FILES_{}'.format(pkg)) or d.getVar('FILES:{}'.format(pkg)) or '').split())
+     files = itertools.chain(files, d.getVar('EXTERNAL_EXTRA_FILES').split())
+     return files
+ 
+diff --git a/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross-canadian.bb b/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross-canadian.bb
+index 860710b..579bdf8 100644
+--- a/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross-canadian.bb
++++ b/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross-canadian.bb
+@@ -3,13 +3,13 @@ inherit external-toolchain-cross-canadian
+ 
+ PN .= "-${TRANSLATED_TARGET_ARCH}"
+ 
+-FILES_${PN} = "\
++FILES:${PN} = "\
+     ${@' '.join('${bindir}/${EXTERNAL_TARGET_SYS}-' + i for i in '${binutils_binaries}'.split())} \
+     ${@' '.join('${exec_prefix}/${EXTERNAL_TARGET_SYS}/bin/' + i for i in '${binutils_binaries}'.split())} \
+     ${exec_prefix}/lib/ldscripts \
+ "
+ 
+-do_install_append () {
++do_install:append () {
+     if [ ! -e ${D}${bindir}/${EXTERNAL_TARGET_SYS}-ld.bfd ]; then
+         ln -s ${EXTERNAL_TARGET_SYS}-ld ${D}${bindir}/${EXTERNAL_TARGET_SYS}-ld.bfd
+     fi
+diff --git a/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross.bb b/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross.bb
+index 4fe873d..3c532a1 100644
+--- a/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross.bb
++++ b/meta-adi-external-toolchain/recipes-external/binutils/binutils-external-cross.bb
+@@ -6,7 +6,7 @@ PROVIDES += "virtual/${TARGET_PREFIX}binutils"
+ 
+ EXTERNAL_CROSS_BINARIES = "${binutils_binaries}"
+ 
+-do_install_append () {
++do_install:append () {
+     if [ ! -e ${D}${bindir}/${TARGET_PREFIX}ld.bfd ]; then
+         ln -s ${TARGET_PREFIX}ld ${D}${bindir}/${TARGET_PREFIX}ld.bfd
+     fi
+diff --git a/meta-adi-external-toolchain/recipes-external/gcc/gcc-external-cross-canadian.bb b/meta-adi-external-toolchain/recipes-external/gcc/gcc-external-cross-canadian.bb
+index cbddf29..7aa004d 100644
+--- a/meta-adi-external-toolchain/recipes-external/gcc/gcc-external-cross-canadian.bb
++++ b/meta-adi-external-toolchain/recipes-external/gcc/gcc-external-cross-canadian.bb
+@@ -5,8 +5,8 @@ PN .= "-${TRANSLATED_TARGET_ARCH}"
+ 
+ BINV = "${GCC_VERSION}"
+ 
+-RDEPENDS_${PN} = "binutils-external-cross-canadian-${TRANSLATED_TARGET_ARCH}"
+-FILES_${PN} = "\
++RDEPENDS:${PN} = "binutils-external-cross-canadian-${TRANSLATED_TARGET_ARCH}"
++FILES:${PN} = "\
+     ${libdir}/gcc/${EXTERNAL_TARGET_SYS}/${BINV} \
+     ${libexecdir}/gcc/${EXTERNAL_TARGET_SYS}/${BINV} \
+     ${libdir}/libcc1* \
+@@ -16,4 +16,4 @@ FILES_${PN} = "\
+ external_libroot = "${@os.path.realpath('${EXTERNAL_TOOLCHAIN_LIBROOT}').replace(os.path.realpath('${EXTERNAL_TOOLCHAIN}') + '/', '/')}"
+ FILES_MIRRORS =. "${libdir}/gcc/${EXTERNAL_TARGET_SYS}/${BINV}/|${external_libroot}/\n"
+ 
+-INSANE_SKIP_${PN} += "dev-so staticdev"
++INSANE_SKIP:${PN} += "dev-so staticdev"
+diff --git a/meta-adi-external-toolchain/recipes-external/gcc/gcc-runtime-external.bb b/meta-adi-external-toolchain/recipes-external/gcc/gcc-runtime-external.bb
+index db9ea3b..f431ad4 100644
+--- a/meta-adi-external-toolchain/recipes-external/gcc/gcc-runtime-external.bb
++++ b/meta-adi-external-toolchain/recipes-external/gcc/gcc-runtime-external.bb
+@@ -46,18 +46,18 @@ do_install_extra () {
+     done
+ }
+ 
+-FILES_${PN}-dbg += "${datadir}/gdb/python/libstdcxx"
+-FILES_libstdc++-dev = "\
++FILES:${PN}-dbg += "${datadir}/gdb/python/libstdcxx"
++FILES:libstdc++-dev = "\
+     ${includedir}/c++ \
+     ${libdir}/libstdc++.so \
+     ${libdir}/libstdc++.la \
+     ${libdir}/libsupc++.la \
+ "
+-FILES_libgomp-dev += "\
++FILES:libgomp-dev += "\
+     ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/openacc.h \
+ "
+ BBCLASSEXTEND = ""
+ 
+-RDEPENDS_libatomic += "${TCLIBC}"
+-RDEPENDS_libgomp += "${TCLIBC}"
+-RDEPENDS_libssp += "${TCLIBC}"
++RDEPENDS:libatomic += "${TCLIBC}"
++RDEPENDS:libgomp += "${TCLIBC}"
++RDEPENDS:libssp += "${TCLIBC}"
+diff --git a/meta-adi-external-toolchain/recipes-external/gcc/libgcc-external.bb b/meta-adi-external-toolchain/recipes-external/gcc/libgcc-external.bb
+index 9bd1089..d2ccad6 100644
+--- a/meta-adi-external-toolchain/recipes-external/gcc/libgcc-external.bb
++++ b/meta-adi-external-toolchain/recipes-external/gcc/libgcc-external.bb
+@@ -11,8 +11,8 @@ LICENSE = "GPL-3.0-with-GCC-exception"
+ # libgcc needs libc, but glibc's utilities need libgcc, so short-circuit the
+ # interdependency here by manually specifying it rather than depending on the
+ # libc packagedata.
+-RDEPENDS_${PN} += "${@'${PREFERRED_PROVIDER_virtual/libc}' if '${PREFERRED_PROVIDER_virtual/libc}' else '${TCLIBC}'}"
+-INSANE_SKIP_${PN} += "build-deps file-rdeps"
++RDEPENDS:${PN} += "${@'${PREFERRED_PROVIDER_virtual/libc}' if '${PREFERRED_PROVIDER_virtual/libc}' else '${TCLIBC}'}"
++INSANE_SKIP:${PN} += "build-deps file-rdeps"
+ 
+ # The dynamically loadable files belong to libgcc, since we really don't need the static files
+ # on the target, moreover linker won't be able to find them there (see original libgcc.bb recipe).
+@@ -70,9 +70,9 @@ FILES_LIST = " \
+     ${base_libdir}/libasan.a \
+ "
+ 
+-FILES_${PN} = " \
++FILES:${PN} = " \
+     ${FILES_LIST} \
+     ${libdir}/${EXTERNAL_TARGET_SYS}/${BINV}* \
+ "
+ 
+-INSANE_SKIP_${PN} += "staticdev host-user-contaminated"
++INSANE_SKIP:${PN} += "staticdev host-user-contaminated"
+diff --git a/meta-adi-external-toolchain/recipes-external/gcc/libgfortran-external.bb b/meta-adi-external-toolchain/recipes-external/gcc/libgfortran-external.bb
+index 148b35b..772f0b8 100644
+--- a/meta-adi-external-toolchain/recipes-external/gcc/libgfortran-external.bb
++++ b/meta-adi-external-toolchain/recipes-external/gcc/libgfortran-external.bb
+@@ -15,13 +15,13 @@ EXTERNAL_PROVIDE_PATTERN = "${FILES_${PN}}"
+ # We don't copy the static binaries and headers, since they don't belong to the
+ # target sysroot, but need to be in the native one (that's the place where compiler
+ # and linker are looking for them).
+-FILES_${PN} = "${libdir}/libgfortran.so.*"
+-FILES_${PN}-dev = "\
++FILES:${PN} = "${libdir}/libgfortran.so.*"
++FILES:${PN}-dev = "\
+     ${libdir}/libgfortran*.so \
+     ${libdir}/libgfortran.spec \
+     ${libdir}/libgfortran.la \
+ "
+-FILES_${PN}-staticdev = "${libdir}/libgfortran.a"
++FILES:${PN}-staticdev = "${libdir}/libgfortran.a"
+ 
+ do_package_write_ipk[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
+ do_package_write_deb[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
+diff --git a/meta-adi-external-toolchain/recipes-external/gdb/gdb-external-cross-canadian.bb b/meta-adi-external-toolchain/recipes-external/gdb/gdb-external-cross-canadian.bb
+index cf92518..181d90c 100644
+--- a/meta-adi-external-toolchain/recipes-external/gdb/gdb-external-cross-canadian.bb
++++ b/meta-adi-external-toolchain/recipes-external/gdb/gdb-external-cross-canadian.bb
+@@ -7,9 +7,9 @@ FILES_MIRRORS =. "\
+     ${exec_prefix}|${target_exec_prefix}/${EXTERNAL_TARGET_SYS}\n \
+ "
+ 
+-FILES_${PN} += "\
++FILES:${PN} += "\
+     ${@' '.join('${bindir}/${EXTERNAL_TARGET_SYS}-' + i for i in '${gdb_binaries}'.split())} \
+     ${exec_prefix}/share/gdb \
+ "
+ 
+-INSANE_SKIP_${PN} += "dev-so staticdev"
++INSANE_SKIP:${PN} += "dev-so staticdev"
+diff --git a/meta-adi-external-toolchain/recipes-external/gdb/gdbserver-external.bb b/meta-adi-external-toolchain/recipes-external/gdb/gdbserver-external.bb
+index 301800a..c29ded1 100644
+--- a/meta-adi-external-toolchain/recipes-external/gdb/gdbserver-external.bb
++++ b/meta-adi-external-toolchain/recipes-external/gdb/gdbserver-external.bb
+@@ -18,8 +18,8 @@ def get_gdb_license(d):
+ LICENSE := "${@get_gdb_license(d)}"
+ LICENSE[vardepvalue] = "${LICENSE}"
+ 
+-FILES_${PN} = "${bindir}/gdbserver"
+-FILES_${PN}-doc = "${mandir}/man1/gdbserver.1"
++FILES:${PN} = "${bindir}/gdbserver"
++FILES:${PN}-doc = "${mandir}/man1/gdbserver.1"
+ 
+ # Ensure that our rdeps are able to be set by shlibs processing
+ do_package[depends] += "\
+diff --git a/meta-adi-external-toolchain/recipes-external/glibc/glibc-external.bb b/meta-adi-external-toolchain/recipes-external/glibc/glibc-external.bb
+index 86caca4..e6f6aee 100644
+--- a/meta-adi-external-toolchain/recipes-external/glibc/glibc-external.bb
++++ b/meta-adi-external-toolchain/recipes-external/glibc/glibc-external.bb
+@@ -130,7 +130,7 @@ glibc_external_do_install_extra () {
+     sed -e '1s#bash#sh#' -i "${D}${bindir}/tzselect"
+ }
+ 
+-bberror_task-install () {
++bberror:task-install () {
+     # Silence any errors from oe_multilib_header, as we don't care about
+     # missing multilib headers, as the oe-core glibc version isn't necessarily
+     # the same as our own.
+@@ -146,12 +146,12 @@ EXTERNAL_EXTRA_FILES += "\
+ 
+ # These files are picked up out of the sysroot by glibc-locale, so we don't
+ # need to keep them around ourselves.
+-do_install_locale_append() {
++do_install_locale:append() {
+ 	rm -rf ${D}${localedir}
+ }
+ 
+ python () {
+-    # Undo the do_install_append which joined shell to python
++    # Undo the do_install:append which joined shell to python
+     install = d.getVar('do_install', False)
+     python, shell = install.split('rm -f ', 1)
+     d.setVar('do_install_glibc', 'rm -f ' + shell)
+@@ -166,7 +166,7 @@ python () {
+ }
+ 
+ # Default pattern is too greedy
+-FILES_${PN}-utils = "\
++FILES:${PN}-utils = "\
+     ${bindir}/gencat \
+     ${bindir}/getconf \
+     ${bindir}/getent \
+@@ -179,10 +179,10 @@ FILES_${PN}-utils = "\
+     ${bindir}/pldd \
+     ${bindir}/sprof \
+ "
+-FILES_${PN}-doc += "${infodir}/libc.info*"
++FILES:${PN}-doc += "${infodir}/libc.info*"
+ 
+ # Extract for use by do_install_locale
+-FILES_${PN} += "\
++FILES:${PN} += "\
+     ${bindir}/localedef \
+     ${libdir}/gconv \
+     ${libdir}/locale \
+@@ -193,12 +193,12 @@ FILES_${PN} += "\
+     ${libc_baselibs_dev} \
+ "
+ 
+-FILES_${PN} += "${libdir}/*crt*.o"
++FILES:${PN} += "${libdir}/*crt*.o"
+ 
+ linux_include_subdirs = "asm asm-generic bits drm linux mtd rdma sound sys video"
+-FILES_${PN} += "${@' '.join('${includedir}/%s' % d for d in '${linux_include_subdirs}'.split())}"
++FILES:${PN} += "${@' '.join('${includedir}/%s' % d for d in '${linux_include_subdirs}'.split())}"
+ 
+-FILES_${PN}-staticdev = "\
++FILES:${PN}-staticdev = "\
+     ${@'${libc_baselibs_dev}'.replace('${SOLIBSDEV}', '.a')} \
+     ${libdir}/libg.a \
+     ${libdir}/libieee.a \
+@@ -207,20 +207,20 @@ FILES_${PN}-staticdev = "\
+ 
+ libc_baselibs_dev += "${@' '.join('${libdir}/' + os.path.basename(l.replace('${SOLIBS}', '${SOLIBSDEV}')) for l in '${libc_baselibs}'.replace('${base_libdir}/ld*${SOLIBS}', '').split() if l.endswith('${SOLIBS}'))}"
+ 
+-FILES_${PN} += "\
++FILES:${PN} += "\
+     ${libc_baselibs_dev} \
+     ${libdir}/libcidn${SOLIBSDEV} \
+     ${libdir}/libthread_db${SOLIBSDEV} \
+     ${libdir}/libpthread${SOLIBSDEV} \
+ "
+ libc_headers_file = "${@bb.utils.which('${FILESPATH}', 'libc.headers')}"
+-FILES_${PN} += "\
++FILES:${PN} += "\
+     ${@' '.join('${includedir}/' + f.rstrip() for f in oe.utils.read_file('${libc_headers_file}').splitlines())} \
+     ${includedir}/fpu_control.h \
+     ${includedir}/stdc-predef.h \
+     ${includedir}/uchar.h \
+ "
+-FILES_${PN}-dev[file-checksums] += "${libc_headers_file}"
++FILES:${PN}-dev[file-checksums] += "${libc_headers_file}"
+ 
+ # glibc's utils need libgcc
+ do_package[depends] += "${MLPREFIX}libgcc:do_packagedata"
+@@ -228,4 +228,4 @@ do_package_write_ipk[depends] += "${MLPREFIX}libgcc:do_packagedata"
+ do_package_write_deb[depends] += "${MLPREFIX}libgcc:do_packagedata"
+ do_package_write_rpm[depends] += "${MLPREFIX}libgcc:do_packagedata"
+ 
+-FILES_${PN} += "${libdir}/libc_nonshared.a ${libdir}/libpthread_nonshared.a ${libdir}/libmvec_nonshared.a"
++FILES:${PN} += "${libdir}/libc_nonshared.a ${libdir}/libpthread_nonshared.a ${libdir}/libmvec_nonshared.a"
+diff --git a/meta-adi-external-toolchain/recipes-external/glibc/glibc-package-adjusted.inc b/meta-adi-external-toolchain/recipes-external/glibc/glibc-package-adjusted.inc
+index f6e911a..480e23b 100644
+--- a/meta-adi-external-toolchain/recipes-external/glibc/glibc-package-adjusted.inc
++++ b/meta-adi-external-toolchain/recipes-external/glibc/glibc-package-adjusted.inc
+@@ -1,26 +1,26 @@
+ require recipes-core/glibc/glibc-package.inc
+ 
+-PKG_${PN} = "glibc"
+-RPROVIDES_${PN} += "${TCLIBC} glibc"
+-PKG_${PN}-dbg = "glibc-dbg"
+-RPROVIDES_${PN}-dbg += "${TCLIBC}-dbg glibc-dbg"
+-PKG_${PN}-dev = "glibc-dev"
+-RPROVIDES_${PN}-dev += "${TCLIBC}-dev glibc-dev"
+-PKG_${PN}-doc = "glibc-doc"
+-RPROVIDES_${PN}-doc += "${TCLIBC}-doc glibc-doc"
+-PKG_${PN}-extra-nss = "glibc-extra-nss"
+-RPROVIDES_${PN}-extra-nss += "${TCLIBC}-extra-nss glibc-extra-nss"
+-PKG_${PN}-gconv = "glibc-gconv"
+-RPROVIDES_${PN}-gconv += "${TCLIBC}-gconv glibc-gconv"
+-PKG_${PN}-mtrace = "glibc-mtrace"
+-RPROVIDES_${PN}-mtrace += "${TCLIBC}-mtrace glibc-mtrace"
+-PKG_${PN}-pcprofile = "glibc-pcprofile"
+-RPROVIDES_${PN}-pcprofile += "${TCLIBC}-pcprofile glibc-pcprofile"
+-PKG_${PN}-pic = "glibc-pic"
+-RPROVIDES_${PN}-pic += "${TCLIBC}-pic glibc-pic"
+-PKG_${PN}-staticdev = "glibc-staticdev"
+-RPROVIDES_${PN}-staticdev += "${TCLIBC}-staticdev glibc-staticdev"
+-PKG_${PN}-thread-db = "glibc-thread-db"
+-RPROVIDES_${PN}-thread-db += "${TCLIBC}-thread-db glibc-thread-db"
+-PKG_${PN}-utils = "glibc-utils"
+-RPROVIDES_${PN}-utils += "${TCLIBC}-utils glibc-utils"
++PKG:${PN} = "glibc"
++RPROVIDES:${PN} += "${TCLIBC} glibc"
++PKG:${PN}-dbg = "glibc-dbg"
++RPROVIDES:${PN}-dbg += "${TCLIBC}-dbg glibc-dbg"
++PKG:${PN}-dev = "glibc-dev"
++RPROVIDES:${PN}-dev += "${TCLIBC}-dev glibc-dev"
++PKG:${PN}-doc = "glibc-doc"
++RPROVIDES:${PN}-doc += "${TCLIBC}-doc glibc-doc"
++PKG:${PN}-extra-nss = "glibc-extra-nss"
++RPROVIDES:${PN}-extra-nss += "${TCLIBC}-extra-nss glibc-extra-nss"
++PKG:${PN}-gconv = "glibc-gconv"
++RPROVIDES:${PN}-gconv += "${TCLIBC}-gconv glibc-gconv"
++PKG:${PN}-mtrace = "glibc-mtrace"
++RPROVIDES:${PN}-mtrace += "${TCLIBC}-mtrace glibc-mtrace"
++PKG:${PN}-pcprofile = "glibc-pcprofile"
++RPROVIDES:${PN}-pcprofile += "${TCLIBC}-pcprofile glibc-pcprofile"
++PKG:${PN}-pic = "glibc-pic"
++RPROVIDES:${PN}-pic += "${TCLIBC}-pic glibc-pic"
++PKG:${PN}-staticdev = "glibc-staticdev"
++RPROVIDES:${PN}-staticdev += "${TCLIBC}-staticdev glibc-staticdev"
++PKG:${PN}-thread-db = "glibc-thread-db"
++RPROVIDES:${PN}-thread-db += "${TCLIBC}-thread-db glibc-thread-db"
++PKG:${PN}-utils = "glibc-utils"
++RPROVIDES:${PN}-utils += "${TCLIBC}-utils glibc-utils"
+diff --git a/meta-adi-external-toolchain/recipes-external/oprofile/oprofile-external.bb b/meta-adi-external-toolchain/recipes-external/oprofile/oprofile-external.bb
+index 1748ba9..7771e89 100644
+--- a/meta-adi-external-toolchain/recipes-external/oprofile/oprofile-external.bb
++++ b/meta-adi-external-toolchain/recipes-external/oprofile/oprofile-external.bb
+@@ -7,6 +7,6 @@ SECTION = "devel"
+ 
+ inherit external-toolchain
+ 
+-FILES_${PN} = "${bindir}/op* ${datadir}/oprofile"
+-FILES_${PN}-doc = "${docdir}/oprofile ${mandir}/man1/op*"
+-FILES_${PN}-staticdev = "${libdir}/oprofile/*.a"
++FILES:${PN} = "${bindir}/op* ${datadir}/oprofile"
++FILES:${PN}-doc = "${docdir}/oprofile ${mandir}/man1/op*"
++FILES:${PN}-staticdev = "${libdir}/oprofile/*.a"
+diff --git a/meta-adi-external-toolchain/recipes-sdk/sdk-env-external-toolchain/sdk-env-external-toolchain.bb b/meta-adi-external-toolchain/recipes-sdk/sdk-env-external-toolchain/sdk-env-external-toolchain.bb
+index 12230a6..9928c97 100644
+--- a/meta-adi-external-toolchain/recipes-sdk/sdk-env-external-toolchain/sdk-env-external-toolchain.bb
++++ b/meta-adi-external-toolchain/recipes-sdk/sdk-env-external-toolchain/sdk-env-external-toolchain.bb
+@@ -9,4 +9,4 @@ do_install () {
+     install -m 0644 -o root -g root "${WORKDIR}/external.sh" "${D}/environment-setup.d/"
+ }
+ 
+-FILES_${PN} += "/environment-setup.d/*"
++FILES:${PN} += "/environment-setup.d/*"
+-- 
+2.39.1
+
