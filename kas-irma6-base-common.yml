@@ -64,7 +64,7 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "e353e020f161d6674c825e8abc9bdcece71ca8a5"
+    refspec: "f66fdef1c2dc735690a7ec7dd44a534d69ea3918"
     patches:
       0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
