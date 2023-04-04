@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.5-RC3"
+    IRMA6_DISTRO_VERSION = "2.1.5-RC4"
 defaults:
   repos:
     patches:
