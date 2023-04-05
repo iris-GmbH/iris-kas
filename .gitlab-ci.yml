@@ -136,6 +136,9 @@ renovate-dry-run:
   rules:
     - if: $RENOVATE_DRY_RUN == "true"
   image: renovate/renovate:35.12.0
+  tags:
+    - gp
+  before_script: []
   script:
     - renovate --dry-run=full ${RENOVATE_EXTRA_FLAGS}
   allow_failure: true
@@ -146,6 +149,9 @@ renovate:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   image: renovate/renovate:35.12.0
+  tags:
+    - gp
+  before_script: []
   script:
     - renovate ${RENOVATE_EXTRA_FLAGS}
 
