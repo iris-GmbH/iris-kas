@@ -12,7 +12,7 @@ variables:
   BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
-  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*(?<!iris-GmbH))?/([^/]*?)(?:.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
+  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*)?/([^/]*?)(?:\\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
   MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   SSTATE_CACHE: "/mnt/yocto-sstate-cache"
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
@@ -48,12 +48,9 @@ variables:
   RENOVATE_REVIEWERS: "[ \"${GITLAB_USER_LOGIN}\" ]"
   RENOVATE_PR_CONCURRENT_LIMIT: "0"
   RENOVATE_PR_HOURLY_LIMIT: "0"
-  RENOVATE_EXTRA_FLAGS:
-    value: ""
-    description: "Set extra flags for the renovate bot"
-  RENOVATE_DRY_RUN:
-    description: "Whether to do a renovate bot dry run"
-    value: "false"
+  # Set extra flags for the renovate bot
+  RENOVATE_EXTRA_FLAGS: ""
+  RENOVATE_DRY_RUN: "false"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
@@ -136,6 +133,9 @@ renovate-dry-run:
   rules:
     - if: $RENOVATE_DRY_RUN == "true"
   image: renovate/renovate:35.12.0
+  tags:
+    - gp
+  before_script: []
   script:
     - renovate --dry-run=full ${RENOVATE_EXTRA_FLAGS}
   allow_failure: true
@@ -146,6 +146,9 @@ renovate:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   image: renovate/renovate:35.12.0
+  tags:
+    - gp
+  before_script: []
   script:
     - renovate ${RENOVATE_EXTRA_FLAGS}
 
