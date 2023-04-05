@@ -12,7 +12,7 @@ variables:
   BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
-  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*(?<!iris-GmbH))?/([^/]*?)(?:.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
+  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*)?/([^/]*?)(?:\\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
   MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   SSTATE_CACHE: "/mnt/yocto-sstate-cache"
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
