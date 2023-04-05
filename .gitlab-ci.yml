@@ -48,12 +48,9 @@ variables:
   RENOVATE_REVIEWERS: "[ \"${GITLAB_USER_LOGIN}\" ]"
   RENOVATE_PR_CONCURRENT_LIMIT: "0"
   RENOVATE_PR_HOURLY_LIMIT: "0"
-  RENOVATE_EXTRA_FLAGS:
-    value: ""
-    description: "Set extra flags for the renovate bot"
-  RENOVATE_DRY_RUN:
-    description: "Whether to do a renovate bot dry run"
-    value: "false"
+  # Set extra flags for the renovate bot
+  RENOVATE_EXTRA_FLAGS: ""
+  RENOVATE_DRY_RUN: "false"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
