@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+
+.test_oci_template:
+  script:
+    - echo "Waiting for SSH to become available..."
+    - TIMEOUT=0
+    - |
+      while true; do
+        if ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "cat /dev/null"; then
+          break;
+        else
+          [ $TIMEOUT -le 600 ] || { echo Error: Timeout waiting for SSH server; exit 1; }
+          echo "SSH not available yet. Waiting 5 seconds..."
+          TIMEOUT=$((TIMEOUT+5));
+          sleep 5;
+        fi;
+      done
+    - echo "Starting tests..."
+    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "TEMPDIR=/mnt test_von_count --gtest_repeat=3 --gtest_break_on_failure --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
+    - exit_code=$?
+    - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
+    - exit "$exit_code"
+  artifacts:
+    when: always
+    name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-gtest-results"
+    paths:
+      - ${MULTI_CONF}-gtest_results.xml
+    reports:
+      junit: ${MULTI_CONF}-gtest_results.xml
