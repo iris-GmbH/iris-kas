@@ -146,6 +146,7 @@ default:
 ##############
 
 stages:
+  - renovate
   - setup
   - build-build-container
   - merge-build-container
@@ -158,11 +159,9 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
-  - renovate
 
 renovate-dry-run:
   stage: renovate
-  needs: []
   rules:
     - if: $RENOVATE_DRY_RUN == "true"
   image: renovate/renovate:35.12.0
@@ -175,7 +174,6 @@ renovate-dry-run:
 
 renovate:
   stage: renovate
-  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   image: renovate/renovate:35.12.0
