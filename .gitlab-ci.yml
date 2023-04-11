@@ -162,7 +162,6 @@ stages:
 
 renovate-dry-run:
   stage: renovate
-  needs: []
   rules:
     - if: $RENOVATE_DRY_RUN == "true"
   image: renovate/renovate:35.12.0
@@ -175,7 +174,6 @@ renovate-dry-run:
 
 renovate:
   stage: renovate
-  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   image: renovate/renovate:35.12.0
@@ -646,7 +644,7 @@ push-oci:
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}fail:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${CI_COMMIT_REF_SLUG}
 
 
