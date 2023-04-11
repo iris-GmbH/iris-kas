@@ -46,6 +46,7 @@ repos:
       meta-python:
       meta-networking:
       meta-webserver:
+      meta-filesystems:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     refspec: "kirkstone"
@@ -57,6 +58,9 @@ repos:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
       0002-meta-secure-imx-Update-to-new-override-syntax:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
+  meta-virtualization:
+    url: "https://git.yoctoproject.org/meta-virtualization"
+    refspec: "kirkstone"
 
   # irma6 HWv1 repos
   lnxdsp-adi-meta:

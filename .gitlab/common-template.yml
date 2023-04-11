@@ -8,16 +8,12 @@
       - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
         changes:
           - Dockerfile
-        when: always
       - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
         changes:
           - Dockerfile
-        when: always
       # build on releases
       - if: '$CI_COMMIT_TAG'
-        when: always
       - if: '$FORCE_CONTAINER_BUILD == "true"'
-        when: always
   before_script:
     prepare-systemtest:
       - docker login ${CI_REGISTRY} -u ${SYSTEMTEST_DOCKER_REG_USER} -p ${SYSTEMTEST_DOCKER_REG_TOKEN}

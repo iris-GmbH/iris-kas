@@ -71,7 +71,7 @@
       paths:
         - "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
       untracked: false
-    release-qemu-artifacts:
+    release-oci-artifacts:
       name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
       paths:
         - "${MULTI_CONF}-deploy.tar.gz"
