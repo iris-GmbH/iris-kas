@@ -19,9 +19,6 @@ variables:
   SKIP_MAINTENANCE_TARGET_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
-  SKIP_OCI_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the firmware build for the OCI targets. Will be ignored if SKIP_OCI_TESTS is set to false.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
@@ -80,7 +77,6 @@ feature-trigger-kas-pipeline:
     SKIP_SDK_BUILD: $SKIP_SDK_BUILD
     SKIP_DEPLOY_TARGET_BUILD: $SKIP_DEPLOY_TARGET_BUILD
     SKIP_MAINTENANCE_TARGET_BUILD: $SKIP_MAINTENANCE_TARGET_BUILD
-    SKIP_OCI_BUILD: $SKIP_OCI_BUILD
     SKIP_OCI_TESTS: $SKIP_OCI_TESTS
     SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
     SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
