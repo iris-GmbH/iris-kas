@@ -41,37 +41,6 @@ stages:
 
 .trigger-kas-pipeline_template:
   stage: build
-  trigger:
-    project: public-projects/yocto/iris-kas
-    branch: gitlab-pipeline
-    strategy: depend
-
-# workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
-update-non-protected-branch:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-  stage: setup
-  tags:
-    - gp
-  image: bitnami/git:2.38.1
-  before_script:
-  - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
-  script:
-    - git clone https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
-    - cd iris-kas
-    - |
-      if ! git checkout gitlab-pipeline; then
-        git checkout -b gitlab-pipeline
-      fi
-    - git reset --hard origin/${CI_DEFAULT_BRANCH}
-    - git push --force --set-upstream origin gitlab-pipeline
-
-trigger-kas-pipeline:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   variables:
     BRANCH_NAME: $CI_COMMIT_BRANCH
     USE_IDENTICAL_NAMED_LAYER_BRANCHES: "true"
@@ -83,8 +52,50 @@ trigger-kas-pipeline:
     SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
     SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
     BUILD_FROM_SCRATCH: $BUILD_FROM_SCRATCH
+  feature-trigger:
+    project: public-projects/yocto/iris-kas
+    branch: gitlab-pipeline
+    strategy: depend
+  trunk-trigger:
+    project: public-projects/yocto/iris-kas
+    strategy: depend
+
+# workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
+update-non-protected-branch:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  stage: setup
+  tags:
+    - gp
+  image: bitnami/git:2.38.1
+  before_script:
+    - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
+  script:
+    - git clone https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
+    - cd iris-kas
+    - |
+      if ! git checkout gitlab-pipeline; then
+        git checkout -b gitlab-pipeline
+      fi
+    - git reset --hard origin/${CI_DEFAULT_BRANCH}
+    - git push --force --set-upstream origin gitlab-pipeline
+
+# can be triggered by any developers on non-protected branches
+feature-trigger-kas-pipeline:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  variables: !reference [.trigger-kas-pipeline_template, variables]
   stage: !reference [.trigger-kas-pipeline_template, stage]
-  trigger: !reference [.trigger-kas-pipeline_template, trigger]
+  trigger: !reference [.trigger-kas-pipeline_template, feature-trigger]
+
+# can only be triggered by maintainers on trunk branch, will update yocto sstate cache
+trunk-trigger-kas-pipeline:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  variables: !reference [.trigger-kas-pipeline_template, variables]
+  stage: !reference [.trigger-kas-pipeline_template, stage]
+  trigger: !reference [.trigger-kas-pipeline_template, trunk-trigger]
 
 merge-trigger-kas-pipeline:
   rules:
@@ -93,4 +104,4 @@ merge-trigger-kas-pipeline:
     BRANCH_NAME: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
     USE_IDENTICAL_NAMED_LAYER_BRANCHES: "true"
   stage: !reference [.trigger-kas-pipeline_template, stage]
-  trigger: !reference [.trigger-kas-pipeline_template, trigger]
+  trigger: !reference [.trigger-kas-pipeline_template, feature-trigger]
