@@ -19,9 +19,6 @@ variables:
   SKIP_MAINTENANCE_TARGET_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
-  SKIP_OCI_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the firmware build for the OCI targets. Will be ignored if SKIP_OCI_TESTS is set to false.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
@@ -45,19 +42,21 @@ stages:
     project: public-projects/yocto/iris-kas
     branch: gitlab-pipeline
     strategy: depend
+  trunk-trigger:
+    project: public-projects/yocto/iris-kas
+    strategy: depend
 
 # workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
 update-non-protected-branch:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   stage: setup
   tags:
     - gp
   image: bitnami/git:2.38.1
   before_script:
-  - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
+    - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
   script:
     - git clone https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
     - cd iris-kas
@@ -68,10 +67,10 @@ update-non-protected-branch:
     - git reset --hard origin/${CI_DEFAULT_BRANCH}
     - git push --force --set-upstream origin gitlab-pipeline
 
+# can be triggered by any developers on non-protected branches
 trigger-kas-pipeline:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH'
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
     BRANCH_NAME: $CI_COMMIT_BRANCH
@@ -80,13 +79,25 @@ trigger-kas-pipeline:
     SKIP_SDK_BUILD: $SKIP_SDK_BUILD
     SKIP_DEPLOY_TARGET_BUILD: $SKIP_DEPLOY_TARGET_BUILD
     SKIP_MAINTENANCE_TARGET_BUILD: $SKIP_MAINTENANCE_TARGET_BUILD
-    SKIP_OCI_BUILD: $SKIP_OCI_BUILD
     SKIP_OCI_TESTS: $SKIP_OCI_TESTS
     SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
     SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
     BUILD_FROM_SCRATCH: $BUILD_FROM_SCRATCH
   stage: !reference [.trigger-kas-pipeline_template, stage]
   trigger: !reference [.trigger-kas-pipeline_template, trigger]
+
+# can only be triggered by maintainers on trunk branch, will update yocto sstate cache
+trunk-trigger-kas-pipeline:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+  variables:
+    UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
+    BRANCH_NAME: $CI_COMMIT_BRANCH
+    BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
+    USE_IDENTICAL_NAMED_LAYER_BRANCHES: "false"
+  stage: !reference [.trigger-kas-pipeline_template, stage]
+  trigger: !reference [.trigger-kas-pipeline_template, trunk-trigger]
 
 merge-trigger-kas-pipeline:
   rules:
