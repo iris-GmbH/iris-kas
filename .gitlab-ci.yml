@@ -654,7 +654,7 @@ push-oci:
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
-      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
+      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:-
   artifacts:
     reports:
       dotenv: build.env
