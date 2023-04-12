@@ -700,7 +700,6 @@ systemtest_smoke:
   rules:
     # skip if SKIP_SYSTEMTEST_SMOKE is set to true
     - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
-      when: always
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
   script:
@@ -734,7 +733,6 @@ systemtest_reliability:
   rules:
     # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
     - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
-      when: always
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
   script:
