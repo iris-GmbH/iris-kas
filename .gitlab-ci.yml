@@ -146,6 +146,7 @@ default:
 ##############
 
 stages:
+  - renovate
   - setup
   - build-build-container
   - merge-build-container
@@ -158,11 +159,9 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
-  - renovate
 
 renovate-dry-run:
   stage: renovate
-  needs: []
   rules:
     - if: $RENOVATE_DRY_RUN == "true"
   image: renovate/renovate:35.12.0
@@ -175,7 +174,6 @@ renovate-dry-run:
 
 renovate:
   stage: renovate
-  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   image: renovate/renovate:35.12.0
@@ -641,13 +639,25 @@ push-oci:
   tags:
     - gp
   image: quay.io/skopeo/stable:v1.11.1
-  before_script: []
+  before_script:
+    # set correct tag on parent-child pipelines
+    - |
+      if test -n "${UPSTREAM_PROJECT_NAME}"; then
+        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+      else
+        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
+      fi
+    - |
+      echo "OCI_TAG=${OCI_TAG}" >> build.env
   script:
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
-      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${CI_COMMIT_REF_SLUG}
+      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
+  artifacts:
+    reports:
+      dotenv: build.env
 
 
 ##################
@@ -665,7 +675,7 @@ test-oci:
   tags:
     - gp
   services:
-    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${CI_COMMIT_REF_SLUG}"
+    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}"
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]

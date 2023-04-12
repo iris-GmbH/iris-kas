@@ -73,7 +73,9 @@ trigger-kas-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   variables:
+    UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
     BRANCH_NAME: $CI_COMMIT_BRANCH
+    BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_LAYER_BRANCHES: "true"
     SKIP_SDK_BUILD: $SKIP_SDK_BUILD
     SKIP_DEPLOY_TARGET_BUILD: $SKIP_DEPLOY_TARGET_BUILD
@@ -90,7 +92,9 @@ merge-trigger-kas-pipeline:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   variables:
+    UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
     BRANCH_NAME: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_LAYER_BRANCHES: "true"
   stage: !reference [.trigger-kas-pipeline_template, stage]
   trigger: !reference [.trigger-kas-pipeline_template, trigger]
