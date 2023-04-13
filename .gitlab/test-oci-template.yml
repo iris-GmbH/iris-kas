@@ -17,10 +17,9 @@
         fi;
       done
     - echo "Starting tests..."
-    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "TEMPDIR=/mnt test_von_count --gtest_repeat=3 --gtest_break_on_failure --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
-    - exit_code=$?
+    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "TEMPDIR=/mnt test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
+  after_script:
     - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
-    - exit "$exit_code"
   artifacts:
     when: always
     name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-gtest-results"
