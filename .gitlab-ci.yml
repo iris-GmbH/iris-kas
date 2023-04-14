@@ -29,6 +29,10 @@ variables:
   ICECREAM_NETNAME: "ICECREAM"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
+  COUNTER_MINIMAL_RECIPE_PATH:
+    value: "${BUILDDIR}/../meta-iris/recipes-platform/counter/counter-minimal.bb"
+    expand: false
+  I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
   FAILURE_LOG_DIR: "failure-log"
   JOB_ARTIFACT: "build/tmp/deploy"
   # Refspec of the systemtest_base repo to use
@@ -65,9 +69,9 @@ variables:
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
-  USE_IDENTICAL_NAMED_LAYER_BRANCHES:
+  USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
-    description: 'Set to "true" to use identical named meta layer branches during the build'
+    description: 'Set to "true" to use identical named branches in iris meta layers and i6pa during the build'
   SKIP_DEPLOY_TARGET_BUILD:
     value: "false"
     description: 'Set to "true" to skip the deploy firmware build for the sensor targets.'
