@@ -35,18 +35,37 @@
           echo "Populating caches..."
           export POPULATE_CACHES=":include/ci/kas-ci-populate-caches.yml"
         fi
-      # try to checkout the current branch name (feature/bugfix/...) in all iris meta layers. This makes working with multiple repositories easier for the developers
+      # try to checkout the current branch name (feature/bugfix/...) in all iris meta layers and platform application. This makes working with multiple repositories easier for the developers
       - >
-        if [ "${USE_IDENTICAL_NAMED_LAYER_BRANCHES}" = "true" ] && [ "${BRANCH_NAME}" != "${CI_DEFAULT_BRANCH}" ] && [ "${BRANCH_NAME}" != "${RELEASE_BRANCH}" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
+        if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ] && [ "${BRANCH_NAME}" != "${CI_DEFAULT_BRANCH}" ] && [ "${BRANCH_NAME}" != "${RELEASE_BRANCH}" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
           echo "{\"header\": {\"version\": 9}, \"env\": {\"BRANCH_NAME\": \"$BRANCH_NAME\"}}" | yq > env.yml
           kas for-all-repos --update ${MAIN_KAS_FILES}:env.yml """
             test \"\$KAS_REPO_NAME\" = \"this\" || bash ../utils/set_layer_branchname.sh
           """
+          # temporary disable exit code pipeline failures
+          set +e
+          git ls-remote --heads --exit-code https://token:${I6PA_READ_TOKEN}@${I6PA_REPO_REMOTE}
+          exitcode=$?
+          set -e
+          if test $exitcode -eq 0; then
+            echo "Setting I6PA_BRANCH to ${BRANCH_NAME}..."
+            export I6PA_BRANCH=${BRANCH_NAME}
+          elif test $exitcode -eq 2; then
+            echo "Branch ${BRANCH_NAME} does not exist in I6PA repo. Sticking to develop..."
+          else
+            echo "Error while checking for branch ${BRANCH_NAME} in I6PA repo"
+            exit 1
+          fi
         fi
       - >
         if [ "${BUILD_FROM_SCRATCH}" = "true" ]; then
           echo "This build will be done from scratch...";
           export NO_SETSCENE="--no-setscene"
+        fi
+      - >
+        if test -n "${I6PA_BRANCH}"; then
+          echo "Using I6PA branch refspec ${I6PA_BRANCH} for build..."
+          kas shell -c "recipetool setvar ${COUNTER_MINIMAL_RECIPE_PATH} VERSION branch=${I6PA_BRANCH}" ${MAIN_KAS_FILES}
         fi
     build:
       - echo "Building ${BUILD_TARGETS}..."
