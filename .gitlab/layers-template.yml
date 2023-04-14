@@ -40,7 +40,7 @@ stages:
   stage: build
   trigger:
     project: public-projects/yocto/iris-kas
-    branch: gitlab-pipeline
+    branch: test-i6pa-pipeline
     strategy: depend
   trunk-trigger:
     project: public-projects/yocto/iris-kas
