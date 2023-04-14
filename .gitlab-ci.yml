@@ -636,7 +636,7 @@ push-oci:
     ARTIFACT_SUFFIX: ".rootfs-oci"
   tags:
     - gp
-  image: quay.io/skopeo/stable:v1.11.1
+  image: quay.io/skopeo/stable:v1.11.2
   before_script:
     # set correct tag on parent-child pipelines
     - |
