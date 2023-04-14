@@ -44,16 +44,17 @@
           """
           # temporary disable exit code pipeline failures
           set +e
-          git ls-remote --heads --exit-code https://token:${I6PA_READ_TOKEN}@${I6PA_REPO_REMOTE}
+          # check if i6pa repo contains the current branch ref
+          git ls-remote --heads --exit-code https://token:${I6PA_READ_TOKEN}@${I6PA_REPO_REMOTE} ${BRANCH_NAME}
           exitcode=$?
           set -e
           if test $exitcode -eq 0; then
-            echo "Setting I6PA_BRANCH to ${BRANCH_NAME}..."
-            export I6PA_BRANCH=${BRANCH_NAME}
+            echo "Setting I6PA branch ref to ${BRANCH_NAME}..."
+            I6PA_BRANCH=true
           elif test $exitcode -eq 2; then
             echo "Branch ${BRANCH_NAME} does not exist in I6PA repo. Sticking to develop..."
           else
-            echo "Error while checking for branch ${BRANCH_NAME} in I6PA repo"
+            echo "Error while trying to check for branch ${BRANCH_NAME} in I6PA repo"
             exit 1
           fi
         fi
@@ -63,9 +64,9 @@
           export NO_SETSCENE="--no-setscene"
         fi
       - >
-        if test -n "${I6PA_BRANCH}"; then
-          echo "Using I6PA branch refspec ${I6PA_BRANCH} for build..."
-          kas shell -c "recipetool setvar ${COUNTER_MINIMAL_RECIPE_PATH} VERSION branch=${I6PA_BRANCH}" ${MAIN_KAS_FILES}
+        if [ -n "${I6PA_BRANCH}" ] || [ "${UPSTREAM_PROJECT_NAME}" = "i6pa" ]; then
+          echo "Using I6PA branch refspec ${BRANCH_NAME} for build..."
+          kas shell -c "recipetool setvar ${COUNTER_MINIMAL_RECIPE_PATH} VERSION branch=${BRANCH_NAME}" ${MAIN_KAS_FILES}
         fi
     build:
       - echo "Building ${BUILD_TARGETS}..."
