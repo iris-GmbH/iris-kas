@@ -669,7 +669,7 @@ push-oci:
 ### TEST STAGE ###
 ##################
 
-test-oci:
+the-count-test-oci:
   stage: test
   rules:
     - !reference [.release_template, rules]
@@ -706,15 +706,21 @@ test-oci:
       done
     - echo "Starting tests..."
     - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "TEMPDIR=/mnt test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
+    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o /tmp/coverage.xml"
   after_script:
     - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
+    - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/coverage.xml "${MULTI_CONF}"-coverage.xml
+  coverage: /^\s*lines:\s*\d+.\d+\%/
   artifacts:
     when: always
-    name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-gtest-results"
+    name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-test-results"
     paths:
       - ${MULTI_CONF}-gtest_results.xml
     reports:
       junit: ${MULTI_CONF}-gtest_results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: "${MULTI_CONF}-coverage.xml"
 
 systemtest_smoke:
   stage: test
