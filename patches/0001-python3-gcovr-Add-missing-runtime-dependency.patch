@@ -1,4 +1,4 @@
-From bbbf17c36c2f08e90e7b1793d7508f32aff72772 Mon Sep 17 00:00:00 2001
+From 33108851a8106a0b5999d019fb5829fcfd9c3e1b Mon Sep 17 00:00:00 2001
 From: Jasper Orschulko <jasper@fancydomain.eu>
 Date: Sat, 15 Apr 2023 09:22:45 +0200
 Subject: [PATCH] python3-gcovr: Add missing runtime dependency
@@ -6,17 +6,17 @@ Subject: [PATCH] python3-gcovr: Add missing runtime dependency
 python3-gcovr requires standard python module multiprocessing as runtime
 dependency.
 
-Upstream-Status: Submitted [tbd]
+Upstream-Status: Inappropriate [configuration]
 
 Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
 ---
- meta-python/recipes-devtools/python/python3-gcovr_6.0.bb | 2 +-
+ meta-python/recipes-devtools/python/python3-gcovr_5.1.bb | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb b/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb
-index 901d0017d..21c36687e 100644
---- a/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb
-+++ b/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb
+diff --git a/meta-python/recipes-devtools/python/python3-gcovr_5.1.bb b/meta-python/recipes-devtools/python/python3-gcovr_5.1.bb
+index 995f3b779..1c4279fd1 100644
+--- a/meta-python/recipes-devtools/python/python3-gcovr_5.1.bb
++++ b/meta-python/recipes-devtools/python/python3-gcovr_5.1.bb
 @@ -12,6 +12,6 @@ S = "${WORKDIR}/git"
  inherit setuptools3
  PIP_INSTALL_PACKAGE = "gcovr"
