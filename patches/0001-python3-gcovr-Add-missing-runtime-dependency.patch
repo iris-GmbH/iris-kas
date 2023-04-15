@@ -1,0 +1,30 @@
+From bbbf17c36c2f08e90e7b1793d7508f32aff72772 Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Sat, 15 Apr 2023 09:22:45 +0200
+Subject: [PATCH] python3-gcovr: Add missing runtime dependency
+
+python3-gcovr requires standard python module multiprocessing as runtime
+dependency.
+
+Upstream-Status: Submitted [tbd]
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ meta-python/recipes-devtools/python/python3-gcovr_6.0.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb b/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb
+index 901d0017d..21c36687e 100644
+--- a/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb
++++ b/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb
+@@ -12,6 +12,6 @@ S = "${WORKDIR}/git"
+ inherit setuptools3
+ PIP_INSTALL_PACKAGE = "gcovr"
+ 
+-RDEPENDS:${PN} += "${PYTHON_PN}-jinja2 ${PYTHON_PN}-lxml ${PYTHON_PN}-setuptools ${PYTHON_PN}-pygments"
++RDEPENDS:${PN} += "${PYTHON_PN}-jinja2 ${PYTHON_PN}-lxml ${PYTHON_PN}-setuptools ${PYTHON_PN}-pygments ${PYTHON_PN}-multiprocessing"
+ 
+ BBCLASSEXTEND = "native nativesdk"
+-- 
+2.40.0
+
