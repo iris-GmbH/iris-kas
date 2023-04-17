@@ -409,10 +409,6 @@ release-test-qemu:
     - kas
   rules:
     - !reference [.release_template, rules]
-  needs:
-    - job: "container-get-tag"
-      optional: true
-    - "release-build-qemu"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # present in openembedded-core and this can speed up the parsing
@@ -463,7 +459,7 @@ publish-release:
   variables:
     IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz
     SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
-  image: registry.gitlab.com/gitlab-org/release-cli:v0.14.0
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.15.0
   before_script: []
   script:
     - echo "Publishing release $CI_COMMIT_TAG"
@@ -622,10 +618,6 @@ develop-test-qemu:
     - if: '$SKIP_QEMU_TESTS == "true"'
       when: never
     - !reference [.develop_template, rules]
-  needs:
-    - job: "container-get-tag"
-      optional: true
-    - "develop-build-qemu"
   variables:
     # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
     # contained in openembedded-core and this can speed up the parsing
@@ -647,10 +639,6 @@ systemtest_smoke:
     # skip if SKIP_SYSTEMTEST_SMOKE is set to true
     - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
       when: always
-  needs:
-    - job: "container-get-tag"
-      optional: true
-    - "develop-build-deploy-distro-targets"
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
   script:
@@ -681,10 +669,6 @@ systemtest_reliability:
     # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
     - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
       when: always
-  needs:
-    - job: "container-get-tag"
-      optional: true
-    - "systemtest_smoke"
   before_script:
     - !reference [.common_template, before_script, prepare-systemtest]
   script:

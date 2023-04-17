@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.4"
+    IRMA6_DISTRO_VERSION = "2.1.5"
 defaults:
   repos:
     patches:
@@ -23,36 +23,31 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "c8afe320b1c11bc120a77c4ab71dbffaef58f38e"
+    refspec: "7a8b71c07ad47954f17d26add3076fd8e5e103e4"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "ee98c3f23e44063b0681127a907c993bb255d02b"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "76180110391373ce9ff6ecb8dc8d986784f75c13"
+    refspec: "11f05ffddd0a7adf05b1c016f73b10ddfa2daa10"
     layers:
       meta:
       meta-poky:
     patches:
       0001-prservice-https-support:
         path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
-      0002-fixup-repo-fetcher:
-        path: "patches/0001-Implement-AUTOREV-for-local-manifest-repo-fetcher.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "87571345059f82fb7599e3aa82e6fdcfbd361098"
+    refspec: "7ae42df58f2bcc730153715c3339a6875b0b2497"
     layers:
       meta-oe:
       meta-python:
       meta-networking:
       meta-webserver:
-    patches:
-      0001-add-repo-recipe:
-        path: "patches/0001-Add-recipe-for-repo-2.19.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "c8358f2e0c3d6727cc31721924770f557af49d39"
+    refspec: "90dbf9b74d3619c1ab8ffb09adfeeff8a3ed97e8"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
@@ -69,7 +64,7 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "325c08c0773a2f1c54d28ea8aeda7c3d110d88a3"
+    refspec: "f66fdef1c2dc735690a7ec7dd44a534d69ea3918"
     patches:
       0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
