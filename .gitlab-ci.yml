@@ -55,11 +55,12 @@ variables:
   RENOVATE_PLATFORM: "gitlab"
   RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
   RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
-  RENOVATE_REVIEWERS: "[ \"${GITLAB_USER_LOGIN}\" ]"
+  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"an.tran\", \"erik.schumacher\", \"thomas.noack\", \"michael.kirscht\", \"daniel.baumgart\" ]"
   RENOVATE_PR_CONCURRENT_LIMIT: "0"
   RENOVATE_PR_HOURLY_LIMIT: "0"
   # Set extra flags for the renovate bot
   RENOVATE_EXTRA_FLAGS: ""
+  FORCE_RENOVATE_RUN: "false"
   RENOVATE_DRY_RUN: "false"
   SKIP_SDK_BUILD:
     value: "true"
@@ -99,6 +100,7 @@ variables:
 
 .oci_multi_confs: &oci_multi_confs
   MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+
 
 ################
 ### WORKFLOW ###
@@ -174,6 +176,7 @@ renovate:
   stage: renovate
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $FORCE_RENOVATE_RUN == "true"
   image: renovate/renovate:35.32.2
   tags:
     - gp
@@ -737,6 +740,7 @@ systemtest_smoke:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/log.html
     reports:
       junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/output_xunit.xml
+
 
 ##############################
 ### RELIABILITY TEST STAGE ###
