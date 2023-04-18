@@ -3,7 +3,6 @@
 #
 #
 # The KAS base configuration file for the irma6
-
 header:
   version: 9
   includes:
