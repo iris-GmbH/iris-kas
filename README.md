@@ -63,7 +63,7 @@ It minimises build setup steps and repository management.
 
 ### Docker (default & recommended)
 - Linux, Mac or WSL in Windows (officially we only support Linux)
-- [installed and active docker daemon](https://docs.docker.com/engine/install/)
+- [installed and active docker daemon](https://docs.docker.com/engine/install/), make sure the groups are [correctly set](https://docs.docker.com/engine/install/linux-postinstall/)
 - [installed docker-compose](https://docs.docker.com/compose/install/)
 - installed GNU make
 - as IRIS developer: SSH folder containing a SSH key (without password protection) configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature
