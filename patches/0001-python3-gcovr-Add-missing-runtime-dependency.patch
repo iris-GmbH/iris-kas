@@ -6,7 +6,7 @@ Subject: [PATCH] python3-gcovr: Add missing runtime dependency
 python3-gcovr requires standard python module multiprocessing as runtime
 dependency.
 
-Upstream-Status: Inappropriate [configuration]
+Upstream-Status: Accepted (http://cgit.openembedded.org/meta-openembedded/commit/meta-python/recipes-devtools/python/python3-gcovr_6.0.bb?id=5564dbb8ff22d9ca4296a68f92f3c9d05fbdf99f)
 
 Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
 ---
