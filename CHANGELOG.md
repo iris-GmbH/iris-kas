@@ -7,6 +7,8 @@ and this project adheres to [APR's Version Numbering](https://apr.apache.org/ver
 ## [3.0.0] -dev (HEAD) - n/a
 - [APC-5918]: Update Yocto to kirkstone
 
+## [2.1.6]
+
 ## [2.1.5]
 
 ## [2.1.4]
