@@ -27,7 +27,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "feature/ersc/APC-6357"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "kirkstone"
@@ -49,7 +49,7 @@ repos:
       meta-filesystems:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "kirkstone"
+    refspec: "58878bb980877f51b607d71c3648bd479d68e2a5"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "dunfell"
