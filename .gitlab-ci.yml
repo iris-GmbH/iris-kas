@@ -215,7 +215,7 @@ build-container-get-tag:
   tags:
     - gp
   image:
-    name: alpine:3.17
+    name: alpine:3.18
   before_script: []
   script:
     # Default branch = latest tag
@@ -684,7 +684,7 @@ test-oci:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.17.3
+  image: alpine:3.18.0
   parallel:
     matrix:
       - <<: *oci_multi_confs
