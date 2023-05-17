@@ -3,30 +3,30 @@
 **Table of Contents**
 
 - [iris-kas](#iris-kas)
-  - [Latest release](#latest-release)
-  - [Pipeline status](#pipeline-status)
-  - [Maintainers](#maintainers)
-  - [What is KAS?](#what-is-kas)
-  - [How does it work?](#how-does-it-work)
-  - [Prerequisites](#prerequisites)
-    - [Native Installation](#native-installation)
-    - [Docker (default & recommended)](#docker-default--recommended)
-      - [Docker and SELinux](#docker-and-selinux)
-  - [Usage (general)](#usage-general)
-    - [Supported environment variables](#supported-environment-variables)
-  - [Usage (IRIS developers)](#usage-iris-developers)
-    - [Build all images](#build-all-images)
-    - [Run interactive QEMU VM](#run-interactive-qemu-vm)
-    - [Update all repos](#update-all-repos)
-    - [Force update all repos](#force-update-all-repos)
-    - [Version pinning for thirdparty layer repositories](#version-pinning-for-thirdparty-layer-repositories)
-    - [Prepare a firmware release](#prepare-a-firmware-release)
-    - [Prepare a firmware support release](#prepare-a-firmware-support-release)
-    - [Cleanup all artifacts](#cleanup-all-artifacts)
-  - [Usage (IRIS customers)](#usage-iris-customers)
-    - [Build our current base Linux distribution](#build-our-current-base-linux-distribution)
-    - [Build our base Linux distribution from a source-code dump](#build-our-base-linux-distribution-from-a-source-code-dump)
-  - [Running arbitrary KAS commands](#running-arbitrary-kas-commands)
+    - [Latest release](#latest-release)
+    - [Build status](#build-status)
+    - [Maintainers](#maintainers)
+    - [What is KAS?](#what-is-kas)
+    - [How does it work?](#how-does-it-work)
+    - [Prerequisites](#prerequisites)
+        - [Native Installation](#native-installation)
+        - [Docker (default and recommended)](#docker-default-and-recommended)
+            - [Docker and SELinux](#docker-and-selinux)
+    - [Usage (general)](#usage-general)
+        - [Supported environment variables](#supported-environment-variables)
+    - [Usage (IRIS developers)](#usage-iris-developers)
+        - [Build all images](#build-all-images)
+        - [Run interactive QEMU VM](#run-interactive-qemu-vm)
+        - [Update all repos](#update-all-repos)
+        - [Force update all repos](#force-update-all-repos)
+        - [Version pinning for thirdparty layer repositories](#version-pinning-for-thirdparty-layer-repositories)
+        - [Prepare a firmware release](#prepare-a-firmware-release)
+        - [Prepare a firmware support release](#prepare-a-firmware-support-release)
+        - [Cleanup all artifacts](#cleanup-all-artifacts)
+    - [Usage (IRIS customers)](#usage-iris-customers)
+        - [Build our current base Linux distribution](#build-our-current-base-linux-distribution)
+        - [Build our base Linux distribution from a source-code dump](#build-our-base-linux-distribution-from-a-source-code-dump)
+    - [Running arbitrary KAS commands](#running-arbitrary-kas-commands)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -58,22 +58,22 @@ It minimises build setup steps and repository management.
 
 ### Native Installation
 - [native KAS installation](https://kas.readthedocs.io/en/latest/userguide.html#dependencies-installation) on a [supported host system prepared for yocto builds](https://www.yoctoproject.org/docs/3.1/mega-manual/mega-manual.html#brief-compatible-distro)
-- as IRIS developer: SSH key (without password protection) configured for accessing our private git repositories
+- as IRIS developer: SSH key configured for accessing our private git repositories. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the encryption algorithm`).
 - for release preparation: [yq installed](https://github.com/mikefarah/yq#install)
 
-### Docker (default & recommended)
+### Docker (default and recommended)
 - Linux, Mac or WSL in Windows (officially we only support Linux)
 - [installed and active docker daemon](https://docs.docker.com/engine/install/), make sure the groups are [correctly set](https://docs.docker.com/engine/install/linux-postinstall/)
 - [installed docker-compose](https://docs.docker.com/compose/install/)
 - installed GNU make
-- as IRIS developer: SSH folder containing a SSH key (without password protection) configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature
+- as IRIS developer: SSH folder containing a SSH key configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the encryption algorithm`).
 - using Docker on a host with SELinux enabled requires additional steps, as described below.
 
 #### Docker and SELinux
 
 The container described in `docker-compose.yml` will mount two directories of the host system. The current directory, the iris-kas repository, is mounted with the `:z` flag. This will relabel everything inside the current directory as `container_file_t`, making it read/writeable by any container process.
 
-To access the `SSHDIR` from within the container, you need to apply a SELinux policy that allows `container_t` processes to read from the `.ssh` directory of the current user. First, install the selinux-policy-devel package, which provides the Makefile to compile custom policies.
+To access the `SSH_DIR` from within the container, you need to apply a SELinux policy that allows `container_t` processes to read from the `.ssh` directory of the current user. First, install the selinux-policy-devel package, which provides the Makefile to compile custom policies.
 
 ```
 $ make -f /usr/share/selinux/devel/Makefile container_read_sshdir.pp

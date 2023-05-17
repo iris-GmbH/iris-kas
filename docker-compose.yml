@@ -12,11 +12,15 @@ services:
     environment:
       - USER_ID=${USER_ID:-1000}
       - GROUP_ID=${GROUP_ID:-1000}
+      - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     volumes:
       - ./:/mnt/yocto-kas:z
       - ${SSH_DIR:-~/.ssh}:/etc/skel/.ssh
       # Replace $GITFILE (or .gitignore) with /dev/null in docker (the file remains untouched outside the container!)
       - /dev/null:/mnt/yocto-kas/${GITFILE:-/.gitignore}
+      - type: bind
+        source: ${SSH_AUTH_SOCK:-/dev/null}
+        target: ${SSH_AUTH_SOCK:-/dev/null}
     ports:
       # expose QEMU SSH port to host
       - "127.0.0.1:2222:2222"

@@ -18,7 +18,7 @@ DEPLOY_PA_KAS_CONFIG        = kas-irma6-base-deploy.yml:kas-irma6-pa.yml
 build: build-${RELEASE}
 
 update-toc: ## Updates the README table of contents
-	doctoc --github --title "**Table of Contents**" README.md
+	doctoc --gitlab --title "**Table of Contents**" README.md
 
 clean:
 	${KAS_COMMAND} shell -c 'rm -rf $${BUILDDIR}' kas-irma6-base-common.yml
