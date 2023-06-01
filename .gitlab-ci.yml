@@ -110,6 +110,9 @@ variables:
 .oci_multi_confs: &oci_multi_confs
   MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
 
+.all_multi_confs: &all_multi_confs
+  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2, qemux86-64-r1, qemux86-64-r2]
+
 
 ################
 ### WORKFLOW ###
@@ -482,7 +485,7 @@ develop-build-sdk:
     ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
-      - <<: *target_multi_confs
+      - <<: *all_multi_confs
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
