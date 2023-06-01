@@ -18,7 +18,7 @@ include:
 variables:
   RELEASE_BRANCH: "master"
   BUILD_VERSION_TAG: "latest"
-  BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
+  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
@@ -68,9 +68,6 @@ variables:
   RENOVATE_EXTRA_FLAGS: ""
   FORCE_RENOVATE_RUN: "false"
   RENOVATE_DRY_RUN: "false"
-  SKIP_SDK_BUILD:
-    value: "true"
-    description: 'Set to "false" to run the SDK build.'
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named branches in iris meta layers and i6pa during the build'
@@ -81,11 +78,14 @@ variables:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
   SKIP_MAINTENANCE_OCI_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the irma6-maintenance OCI build for running a containerized virtual sensor on your host.'
+    value: "true"
+    description: 'Set to "false" to build the irma6-maintenance OCI for running a containerized virtual sensor on your host.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
+  SKIP_SDK_BUILD:
+    value: "true"
+    description: 'Set to "false" to run the SDK build.'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -144,7 +144,7 @@ workflow:
 ########################
 
 default:
-  image: "${BUILD_IMAGE}"
+  image: "${BUILD_IMAGE_IRIS_KAS}"
   before_script:
     # Ensure correct ownership of mounted EFS volumes
     - sudo chown builder:builder ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} ${DOWNLOAD_MIRROR}
@@ -166,9 +166,10 @@ stages:
   - release-sanity-checks
   - wipe-sstate-caches
   - build
-  - push-oci-images
+  - push-test-images
   - test
   - reliability-test
+  - push-other-images
   - upload-artifacts
   - release
 
@@ -223,7 +224,7 @@ build-container-get-tag:
   tags:
     - gp
   image:
-    name: alpine:3.18
+    name: busybox:1.36.1-uclibc
   before_script: []
   script:
     # Default branch = latest tag
@@ -247,7 +248,7 @@ oci-get-tag:
   rules:
     - !reference [.release_template, rules]
     # skip if OCI related jobs are skipped and not release
-    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true"'
+    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && $SKIP_SDK_BUILD == "true"'
       when: never
     - !reference [.develop_template, rules]
   stage: setup
@@ -296,8 +297,8 @@ build-iris-kas-container:
       /kaniko/executor
       --build-arg "type=ci"
       --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${BUILD_IMAGE}-${ARCH}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile_iris_kas"
+      --destination "${BUILD_IMAGE_IRIS_KAS}-${ARCH}"
 
 
 ###################################
@@ -320,8 +321,8 @@ merge-container-manifests:
       --password=${CI_REGISTRY_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
-      --template ${BUILD_IMAGE}-ARCH
-      --target ${BUILD_IMAGE}
+      --template ${BUILD_IMAGE_IRIS_KAS}-ARCH
+      --target ${BUILD_IMAGE_IRIS_KAS}
 
 
 #########################
@@ -707,9 +708,9 @@ release-build-deploy-distros:
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 
-#############################
-### PUSH OCI IMAGES STAGE ###
-#############################
+##############################
+### PUSH TEST IMAGES STAGE ###
+##############################
 
 push-test-oci:
   rules:
@@ -718,7 +719,7 @@ push-test-oci:
     - if: '$SKIP_OCI_TESTS == "true"'
       when: never
     - !reference [.develop_template, rules]
-  stage: push-oci-images
+  stage: push-test-images
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -734,29 +735,6 @@ push-test-oci:
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-
-push-maintenance-oci:
-  rules:
-    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
-    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: push-oci-images
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
-  tags:
-    - gp
-  image: quay.io/skopeo/stable:v1.11.2
-  before_script: []
-  script:
-    - >-
-      /usr/bin/skopeo copy
-      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
-      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
 
 
 ##################
@@ -870,6 +848,59 @@ systemtest_reliability:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
     reports:
       junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
+
+
+###############################
+### PUSH OTHER IMAGES STAGE ###
+###############################
+
+push-maintenance-oci:
+  rules:
+    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
+    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: push-other-images
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+  tags:
+    - gp
+  image: quay.io/skopeo/stable:v1.11.2
+  before_script: []
+  script:
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
+
+develop-create-sdk-container-images:
+  rules:
+    # skip if SKIP_SDK_BUILD is set to true
+    - if: '$SKIP_SDK_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: push-other-images
+  tags:
+    - gp
+  parallel:
+    matrix:
+      - <<: *all_multi_confs
+  image:
+    name: gcr.io/kaniko-project/executor:v1.9.2-debug
+    entrypoint: [""]
+  before_script:
+    - SDK_SOURCE=$(find "${CI_PROJECT_DIR}" -type d -name "*${MULTI_CONF}-sdk" | sed "s%${CI_PROJECT_DIR}/%%")
+  script:
+    - >-
+      /kaniko/executor
+      --build-arg "SDK_SOURCE=${SDK_SOURCE}"
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
+      --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
 
 
 ##############################

@@ -1,0 +1,17 @@
+FROM python:3.11.3-bullseye as build
+ARG SDK_SOURCE
+ADD ${SDK_SOURCE} /${SDK_SOURCE}
+RUN SCRIPT=$(find /${SDK_SOURCE} -type f -name "*.sh") \
+    && if test -z "${SCRIPT}"; then echo "No sh script found in ${SDK_SOURCE}"; fi \
+    && /bin/sh ${SCRIPT} -d /sdk -y
+
+FROM debian:bullseye-slim
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        make \
+        cmake \
+        git \
+    && rm -rf /var/lib/apt/lists
+COPY --from=build /sdk /sdk
+ADD entrypoint_sdk.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

@@ -53,6 +53,6 @@
 
   services:
     icecc-daemon:
-      - name: $BUILD_IMAGE
+      - name: $BUILD_IMAGE_IRIS_KAS
         entrypoint: ["/bin/sh"]
         command: ["-c", "sudo /usr/sbin/iceccd -vvv -s iris-devops-icecc-scheduler-headless -n $ICECREAM_NETNAME -l /dev/stdout"]
