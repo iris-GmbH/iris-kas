@@ -20,6 +20,7 @@ variables:
   BUILD_VERSION_TAG: "latest"
   BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
+  SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
     ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
@@ -906,6 +907,29 @@ develop-create-sdk-container-images:
 ##############################
 ### UPLOAD ARTIFACTS STAGE ###
 ##############################
+
+# upload the development SDKs to the gitlab package registry for later consumption
+develop-upload-sdks:
+  stage: upload-artifacts
+  rules:
+    # skip if SKIP_SDK_BUILD is set to true
+    - if: '$SKIP_SDK_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  tags:
+    - gp
+  before_script: []
+  script:
+    - >
+      for ARTIFACT in irma6-*-sdk; do
+        # remove the commit sha from the artifact file name, so that we can make use of GitLabs package registry cleanup for identical named packages
+        ARTIFACT_NO_SHA=$(echo ${ARTIFACT} | sed "s/-${CI_COMMIT_SHORT_SHA}//g")
+        sudo mv ${ARTIFACT} ${ARTIFACT_NO_SHA}
+        # SDK is already heavily compressed, thus no gzip
+        sudo tar 2>&1 -cvf ${ARTIFACT_NO_SHA}.tar ${ARTIFACT_NO_SHA}
+        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT_NO_SHA}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT_NO_SHA}.tar"
+      done
+
 
 release-upload-artifacts:
   stage: upload-artifacts
