@@ -243,6 +243,35 @@ build-container-get-tag:
     reports:
       dotenv: build.env
 
+oci-get-tag:
+  rules:
+    - !reference [.release_template, rules]
+    # skip if OCI related jobs are skipped and not release
+    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: setup
+  tags:
+    - gp
+  image: busybox:1.36.1-uclibc
+  before_script: []
+  script:
+    # set correct tag on parent-child pipelines
+    - |
+      if test -n "${UPSTREAM_PROJECT_NAME}"; then
+        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+      else
+        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
+      fi
+    # export OCI_TAG to build.env for other jobs to consume
+    - |
+      echo "OCI_TAG=${OCI_TAG}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+
+
 
 ###################################
 ### BUILD BUILD CONTAINER STAGE ###
@@ -700,25 +729,13 @@ push-test-oci:
   tags:
     - gp
   image: quay.io/skopeo/stable:v1.11.2
-  before_script:
-    # set correct tag on parent-child pipelines
-    - |
-      if test -n "${UPSTREAM_PROJECT_NAME}"; then
-        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
-      else
-        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
-      fi
-    - |
-      echo "OCI_TAG=${OCI_TAG}" >> build.env
+  before_script: []
   script:
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-  artifacts:
-    reports:
-      dotenv: build.env
 
 push-maintenance-oci:
   rules:
@@ -736,25 +753,13 @@ push-maintenance-oci:
   tags:
     - gp
   image: quay.io/skopeo/stable:v1.11.2
-  before_script:
-    # set correct tag on parent-child pipelines
-    - |
-      if test -n "${UPSTREAM_PROJECT_NAME}"; then
-        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
-      else
-        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
-      fi
-    - |
-      echo "OCI_TAG=${OCI_TAG}" >> build.env
+  before_script: []
   script:
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
       docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
-  artifacts:
-    reports:
-      dotenv: build.env
 
 
 ##################
