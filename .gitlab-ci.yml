@@ -81,8 +81,8 @@ variables:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
   SKIP_MAINTENANCE_OCI_BUILD:
-    value: "true"
-    description: 'Set to "false" to build the irma6-maintenance OCI for running a containerized virtual sensor on your host.'
+    value: "false"
+    description: 'Set to "true" to skip the irma6-maintenance OCI build for running a containerized virtual sensor on your host.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
@@ -269,8 +269,6 @@ oci-get-tag:
   artifacts:
     reports:
       dotenv: build.env
-
-
 
 
 ###################################
