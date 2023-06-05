@@ -80,10 +80,13 @@ variables:
   SKIP_MAINTENANCE_TARGET_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
+  SKIP_MAINTENANCE_OCI_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the irma6-maintenance OCI build for running a containerized virtual sensor on your host.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
-  FORCE_CONTAINER_BUILD:
+  FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
   SKIP_SYSTEMTEST_SMOKE:
@@ -106,6 +109,9 @@ variables:
 
 .oci_multi_confs: &oci_multi_confs
   MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+
+.all_multi_confs: &all_multi_confs
+  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2, qemux86-64-r1, qemux86-64-r2]
 
 
 ################
@@ -160,7 +166,7 @@ stages:
   - release-sanity-checks
   - wipe-sstate-caches
   - build
-  - push-test-image
+  - push-oci-images
   - test
   - reliability-test
   - upload-artifacts
@@ -233,6 +239,33 @@ build-container-get-tag:
       fi
     - echo "BUILD_VERSION_TAG set to ${BUILD_VERSION_TAG}."
     - echo "BUILD_VERSION_TAG=${BUILD_VERSION_TAG}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+oci-get-tag:
+  rules:
+    - !reference [.release_template, rules]
+    # skip if OCI related jobs are skipped and not release
+    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: setup
+  tags:
+    - gp
+  image: busybox:1.36.1-uclibc
+  before_script: []
+  script:
+    # set correct tag on parent-child pipelines
+    - |
+      if test -n "${UPSTREAM_PROJECT_NAME}"; then
+        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+      else
+        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
+      fi
+    # export OCI_TAG to build.env for other jobs to consume
+    - |
+      echo "OCI_TAG=${OCI_TAG}" >> build.env
   artifacts:
     reports:
       dotenv: build.env
@@ -393,6 +426,31 @@ develop-build-maintenance-distro-targets:
     - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
+develop-build-maintenance-oci:
+  rules:
+    # skip if SKIP_MAINTENANCE_OCI_BUILD is set to true
+    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+        IMAGES: irma6-maintenance-oci
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-other]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+
 develop-build-deploy-distro-targets:
   rules:
     # skip if SKIP_DEPLOY_TARGET_BUILD is set to true
@@ -417,7 +475,7 @@ develop-build-deploy-distro-targets:
     - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
-develop-build-oci:
+develop-build-test-oci:
   rules:
     # skip if SKIP_OCI_TESTS are set to true
     - if: '$SKIP_OCI_TESTS == "true"'
@@ -431,7 +489,7 @@ develop-build-oci:
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
     JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: ".rootfs-oci"
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -454,7 +512,7 @@ develop-build-sdk:
     ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
-      - <<: *target_multi_confs
+      - <<: *all_multi_confs
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
@@ -529,7 +587,7 @@ release-build-maintenance-distros:
     - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
-release-build-oci:
+release-build-test-oci:
   rules:
     - !reference [.release_template, rules]
   stage: build
@@ -540,7 +598,30 @@ release-build-oci:
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
     JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: ".rootfs-oci"
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-other]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, build]
+  after_script:
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.release_template, artifacts, release-artifacts]
+
+release-build-maintenance-oci:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+        IMAGES: irma6-maintenance-oci
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -627,44 +708,56 @@ release-build-deploy-distros:
 
 
 #############################
-### PUSH TEST IMAGE STAGE ###
+### PUSH OCI IMAGES STAGE ###
 #############################
 
-push-oci:
+push-test-oci:
   rules:
     - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS are set to true and not release
     - if: '$SKIP_OCI_TESTS == "true"'
       when: never
     - !reference [.develop_template, rules]
-  stage: push-test-image
+  stage: push-oci-images
   parallel:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    ARTIFACT_SUFFIX: ".rootfs-oci"
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
   tags:
     - gp
   image: quay.io/skopeo/stable:v1.11.2
-  before_script:
-    # set correct tag on parent-child pipelines
-    - |
-      if test -n "${UPSTREAM_PROJECT_NAME}"; then
-        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
-      else
-        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
-      fi
-    - |
-      echo "OCI_TAG=${OCI_TAG}" >> build.env
+  before_script: []
   script:
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-  artifacts:
-    reports:
-      dotenv: build.env
+
+push-maintenance-oci:
+  rules:
+    - !reference [.release_template, rules]
+    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
+    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: push-oci-images
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+  tags:
+    - gp
+  image: quay.io/skopeo/stable:v1.11.2
+  before_script: []
+  script:
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
 
 
 ##################
