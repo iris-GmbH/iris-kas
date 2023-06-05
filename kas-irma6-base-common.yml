@@ -3,23 +3,19 @@
 #
 #
 # The KAS base configuration file for the irma6
-
 header:
   version: 9
   includes:
     - "include/kas-irma6-base-config.yml"
     - "include/kas-targets.yml"
-
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.0-dev"
-
+    IRMA6_DISTRO_VERSION = "3.0.0-RC1"
 defaults:
   repos:
     patches:
       repo: "this"
-
 repos:
   # the iris-kas repo
   this:
@@ -27,20 +23,20 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "develop"
+    refspec: "e0a013206d7ef5d817a02869351e2bb83e7a59ff"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "kirkstone"
+    refspec: "c64d8418ccd356cc64bb3c89f9cc7158ba9206be"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "kirkstone"
+    refspec: "1e6f147c686a91b9a5996f529e32ee1852f946b7"
     layers:
       meta:
       meta-poky:
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "kirkstone"
+    refspec: "5f120a926b0fcd55cfe7565bb7ddf23661cad498"
     layers:
       meta-oe:
       meta-python:
@@ -49,10 +45,10 @@ repos:
       meta-filesystems:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "kirkstone"
+    refspec: "c5cbece463104ebc5d74a724be19bfd249b1b410"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    refspec: "dunfell"
+    refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
     patches:
       0001-APC-5918-Remove-bbappend-for-cryptsetup:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
@@ -60,29 +56,27 @@ repos:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-virtualization:
     url: "https://git.yoctoproject.org/meta-virtualization"
-    refspec: "kirkstone"
-
+    refspec: "9d056f957b42e31f1c2c5bad0af1ab6c84b53ee6"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    refspec: "release/yocto-1.0.0"
+    refspec: "ad2203c11723b07727589a8eebe33f3129cc236a"
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
     patches:
       0001-lnxdsp-adi-meta-Update-to-new-override-syntax:
         path: "patches/0001-lnxdsp-adi-meta-Update-to-new-override-syntax.patch"
-
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "kirkstone"
+    refspec: "c90c2c2f18badca14439e01bd3e891d1fd99b255"
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "kirkstone"
+    refspec: "fa18e5bf5abdabcc37d4bfbc3c46713cd9d19e2e"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    refspec: "kirkstone"
+    refspec: "d5bbb487b2816dfc74984a78b67f7361ce404253"
