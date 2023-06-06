@@ -737,7 +737,6 @@ push-test-oci:
 
 push-maintenance-oci:
   rules:
-    - !reference [.release_template, rules]
     # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
     - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
       when: never
