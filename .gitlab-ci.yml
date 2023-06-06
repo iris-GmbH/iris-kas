@@ -607,7 +607,7 @@ release-build-test-oci:
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
   after_script:
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 release-build-maintenance-oci:
@@ -711,10 +711,9 @@ release-build-deploy-distros:
 ### PUSH OCI IMAGES STAGE ###
 #############################
 
-push-test-oci:
+develop-push-test-oci:
   rules:
-    - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS are set to true and not release
+    # skip if SKIP_OCI_TESTS are set to true
     - if: '$SKIP_OCI_TESTS == "true"'
       when: never
     - !reference [.develop_template, rules]
@@ -733,6 +732,26 @@ push-test-oci:
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
+
+release-push-test-oci:
+  rules:
+    - !reference [.release_template, rules]
+  stage: push-oci-images
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
+  tags:
+    - gp
+  image: quay.io/skopeo/stable:v1.11.2
+  before_script: []
+  script:
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
 
 push-maintenance-oci:
