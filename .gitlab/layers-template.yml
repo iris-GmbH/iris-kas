@@ -19,6 +19,9 @@ variables:
   SKIP_MAINTENANCE_TARGET_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
+  SKIP_MAINTENANCE_OCI_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the irma6-maintenance OCI for running a containerized virtual sensor on your host.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
@@ -79,6 +82,7 @@ trigger-kas-pipeline:
     SKIP_SDK_BUILD: $SKIP_SDK_BUILD
     SKIP_DEPLOY_TARGET_BUILD: $SKIP_DEPLOY_TARGET_BUILD
     SKIP_MAINTENANCE_TARGET_BUILD: $SKIP_MAINTENANCE_TARGET_BUILD
+    SKIP_MAINTENANCE_OCI_BUILD: $SKIP_MAINTENANCE_OCI_BUILD
     SKIP_OCI_TESTS: $SKIP_OCI_TESTS
     SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
     SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
