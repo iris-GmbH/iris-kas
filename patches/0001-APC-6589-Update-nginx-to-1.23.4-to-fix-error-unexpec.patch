@@ -1,0 +1,27 @@
+From 4e4f4676f117175da6b0538c59589fa6ad4dabe2 Mon Sep 17 00:00:00 2001
+From: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+Date: Wed, 7 Jun 2023 12:06:07 +0200
+Subject: [PATCH] [APC-6589] Update nginx to 1.23.4 to fix error: unexpected
+ eof while reading
+
+Signed-off-by: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+---
+ meta-webserver/recipes-httpd/nginx/nginx_1.23.4.bb | 6 ++++++
+ 1 file changed, 6 insertions(+)
+ create mode 100644 meta-webserver/recipes-httpd/nginx/nginx_1.23.4.bb
+
+diff --git a/meta-webserver/recipes-httpd/nginx/nginx_1.23.4.bb b/meta-webserver/recipes-httpd/nginx/nginx_1.23.4.bb
+new file mode 100644
+index 000000000..422b6f390
+--- /dev/null
++++ b/meta-webserver/recipes-httpd/nginx/nginx_1.23.4.bb
+@@ -0,0 +1,6 @@
++require nginx.inc
++
++LIC_FILES_CHKSUM = "file://LICENSE;md5=175abb631c799f54573dc481454c8632"
++
++SRC_URI[sha256sum] = "d43300e36bb249a7e6edc60bca1b0fc372a0bafce2f346d76acfb677a8790fc0"
++
+-- 
+2.40.0
+

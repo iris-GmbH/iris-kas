@@ -41,6 +41,9 @@ repos:
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
     refspec: "kirkstone"
+    patches:
+      0001-APC-6589-Update-nginx-to-1.23.4-to-fix-error-unexpec:
+        path: "patches/0001-APC-6589-Update-nginx-to-1.23.4-to-fix-error-unexpec.patch"
     layers:
       meta-oe:
       meta-python:
