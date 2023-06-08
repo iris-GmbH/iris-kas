@@ -30,7 +30,7 @@ repos:
     refspec: "develop"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "kirkstone"
+    refspec: "feature/pago/mongoose_7_10"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
