@@ -170,7 +170,6 @@ stages:
   - push-test-images
   - test
   - reliability-test
-  - push-other-images
   - upload-artifacts
   - release
 
@@ -851,9 +850,9 @@ systemtest_reliability:
       junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
 
 
-###############################
-### PUSH OTHER IMAGES STAGE ###
-###############################
+##############################
+### UPLOAD ARTIFACTS STAGE ###
+##############################
 
 push-maintenance-oci:
   rules:
@@ -861,7 +860,7 @@ push-maintenance-oci:
     - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
       when: never
     - !reference [.develop_template, rules]
-  stage: push-other-images
+  stage: upload-artifacts
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -884,7 +883,7 @@ develop-create-sdk-container-images:
     - if: '$SKIP_SDK_BUILD == "true"'
       when: never
     - !reference [.develop_template, rules]
-  stage: push-other-images
+  stage: upload-artifacts
   tags:
     - gp
   parallel:
@@ -902,11 +901,6 @@ develop-create-sdk-container-images:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
-
-
-##############################
-### UPLOAD ARTIFACTS STAGE ###
-##############################
 
 # upload the development SDKs to the gitlab package registry for later consumption
 develop-upload-sdks:
