@@ -87,6 +87,9 @@ variables:
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
+  UPLOAD_SDK_TO_REGISTRIES:
+    value: "false"
+    description : 'Will upload the built SDK when set to "true" and combined with SKIP_SDK_BUILD="false"'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -248,7 +251,7 @@ oci-get-tag:
   rules:
     - !reference [.release_template, rules]
     # skip if OCI related jobs are skipped and not release
-    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && $SKIP_SDK_BUILD == "true"'
+    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && ($SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false")'
       when: never
     - !reference [.develop_template, rules]
   stage: setup
@@ -879,8 +882,8 @@ push-maintenance-oci:
 
 develop-create-sdk-container-images:
   rules:
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
+    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
+    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
       when: never
     - !reference [.develop_template, rules]
   stage: upload-artifacts
@@ -906,8 +909,8 @@ develop-create-sdk-container-images:
 develop-upload-sdks:
   stage: upload-artifacts
   rules:
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
+    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
+    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
       when: never
     - !reference [.develop_template, rules]
   tags:
