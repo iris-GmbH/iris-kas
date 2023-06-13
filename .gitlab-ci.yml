@@ -20,6 +20,7 @@ variables:
   BUILD_VERSION_TAG: "latest"
   BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
+  SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
     ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
@@ -86,6 +87,9 @@ variables:
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
+  UPLOAD_SDK_TO_REGISTRIES:
+    value: "false"
+    description : 'Will upload the built SDK when set to "true" and combined with SKIP_SDK_BUILD="false"'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -169,7 +173,6 @@ stages:
   - push-test-images
   - test
   - reliability-test
-  - push-other-images
   - upload-artifacts
   - release
 
@@ -248,7 +251,7 @@ oci-get-tag:
   rules:
     - !reference [.release_template, rules]
     # skip if OCI related jobs are skipped and not release
-    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && $SKIP_SDK_BUILD == "true"'
+    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && ($SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false")'
       when: never
     - !reference [.develop_template, rules]
   stage: setup
@@ -850,9 +853,9 @@ systemtest_reliability:
       junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
 
 
-###############################
-### PUSH OTHER IMAGES STAGE ###
-###############################
+##############################
+### UPLOAD ARTIFACTS STAGE ###
+##############################
 
 push-maintenance-oci:
   rules:
@@ -860,7 +863,7 @@ push-maintenance-oci:
     - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
       when: never
     - !reference [.develop_template, rules]
-  stage: push-other-images
+  stage: upload-artifacts
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -879,11 +882,11 @@ push-maintenance-oci:
 
 develop-create-sdk-container-images:
   rules:
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
+    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
+    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
       when: never
     - !reference [.develop_template, rules]
-  stage: push-other-images
+  stage: upload-artifacts
   tags:
     - gp
   parallel:
@@ -902,10 +905,28 @@ develop-create-sdk-container-images:
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
 
+# upload the development SDKs to the gitlab package registry for later consumption
+develop-upload-sdks:
+  stage: upload-artifacts
+  rules:
+    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
+    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
+      when: never
+    - !reference [.develop_template, rules]
+  tags:
+    - gp
+  before_script: []
+  script:
+    - >
+      for ARTIFACT in irma6-*-sdk; do
+        # remove the commit sha from the artifact file name, so that we can make use of GitLabs package registry cleanup for identical named packages
+        ARTIFACT_NO_SHA=$(echo ${ARTIFACT} | sed "s/-${CI_COMMIT_SHORT_SHA}//g")
+        sudo mv ${ARTIFACT} ${ARTIFACT_NO_SHA}
+        # SDK is already heavily compressed, thus no gzip
+        sudo tar 2>&1 -cvf ${ARTIFACT_NO_SHA}.tar ${ARTIFACT_NO_SHA}
+        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT_NO_SHA}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT_NO_SHA}.tar"
+      done
 
-##############################
-### UPLOAD ARTIFACTS STAGE ###
-##############################
 
 release-upload-artifacts:
   stage: upload-artifacts
