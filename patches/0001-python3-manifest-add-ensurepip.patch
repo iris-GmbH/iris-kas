@@ -1,0 +1,65 @@
+From 4c1df90687d37e491907bfec8623105faad2b91b Mon Sep 17 00:00:00 2001
+From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Date: Thu, 13 Apr 2023 11:15:56 +0200
+Subject: [PATCH] python3-manifest: add ensurepip
+
+Add the pip bootstrapping module from the standard library to the
+manifest. This module is a run-time requirement of python3-build.
+
+(From OE-Core rev: 7013ddda8f249377c00bc4efb40c34dd5fcfe15a)
+
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Signed-off-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+
+Backport to kirkstone
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ .../python/python3/python3-manifest.json      | 23 +++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/meta/recipes-devtools/python/python3/python3-manifest.json b/meta/recipes-devtools/python/python3/python3-manifest.json
+index 9e91270a50..f278b18775 100644
+--- a/meta/recipes-devtools/python/python3/python3-manifest.json
++++ b/meta/recipes-devtools/python/python3/python3-manifest.json
+@@ -610,6 +610,28 @@
+             "${libdir}/python${PYTHON_MAJMIN}/__pycache__/imaplib.*.pyc"
+         ]
+     },
++    "ensurepip": {
++        "summary": "Support for bootstrapping the pip installer",
++        "rdepends": [
++            "asyncio",
++            "compile",
++            "core",
++            "ctypes",
++            "image",
++            "io",
++            "mmap",
++            "plistlib",
++            "pprint",
++            "unixadmin",
++            "xmlrpc"
++        ],
++        "files": [
++            "${libdir}/python${PYTHON_MAJMIN}/ensurepip/"
++        ],
++        "cached": [
++            "${libdir}/python${PYTHON_MAJMIN}/ensurepip/_uninstall.*.pyc"
++        ]
++    },
+     "fcntl": {
+         "summary": "Python's fcntl interface",
+         "rdepends": [
+@@ -800,6 +822,7 @@
+             "distutils",
+             "doctest",
+             "email",
++            "ensurepip",
+             "fcntl",
+             "html",
+             "idle",
+-- 
+2.41.0
+

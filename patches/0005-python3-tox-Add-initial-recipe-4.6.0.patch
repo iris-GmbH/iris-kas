@@ -1,0 +1,72 @@
+From 098eecc32f91e6c9201ed87fd2cfe050028d9fd0 Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Mon, 26 Jun 2023 13:39:56 +0200
+Subject: [PATCH 5/5] python3-tox: Add initial recipe 4.6.0
+
+From the project description:
+
+Tox aims to automate and standardize testing in Python. It is part of a larger
+vision of easing the packaging, testing and release process of Python software
+(alongside pytest and devpi).
+
+tox is a generic virtual environment management and test command line tool you
+can use for:
+
+- checking your package builds and installs correctly under different
+environments (such as different Python implementations, versions or
+installation dependencies),
+- running your tests in each of the environments with the test tool of choice,
+- acting as a frontend to continuous integration servers, greatly reducing
+boilerplate and merging CI and shell-based testing.
+
+Upstream-Status: Submitted [https://lists.openembedded.org/g/openembedded-devel/message/103580]
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ .../python/python3-tox_4.6.0.bb               | 34 +++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 meta-python/recipes-devtools/python/python3-tox_4.6.0.bb
+
+diff --git a/meta-python/recipes-devtools/python/python3-tox_4.6.0.bb b/meta-python/recipes-devtools/python/python3-tox_4.6.0.bb
+new file mode 100644
+index 0000000000..e83587528c
+--- /dev/null
++++ b/meta-python/recipes-devtools/python/python3-tox_4.6.0.bb
+@@ -0,0 +1,34 @@
++# SPDX-License-Identifier: MIT
++# Copyright (C) 2023 iris-GmbH infrared & intelligent sensors
++
++SUMMARY = "Automate and standardize testing in Python. It is part of a larger vision of easing the packaging, testing and release process of Python software (alongside pytest and devpi)."
++HOMEPAGE = "http://tox.readthedocs.org/"
++LICENSE = "MIT"
++LIC_FILES_CHKSUM = "file://LICENSE;md5=11610a9d8fd95649cf8159be12b98cb7"
++
++SRC_URI[sha256sum] = "954f1f647f67f481d239a193288983242a6152b67503c4a56b19a4aafaa29736"
++
++BBCLASSEXTEND = "native nativesdk"
++inherit pypi python_hatchling
++
++DEPENDS += "\
++    ${PYTHON_PN}-hatch-vcs-native \
++"
++
++RDEPENDS:${PN} += "\
++    ${PYTHON_PN}-cachetools \
++    ${PYTHON_PN}-chardet \
++    ${PYTHON_PN}-colorama \
++    ${PYTHON_PN}-filelock \
++    ${PYTHON_PN}-packaging \
++    ${PYTHON_PN}-platformdirs \
++    ${PYTHON_PN}-pluggy \
++    ${PYTHON_PN}-pyproject-api \
++    ${PYTHON_PN}-tomli \
++    ${PYTHON_PN}-virtualenv \
++"
++
++# Install all built-in python3 modules, as the software tested with tox might
++# depend on it. Tox will attempt to install all required dependencies
++# in a virtualenv using pip, but this obviously does not include the built-in modules.
++RDEPENDS:${PN} += "${PYTHON_PN}-modules"
+-- 
+2.41.0
+

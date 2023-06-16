@@ -1,0 +1,40 @@
+From 781da7200711e45da8b63654dd4508fce62580b8 Mon Sep 17 00:00:00 2001
+From: Ross Burton <ross.burton@arm.com>
+Date: Tue, 21 Jun 2022 14:10:07 +0100
+Subject: [PATCH] Add python3-editables (from meta-python)
+
+This is a dependency of the Hatch build system, to be added as
+python3-hatchling.
+
+Signed-off-by: Ross Burton <ross.burton@arm.com>
+Signed-off-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+
+Backported to kirkstone
+
+Signed-off-by: Jasper.Orschulko <Jasper.Orschulko@iris-sensing.com>
+---
+ meta/recipes-devtools/python/python3-editables_0.3.bb | 11 +++++++++++
+ 1 files changed, 12 insertions(+)
+ create mode 100644 meta/recipes-devtools/python/python3-editables_0.3.bb
+
+diff --git a/meta/recipes-devtools/python/python3-editables_0.3.bb b/meta/recipes-devtools/python/python3-editables_0.3.bb
+new file mode 100644
+index 0000000000..b42ff06872
+--- /dev/null
++++ b/meta/recipes-devtools/python/python3-editables_0.3.bb
+@@ -0,0 +1,11 @@
++SUMMARY = "A Python library for creating editable wheels"
++HOMEPAGE = "https://github.com/pfmoore/editables"
++SECTION = "devel/python"
++LICENSE = "MIT"
++LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=41bc1be47b7bb8240db3ef928c7cb0bf"
++
++SRC_URI[sha256sum] = "167524e377358ed1f1374e61c268f0d7a4bf7dbd046c656f7b410cde16161b1a"
++
++inherit pypi python_setuptools_build_meta
++
++BBCLASSEXTEND = "native nativesdk"
+-- 
+2.41.0
+
