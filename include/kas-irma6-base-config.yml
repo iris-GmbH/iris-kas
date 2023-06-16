@@ -23,9 +23,10 @@ local_conf_header:
   sstate_dir: |
     SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
 
-  license_compliance: |
-    INHERIT += "create-spdx archiver"
-    ARCHIVER_MODE[src] = "configured"
+  spdx: |
+    INHERIT += "create-spdx"
+    SPDX_INCLUDE_SOURCES = "1"
+    SPDX_ARCHIVE_SOURCES = "1"
 
   diskmon: |
     BB_DISKMON_DIRS = "\
