@@ -86,3 +86,6 @@ repos:
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
     refspec: "kirkstone"
+  meta-cloud-services:
+    url: "https://git.yoctoproject.org/meta-cloud-services"
+    refspec: "kirkstone"
