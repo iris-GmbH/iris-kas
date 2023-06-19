@@ -8,4 +8,4 @@ header:
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    refspec: "d9eb61afefe1b6ed20cf78278dfd6f6fed771006"
+    refspec: "a1b54aedbdc7c5b152bb91da439bd3c6a7e976e8"
