@@ -730,7 +730,7 @@ push-test-oci:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   tags:
     - gp
-  image: quay.io/skopeo/stable:v1.11.2
+  image: quay.io/skopeo/stable:v1.12.0
   before_script: []
   script:
     - >-
@@ -871,7 +871,7 @@ push-maintenance-oci:
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   tags:
     - gp
-  image: quay.io/skopeo/stable:v1.11.2
+  image: quay.io/skopeo/stable:v1.12.0
   before_script: []
   script:
     - >-
