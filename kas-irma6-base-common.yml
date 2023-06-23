@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.0-RC9"
+    IRMA6_DISTRO_VERSION = "3.0.0-RC10"
 defaults:
   repos:
     patches:
@@ -23,20 +23,20 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "371c3f571ec176e99181e258bd38f47cf2ffe444"
+    refspec: "83734c18ccd32409bf9404fb4a03b5c380bccfe3"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "ed328ee6f613f4ee8127a2fead931afafc39788a"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "1e6f147c686a91b9a5996f529e32ee1852f946b7"
+    refspec: "ab6c16cb554fa352d268c04769258f1c51ffc16d"
     layers:
       meta:
       meta-poky:
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "5f120a926b0fcd55cfe7565bb7ddf23661cad498"
+    refspec: "a82d92c8a6525da01524bf8f4a60bf6b35dcbb3d"
     layers:
       meta-oe:
       meta-python:
@@ -45,7 +45,7 @@ repos:
       meta-filesystems:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "c5cbece463104ebc5d74a724be19bfd249b1b410"
+    refspec: "d1d4abfaf82d37c31e3cec3602d6d8d56d105185"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
@@ -56,7 +56,7 @@ repos:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-virtualization:
     url: "https://git.yoctoproject.org/meta-virtualization"
-    refspec: "9d056f957b42e31f1c2c5bad0af1ab6c84b53ee6"
+    refspec: "b3b3dbc67504e8cd498d6db202ddcf5a9dd26a9d"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
@@ -70,13 +70,13 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "c90c2c2f18badca14439e01bd3e891d1fd99b255"
+    refspec: "96c9651a8db6cb39f5f8c065bbf058afe24186c7"
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "fa18e5bf5abdabcc37d4bfbc3c46713cd9d19e2e"
+    refspec: "2a65ce4cc619c3b9f265f6b1d2dce2b8044501e6"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
     refspec: "d5bbb487b2816dfc74984a78b67f7361ce404253"
