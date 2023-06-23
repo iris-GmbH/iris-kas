@@ -1,9 +1,15 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
 
+ifneq (, $(shell which docker-compose))
+	DOCKER_COMPOSE_CMD = docker-compose
+else
+	DOCKER_COMPOSE_CMD = docker compose
+endif
+
 SSH_DIR 		?= ~/.ssh
 RELEASE 		?= r1
-KAS_COMMAND 	?= USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) SSH_DIR=$(SSH_DIR) docker-compose run --service-ports --rm kas
+KAS_COMMAND 	?= USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) SSH_DIR=$(SSH_DIR) $(DOCKER_COMPOSE_CMD) run --service-ports --rm kas
 
 USER_ID 		= $(shell id -u)
 GROUP_ID 		= $(shell id -g)
