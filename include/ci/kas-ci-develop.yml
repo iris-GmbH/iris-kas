@@ -6,3 +6,4 @@ header:
   includes:
     - "include/ci/kas-ci-download-mirror.yml"
     - "include/ci/kas-ci-sstate-mirror.yml"
+    - "include/ci/kas-ci-hashservice-ro.yml"

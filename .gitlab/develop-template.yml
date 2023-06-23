@@ -29,7 +29,7 @@
           export BRANCH_NAME="${CI_COMMIT_BRANCH}"
         fi
       - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
-      # if the current branch is the default branch, we populate the sstate cache
+      # if the current branch is the default branch, we populate the sstate cache and hashservice database
       - >
         if [ "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" ] || [ "${FORCE_POPULATE_CACHES}" = "true" ]; then
           echo "Populating caches..."
