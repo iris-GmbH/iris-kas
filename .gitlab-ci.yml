@@ -953,16 +953,11 @@ release-upload-artifacts:
 ### RELEASE STAGE ###
 #####################
 
-release-sync-sstate-cache:
+release-clean-sstate-cache:
   stage: release
   rules:
     - !reference [.release_template, rules]
   script:
-    # don't overwrite develop sstate_cache during support release and RC tags
-    - >
-      if echo "${CI_COMMIT_TAG}" | grep -qviE '\d+\.\d+\.\d+-.*'; then
-        rsync -avh --delete ${SSTATE_CACHE_RELEASE} ${SSTATE_CACHE};
-      fi
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 

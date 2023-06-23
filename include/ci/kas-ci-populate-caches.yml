@@ -14,3 +14,6 @@ local_conf_header:
   dl_mirror: |
     unset SOURCE_MIRROR_URL
     INHERIT:remove = " own-mirrors"
+  hashservice: |
+    unset BB_HASHSERVE_UPSTREAM
+    BB_HASHSERVE = "yocto-hashservice-kirkstone:8585"
