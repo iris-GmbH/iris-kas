@@ -148,7 +148,9 @@ workflow:
 ########################
 
 default:
-  image: "${BUILD_IMAGE_IRIS_KAS}"
+  image:
+    name: "${BUILD_IMAGE_IRIS_KAS}"
+    pull_policy: [always]
   before_script:
     # Ensure correct ownership of mounted EFS volumes
     - sudo chown builder:builder ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} ${DOWNLOAD_MIRROR}
