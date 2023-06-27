@@ -1,0 +1,47 @@
+From c234a92dc906bd5a42ae0ec5881174dc44c73046 Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Mon, 26 Jun 2023 13:38:57 +0200
+Subject: [PATCH 4/5] python3-pyproject-api: Add initial recipe 1.5.1
+
+Dependency for python3-tox
+
+Upstream-Status: Submitted [https://lists.openembedded.org/g/openembedded-devel/message/103577]
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ .../python/python3-pyproject-api_1.5.1.bb     | 23 +++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 meta-python/recipes-devtools/python/python3-pyproject-api_1.5.1.bb
+
+diff --git a/meta-python/recipes-devtools/python/python3-pyproject-api_1.5.1.bb b/meta-python/recipes-devtools/python/python3-pyproject-api_1.5.1.bb
+new file mode 100644
+index 0000000000..1b458fa2df
+--- /dev/null
++++ b/meta-python/recipes-devtools/python/python3-pyproject-api_1.5.1.bb
+@@ -0,0 +1,23 @@
++# SPDX-License-Identifier: MIT
++# Copyright (C) 2023 iris-GmbH infrared & intelligent sensors
++
++SUMMARY = "pyproject-api aims to abstract away interaction with pyproject.toml style projects in a flexible way."
++HOMEPAGE = "https://pyproject-api.readthedocs.io"
++LICENSE = "MIT"
++LIC_FILES_CHKSUM = "file://LICENSE;md5=11610a9d8fd95649cf8159be12b98cb7"
++
++SRC_URI[sha256sum] = "435f46547a9ff22cf4208ee274fca3e2869aeb062a4834adfc99a4dd64af3cf9"
++
++PYPI_PACKAGE = "pyproject_api"
++
++BBCLASSEXTEND = "native nativesdk"
++inherit pypi python_hatchling
++
++DEPENDS += "\
++    ${PYTHON_PN}-hatch-vcs-native \
++"
++
++RDEPENDS:${PN} += "\
++    ${PYTHON_PN}-packaging \
++    ${PYTHON_PN}-tomli \
++"
+-- 
+2.41.0
+

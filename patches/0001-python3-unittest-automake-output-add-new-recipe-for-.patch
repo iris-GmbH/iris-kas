@@ -1,0 +1,43 @@
+From 961e4f3fc786715fc136fa446686972a4a95a3d5 Mon Sep 17 00:00:00 2001
+From: Ross Burton <ross.burton@arm.com>
+Date: Tue, 21 Mar 2023 12:37:32 +0000
+Subject: [PATCH] python3-unittest-automake-output: add new recipe for ptest
+ integration
+
+This package contains modules for both unittest and pytest that alter
+the output to look like automake's 'make check' output, for better
+integration with ptest.
+
+Signed-off-by: Ross Burton <ross.burton@arm.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+
+Backported to kirkstone
+
+Signed-off-by: Jasper.Orschulko <Jasper.Orschulko@iris-sensing.com>
+---
+ .../python/python3-unittest-automake-output_0.1.bb  | 13 +++++++++++++
+ 1 files changed, 14 insertions(+)
+ create mode 100644 meta/recipes-devtools/python/python3-unittest-automake-output_0.1.bb
+
+diff --git a/meta/recipes-devtools/python/python3-unittest-automake-output_0.1.bb b/meta/recipes-devtools/python/python3-unittest-automake-output_0.1.bb
+new file mode 100644
+index 0000000000..ba58c18df0
+--- /dev/null
++++ b/meta/recipes-devtools/python/python3-unittest-automake-output_0.1.bb
+@@ -0,0 +1,13 @@
++SUMMARY = "Modules to make unittest and pytest look like Automake output, for ptest"
++HOMEPAGE = "https://gitlab.com/rossburton/python-unittest-automake-output"
++LICENSE = "MIT"
++LIC_FILES_CHKSUM = "file://LICENSE;md5=f6f16008d9fb7349f06609329f1ab93b"
++
++SRC_URI = "git://gitlab.com/rossburton/python-unittest-automake-output;protocol=https;branch=main"
++SRCREV = "06537edb18f3641c70bce25256f6ecf5f5164ead"
++
++S = "${WORKDIR}/git"
++
++inherit python_flit_core
++
++BBCLASSEXTEND = "native nativesdk"
+-- 
+2.41.0
+

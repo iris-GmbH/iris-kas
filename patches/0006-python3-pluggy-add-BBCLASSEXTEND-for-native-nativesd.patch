@@ -1,0 +1,32 @@
+From b6b17abaa3b5dcce61f6a5c8bdb397f714dba69d Mon Sep 17 00:00:00 2001
+From: Ross Burton <ross.burton@arm.com>
+Date: Tue, 24 May 2022 13:22:24 +0100
+Subject: [PATCH] python3-pluggy: add BBCLASSEXTEND for native/nativesdk
+
+This is a dependency of Hatchling, another Python build tool, so we need
+it natively.
+
+Signed-off-by: Ross Burton <ross.burton@arm.com>
+Signed-off-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+
+Backported to kirkstone
+
+Signed-off-by: Jasper.Orschulko <Jasper.Orschulko@iris-sensing.com>
+---
+ meta/recipes-devtools/python/python3-pluggy_1.0.0.bb | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/meta/recipes-devtools/python/python3-pluggy_1.0.0.bb b/meta/recipes-devtools/python/python3-pluggy_1.0.0.bb
+index 3f2895a061..2935acf95f 100644
+--- a/meta/recipes-devtools/python/python3-pluggy_1.0.0.bb
++++ b/meta/recipes-devtools/python/python3-pluggy_1.0.0.bb
+@@ -24,3 +24,5 @@ do_install_ptest() {
+ 	install -d ${D}${PTEST_PATH}/testing
+ 	cp -rf ${S}/testing/* ${D}${PTEST_PATH}/testing/
+ }
++
++BBCLASSEXTEND = "native nativesdk"
+-- 
+2.41.0
+
