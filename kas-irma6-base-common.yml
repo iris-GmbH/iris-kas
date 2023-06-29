@@ -23,20 +23,20 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "ac20c8026a2c5a6dd6d0ac1ea7b3e3c8b2196774"
+    commit: "ac20c8026a2c5a6dd6d0ac1ea7b3e3c8b2196774"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "ed328ee6f613f4ee8127a2fead931afafc39788a"
+    commit: "ed328ee6f613f4ee8127a2fead931afafc39788a"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "ab6c16cb554fa352d268c04769258f1c51ffc16d"
+    commit: "ab6c16cb554fa352d268c04769258f1c51ffc16d"
     layers:
       meta:
       meta-poky:
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "a82d92c8a6525da01524bf8f4a60bf6b35dcbb3d"
+    commit: "a82d92c8a6525da01524bf8f4a60bf6b35dcbb3d"
     layers:
       meta-oe:
       meta-python:
@@ -45,10 +45,10 @@ repos:
       meta-filesystems:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "d1d4abfaf82d37c31e3cec3602d6d8d56d105185"
+    commit: "d1d4abfaf82d37c31e3cec3602d6d8d56d105185"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
+    commit: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
     patches:
       0001-APC-5918-Remove-bbappend-for-cryptsetup:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
@@ -56,11 +56,11 @@ repos:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-virtualization:
     url: "https://git.yoctoproject.org/meta-virtualization"
-    refspec: "b3b3dbc67504e8cd498d6db202ddcf5a9dd26a9d"
+    commit: "b3b3dbc67504e8cd498d6db202ddcf5a9dd26a9d"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    refspec: "ad2203c11723b07727589a8eebe33f3129cc236a"
+    commit: "ad2203c11723b07727589a8eebe33f3129cc236a"
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
@@ -70,13 +70,13 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "96c9651a8db6cb39f5f8c065bbf058afe24186c7"
+    commit: "96c9651a8db6cb39f5f8c065bbf058afe24186c7"
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "2a65ce4cc619c3b9f265f6b1d2dce2b8044501e6"
+    commit: "2a65ce4cc619c3b9f265f6b1d2dce2b8044501e6"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    refspec: "d5bbb487b2816dfc74984a78b67f7361ce404253"
+    commit: "d5bbb487b2816dfc74984a78b67f7361ce404253"

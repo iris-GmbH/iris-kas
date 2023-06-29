@@ -1,14 +1,12 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
 
-SSH_DIR 		?= ~/.ssh
-RELEASE 		?= r1
-KAS_COMMAND 	?= USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) SSH_DIR=$(SSH_DIR) docker-compose run --service-ports --rm kas
-
-USER_ID 		= $(shell id -u)
-GROUP_ID 		= $(shell id -g)
 MAKEFILE_PATH 	= $(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR 	= $(dir ${MAKEFILE_PATH})
+
+SSH_DIR 		?= ~/.ssh
+RELEASE 		?= r1
+KAS_COMMAND 	?= $(MAKEFILE_DIR)kas/kas-container --ssh-dir $(SSH_DIR) --ssh-agent
 
 DEPLOY_BASE_KAS_CONFIG      = kas-irma6-base-deploy.yml
 MAINTENANCE_PA_KAS_CONFIG   = kas-irma6-base-maintenance.yml:kas-irma6-pa.yml
