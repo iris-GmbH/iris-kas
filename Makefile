@@ -4,19 +4,44 @@
 MAKEFILE_PATH 	= $(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR 	= $(dir ${MAKEFILE_PATH})
 
-SSH_DIR 		?= ~/.ssh
-RELEASE 		?= r1
-KAS_COMMAND 	?= $(MAKEFILE_DIR)kas/kas-container --ssh-dir $(SSH_DIR) --ssh-agent
+SSH_DIR 			?= ~/.ssh
+RELEASE 			?= r2
+CONTAINER_IMAGE 	?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:latest
+KAS_COMMAND 		?= KAS_CONTAINER_IMAGE=${CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container --ssh-dir ${SSH_DIR} --ssh-agent
 
 DEPLOY_BASE_KAS_CONFIG      = kas-irma6-base-deploy.yml
 MAINTENANCE_PA_KAS_CONFIG   = kas-irma6-base-maintenance.yml:kas-irma6-pa.yml
 DEPLOY_PA_KAS_CONFIG        = kas-irma6-base-deploy.yml:kas-irma6-pa.yml
 
+ifeq (${RELEASE}, r1)
+	TARGET_MULTI_CONF = sc573-gen6
+	QEMU_MULTI_CONF = qemux86-64-r1
+endif
+ifeq (${RELEASE}, r2)
+	TARGET_MULTI_CONF = imx8mp-irma6r2
+	QEMU_MULTI_CONF = qemux86-64-r2
+endif
+ifeq (${RELEASE}, r2-evk)
+	TARGET_MULTI_CONF = imx8mp-evk
+	QEMU_MULTI_CONF = qemux86-64-r2
+endif
+
 # default action: building ${RELEASE}
 build: build-${RELEASE}
+build-qemu: build-qemu-${RELEASE}
+build-sdk: build-sdk-${RELEASE}
+build-sdk-qemu: build-sdk-qemu-${RELEASE}
+build-base: build-base-${RELEASE}
+build-base-dump: build-base-dump-${RELEASE}
+patch-thirdparty-hostbuild: patch-thirdparty-hostbuild-${RELEASE}
+shell: shell-${RELEASE}
 
-update-toc: ## Updates the README table of contents
+# Updates the README table of contents
+update-toc:
 	doctoc --github --title "**Table of Contents**" README.md
+
+build-container:
+	docker build -t ${CONTAINER_IMAGE} -f ${MAKEFILE_DIR}Dockerfile_iris_kas ${MAKEFILE_DIR}
 
 clean:
 	${KAS_COMMAND} shell -c 'rm -rf $${BUILDDIR}' kas-irma6-base-common.yml
@@ -27,72 +52,33 @@ pull:
 force-pull:
 	${KAS_COMMAND} checkout --update --force-checkout ${MAINTENANCE_PA_KAS_CONFIG}
 
-build-sdk-r1:
-	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
-
-build-sdk-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml
-
-build-sdk-r2-evk:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
-
-build-sdk: build-sdk-${RELEASE}
-
-build-sdk-qemu-r1:
-	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r1:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-qemux86-64-r1.yml
-
-build-sdk-qemu-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r2:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-qemux86-64-r2.yml
-
-build-sdk-qemu: build-sdk-qemu-${RELEASE}
-
-build-qemu-r1:
-	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r1:irma6-test" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-qemux86-64-r1.yml
-
-build-qemu-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:qemux86-64-r2:irma6-test" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-qemux86-64-r2.yml
-
-build-qemu: build-qemu-${RELEASE}
-
 run-qemu:
 	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${MAINTENANCE_PA_KAS_CONFIG}
 
-build-base-r1:
-	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
+build-sdk-${RELEASE}:
+	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
 
-build-base-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml
+build-sdk-qemu-${RELEASE}:
+	${KAS_COMMAND} shell -c "bitbake mc:${QEMU_MULTI_CONF}:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${QEMU_MULTI_CONF}.yml
 
-build-base-r2-evk:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
+build-qemu-${RELEASE}:
+	${KAS_COMMAND} shell -c "bitbake mc:${QEMU_MULTI_CONF}:irma6-test" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${QEMU_MULTI_CONF}.yml
 
-build-base: build-base-${RELEASE}
+build-base-${RELEASE}:
+	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
 
-build-base-dump-r1:
-	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml:include/kas-offline-build.yml
+build-base-dump-${RELEASE}:
+	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml:include/kas-offline-build.yml
 
-build-base-dump-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml:include/kas-offline-build.yml
+build-${RELEASE}:
+	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
+	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-maintenance mc:${TARGET_MULTI_CONF}:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
 
-build-base-dump-r2-evk:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml:include/kas-offline-build.yml
+patch-thirdparty-hostbuild-${RELEASE}:
+	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:${THIRDPARTY} -c do_patch" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
 
-build-base-dump: build-base-dump-${RELEASE}
-
-build-r1:
-	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
-	${KAS_COMMAND} shell -c "bitbake mc:sc573-gen6:irma6-maintenance mc:sc573-gen6:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
-
-build-r2:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-irma6r2:irma6-maintenance mc:imx8mp-irma6r2:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-irma6r2.yml
-
-build-r2-evk:
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
-	${KAS_COMMAND} shell -c "bitbake mc:imx8mp-evk:irma6-maintenance mc:imx8mp-evk:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-imx8mp-evk.yml
-
-patch-thirdparty-hostbuild:
-	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} -c do_patch" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-sc573-gen6.yml
+shell-${RELEASE}:
+	${KAS_COMMAND} shell ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
 
 git-flow:
 	git flow init -d
