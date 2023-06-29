@@ -92,13 +92,14 @@ We currently support the following variables:
 
 | Variable    | Description                                                                                                                                                                                                        | Default value                                                                                            |
 |-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| KAS_COMMAND | The command for running the KAS executable. By default, KAS will run in a docker container (recommended). Set this to `kas` if you want to use a host installation of KAS                                          | `$(MAKEFILE_DIR)kas/kas-container --ssh-dir $(SSH_DIR) --ssh-agent` |
+| KAS_COMMAND | The command for running the KAS executable. By default, KAS will run in a docker container (recommended). Set this to `kas` if you want to use a host installation of KAS                                          | `KAS_CONTAINER_IMAGE=${CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container --ssh-dir ${SSH_DIR} --ssh-agent` |
 | SSH_DIR     | Sets the path to a directory containing an authorized SSH key (e.g.: id_rsa, id_ed25519, ...) as well as a known_hosts file containing our private git server. This path will be mounted into the docker container | `~/.ssh`                                                                                                 |
-| RELEASE     | Sets the release you wish to build (currently `r1` for sc573-gen6 or `r2` for imx8mp-evk)                                                                                                                          | `r1`                                                                                                     |
+| RELEASE     | Sets the release you wish to build (currently `r1` for sc573-gen6 or `r2` for imx8mp-evk)                                                                                                                          | `r2`                                                                                                     |
 | TAG         | Sets the tag to use during the release or support release process (e.g. `2.3.0`, `2.3.0-custom`)                                                                                                                   | None                                                                                                     |
 
 
 **Optional variable overrides for all make commands:**
+- `CONTAINER_IMAGE`
 - `KAS_COMMAND`
 - `SSH_DIR`
 
@@ -253,8 +254,8 @@ In the case of a local KAS installation, this can be done by calling the `kas` b
 
 `kas shell -c "bitbake foo" kas-irma6-base-deploy.yml:kas-irma6-pa.yml`.
 
-When using the docker based setup, use the `kas/kas-container` script instead ("[]" marks optional Variables):
+When using the docker based setup, use the `kas-container` script instead ("[]" marks optional Variables):
 
-`kas/kas-container [--ssh-dir <SSH_DIR>] [--ssh-agent] ...` 
+`kas-container [--ssh-dir <SSH_DIR>] [--ssh-agent] ...` 
 
 For a detailed documentation on using KAS, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/).
