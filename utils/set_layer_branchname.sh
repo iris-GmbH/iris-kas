@@ -13,7 +13,7 @@ for var in ${required_vars}; do
     [ -n "${val}" ] || { echo "Error: required variable ${var} not set."; exit 1; }
 done
 
-if echo "${KAS_REPO_NAME}" | grep -qvE '.*iris.*'; then
+if echo "${KAS_REPO_NAME}" | grep -qvE '^meta-iris(-base)?$'; then
     exit 0
 fi
 
@@ -25,7 +25,7 @@ if git checkout "${BRANCH_NAME}" 2>/dev/null; then
     if [ "${KAS_REPO_NAME}" = "meta-iris" ]; then
         KAS_CONFIG_FILE="kas-irma6-pa.yml"
     else
-        KAS_CONFIG_FILE="kas-irma6-base-common.yml"
+        KAS_CONFIG_FILE="kas-irma6-base.yml"
     fi
 
     # update the branch for the layer repo name in the appropriate kas config file

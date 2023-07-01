@@ -1,103 +1,182 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+# Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
 
-MAKEFILE_PATH 	= $(abspath $(lastword ${MAKEFILE_LIST}))
-MAKEFILE_DIR 	= $(dir ${MAKEFILE_PATH})
+MAKEFILE_PATH = $(abspath $(lastword ${MAKEFILE_LIST}))
+MAKEFILE_DIR  = $(dir ${MAKEFILE_PATH})
 
-SSH_DIR 			?= ~/.ssh
-RELEASE 			?= r2
-CONTAINER_IMAGE 	?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:latest
-KAS_COMMAND 		?= KAS_CONTAINER_IMAGE=${CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container --ssh-dir ${SSH_DIR} --ssh-agent
+export IRMA6_DISTRO_VERSION := $(shell git -C ${MAKEFILE_DIR} rev-parse --short HEAD)
 
-DEPLOY_BASE_KAS_CONFIG      = kas-irma6-base-deploy.yml
-MAINTENANCE_PA_KAS_CONFIG   = kas-irma6-base-maintenance.yml:kas-irma6-pa.yml
-DEPLOY_PA_KAS_CONFIG        = kas-irma6-base-deploy.yml:kas-irma6-pa.yml
+SSH_DIR                 ?= ~/.ssh
+MULTI_CONF              ?= imx8mp-irma6r2
+BITBAKE_TARGET          ?= irma6-deploy
+BITBAKE_TARGET_IS_IMAGE ?= true
+BITBAKE_TASK            ?= build
+BUILD_FROM_SCRATCH      ?= false
 
-ifeq (${RELEASE}, r1)
-	TARGET_MULTI_CONF = sc573-gen6
-	QEMU_MULTI_CONF = qemux86-64-r1
+# whether to include proprietary code. Will require access to iris internal repositories
+INCLUDE_PROPRIETARY_LAYERS ?= true
+
+# Note, that building a release is usually only ever done via CI, as key
+# material is required. Theoretically it is possible to build a release
+# locally, but this requires setting up production keys on the build machine
+# (see include/kas-ci-deploy-signing*.yml files), as well as reproducing the CI job steps
+# and should only be considered as a last resort.
+RELEASE  ?= false
+CI_BUILD ?= false
+
+# only change these if you know what you are doing
+BUILDDIR    	?= /build
+KAS_TMPDIR      ?= ${BUILDDIR}/tmp
+DL_DIR      	?= ${BUILDDIR}/dl_dir
+SSTATE_DIR  	?= ${BUILDDIR}/sstate_dir
+
+KAS_EXTRA_ARGS ?=
+KAS_EXTRA_INCLUDES ?=
+BITBAKE_EXTRA_TARGETS ?=
+BITBAKE_EXTRA_ARGS ?=
+
+# only relevant if CI_BUILD == false
+KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:latest
+
+KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
+    --runtime-args " \
+    -e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
+    -e BUILDDIR=${BUILDDIR} \
+    -e TMPDIR=${KAS_TMPDIR} \
+    -e DL_DIR=${DL_DIR} \
+    -e SSTATE_DIR=${SSTATE_DIR} \
+	"
+
+KAS_COMMAND ?= ${KAS_EXE} \
+    --ssh-dir ${SSH_DIR} --ssh-agent
+
+ifneq (, ${MULTI_CONF})
+	_MULTI_CONF = mc:${MULTI_CONF}:
+	# check if multiconf target override exists to speed up recipe parse time
+	ifneq (,$(wildcard ${MAKEFILE_DIR}include/kas-irma6-${MULTI_CONF}.yml))
+		KAS_EXTRA_INCLUDES += :include/kas-irma6-${MULTI_CONF}.yml
+	endif
 endif
-ifeq (${RELEASE}, r2)
-	TARGET_MULTI_CONF = imx8mp-irma6r2
-	QEMU_MULTI_CONF = qemux86-64-r2
-endif
-ifeq (${RELEASE}, r2-evk)
-	TARGET_MULTI_CONF = imx8mp-evk
-	QEMU_MULTI_CONF = qemux86-64-r2
+
+ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
+	KAS_EXTRA_INCLUDES += :kas-irma6-pa.yml
 endif
 
-# default action: building ${RELEASE}
-build: build-${RELEASE}
-build-qemu: build-qemu-${RELEASE}
-build-sdk: build-sdk-${RELEASE}
-build-sdk-qemu: build-sdk-qemu-${RELEASE}
-build-base: build-base-${RELEASE}
-build-base-dump: build-base-dump-${RELEASE}
-patch-thirdparty-hostbuild: patch-thirdparty-hostbuild-${RELEASE}
-shell: shell-${RELEASE}
+ifeq (${BUILD_FROM_SCRATCH}, true)
+	BITBAKE_EXTRA_ARGS += --no-setscene
+endif
+
+## add CI specific configuration
+ifeq (${CI_BUILD}, true)
+	KAS_COMMAND = kas
+	KAS_EXTRA_INCLUDES += :include/ci/kas-ci-common.yml
+	ifeq (${RELEASE}, false)
+		KAS_EXTRA_INCLUDES += :include/ci/kas-ci-develop.yml
+		ifeq (${BRANCH_NAME}, ${CI_DEFAULT_BRANCH})
+			KAS_EXTRA_INCLUDES += :include/ci/kas-ci-populate-caches.yml
+		endif
+		ifeq (${FORCE_POPULATE_CACHES}, true)
+			KAS_EXTRA_INCLUDES += :include/ci/kas-ci-populate-caches.yml
+		endif
+	endif
+endif
+
+# add release specific configuration
+ifeq (${RELEASE}, true)
+	KAS_EXTRA_INCLUDES += :include/kas-release.yml:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml
+	ifeq (${CI_BUILD}, true)
+		KAS_EXTRA_INCLUDES += :include/ci/kas-ci-populate-release-caches.yml
+	endif
+endif
+
+# if BITBAKE_TARGET contains "irma6-deploy", set distro accordingly
+ifeq (irma6-deploy, $(findstring irma6-deploy, ${BITBAKE_TARGET}))
+	KAS_EXTRA_INCLUDES += :include/kas-irma6-deploy-distro.yml
+endif
+
+# if release 2 multiconf and bitbake build target is an image,
+# also build the required swu and uuu files.
+ifeq (${MULTI_CONF}, imx8mp-irma6r2)
+	ifeq (${BITBAKE_TARGET_IS_IMAGE}, true)
+		ifeq (${BITBAKE_TASK}, build)
+			BITBAKE_EXTRA_TARGETS += ${_MULTI_CONF}${BITBAKE_TARGET}-uuu ${_MULTI_CONF}${BITBAKE_TARGET}-swuimage
+		endif
+	endif
+endif
+
+KAS_SHELL = ${KAS_COMMAND} shell ${KAS_EXTRA_ARGS}
+
+# finalize KAS_CONFIG into list
+$(foreach word,$(KAS_EXTRA_INCLUDES),$(eval KAS_EXTRA_INCLUDES_LIST := $(KAS_EXTRA_INCLUDES_LIST)$(word)))
+KAS_CONFIG = kas-irma6-base.yml${KAS_EXTRA_INCLUDES_LIST}
+
+###
+
+# default action
+bitbake-${BITBAKE_TASK}:bitbake-${BITBAKE_TASK}-${MULTI_CONF}-${BITBAKE_TARGET}
+
+bitbake-${BITBAKE_TASK}-${MULTI_CONF}-${BITBAKE_TARGET}:
+	${KAS_SHELL} -c "bitbake ${_MULTI_CONF}${BITBAKE_TARGET} ${BITBAKE_EXTRA_TARGETS} -c ${BITBAKE_TASK} ${BITBAKE_EXTRA_ARGS}" ${KAS_CONFIG}
 
 # Updates the README table of contents
 update-toc:
 	doctoc --github --title "**Table of Contents**" README.md
 
 build-container:
-	docker build -t ${CONTAINER_IMAGE} -f ${MAKEFILE_DIR}Dockerfile_iris_kas ${MAKEFILE_DIR}
+	if [ "${CI_BUILD}" = "true" ]; then\
+		echo "make target only meant for local container build!";\
+		exit 1;\
+	fi;\
+	docker build -t ${KAS_CONTAINER_IMAGE} -f ${MAKEFILE_DIR}Dockerfile_iris_kas ${MAKEFILE_DIR};\
 
-clean:
-	${KAS_COMMAND} shell -c 'rm -rf $${BUILDDIR}' kas-irma6-base-common.yml
+clean-tmp-dir:
+	${KAS_SHELL} -c 'rm -rf $${TMPDIR}' ${KAS_CONFIG}
 
-pull:
-	${KAS_COMMAND} checkout --update ${MAINTENANCE_PA_KAS_CONFIG}
+clean-dl-dir:
+	${KAS_SHELL} -c 'rm -rf $${DL_DIR}' ${KAS_CONFIG}
 
-force-pull:
-	${KAS_COMMAND} checkout --update --force-checkout ${MAINTENANCE_PA_KAS_CONFIG}
+clean-sstate-dir:
+	${KAS_SHELL} -c 'rm -rf $${SSTATE_DIR}' ${KAS_CONFIG}
+
+clean-builddir:
+	${KAS_SHELL} -c 'rm -rf $${BUILDDIR}' ${KAS_CONFIG}
+
+pull-layers:
+	${KAS_COMMAND} checkout --update ${KAS_CONFIG}
+
+force-pull-layers:
+	${KAS_COMMAND} checkout --update --force-checkout ${KAS_CONFIG}
 
 run-qemu:
-	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${MAINTENANCE_PA_KAS_CONFIG}
+	${KAS_SHELL} -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KAS_CONFIG}
 
-build-sdk-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
+patch-thirdparty-hostbuild: patch-thirdparty-hostbuild-r2
 
-build-sdk-qemu-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${QEMU_MULTI_CONF}:irma6-maintenance -c do_populate_sdk" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${QEMU_MULTI_CONF}.yml
+patch-thirdparty-hostbuild-r1:
+	${KAS_SHELL} -c "bitbake mc:qemux86_64-r1:${THIRDPARTY} ${BITBAKE_EXTRA_ARGS} -c do_patch" ${KAS_CONFIG}
 
-build-qemu-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${QEMU_MULTI_CONF}:irma6-test" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${QEMU_MULTI_CONF}.yml
+patch-thirdparty-hostbuild-r2:
+	${KAS_SHELL} -c "bitbake mc:qemux86_64-r2:${THIRDPARTY} ${BITBAKE_EXTRA_ARGS} -c do_patch" ${KAS_CONFIG}
 
-build-base-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
+create-kas-lockfile:
+	${KAS_COMMAND} dump --lock --inplace ${KAS_CONFIG}
 
-build-base-dump-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-base" ${DEPLOY_BASE_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml:include/kas-offline-build.yml
+KAS_SHELL_CMD ?= echo Hello World!
+kas-shell:
+	${KAS_SHELL} -c "${KAS_SHELL_CMD}" ${KAS_CONFIG}
 
-build-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-deploy" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
-	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-maintenance mc:${TARGET_MULTI_CONF}:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
+kas-int-shell:
+	${KAS_SHELL} ${KAS_CONFIG}
 
-patch-thirdparty-hostbuild-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:${THIRDPARTY} -c do_patch" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
+remove-symlinks-image-dir:
+	${KAS_SHELL} -c "if [ -d "\$${TMPDIR}/deploy/images" ]; then find \$${TMPDIR}/deploy/images -type l -exec rm -f {} \; ;fi" ${KAS_CONFIG}
 
-shell-${RELEASE}:
-	${KAS_COMMAND} shell ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
+export BRANCH_NAME ?= master
+checkout-branch-in-iris-layers:
+	${KAS_COMMAND} for-all-repos ${KAS_CONFIG} " \
+		export BRANCH_NAME=${BRANCH_NAME}; \
+		test \"\$${KAS_REPO_NAME}\" = \"this\" || bash ${MAKEFILE_DIR}utils/set_layer_branchname.sh; \
+	"
 
-git-flow:
-	git flow init -d
-
-start-release: git-flow
-	@[ -n "${TAG}" ] || { echo "Error: Please specify the TAG variable" >&2; exit 1; }
-	git flow release start --showcommands ${TAG} develop
-	@echo "Info: Setting fixed refspecs on thirdparty layer repos for you..."
-	${KAS_COMMAND} for-all-repos --update kas-irma6-base-common.yml:kas-irma6-pa.yml 'if echo "$${KAS_REPO_NAME}" | grep -vq "iris" && [ "$${KAS_REPO_NAME}" != "this" ]; then git checkout $${KAS_REPO_REFSPEC} && yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git rev-parse --verify HEAD)\"" -i ../kas-irma6-base-common.yml; fi'
-	git add -A
-	git commit -m "Fixed refspecs on thirdparty layers for release ${TAG}"
-	@echo "Info: Please make sure you adjust "IRMA6_DISTRO_VERSION" in kas-irma6-base-common.yml, set fixed refspecs for iris layers and that the changelog is up-to-date before merging the release."
-
-start-support: git-flow
-	@[ -n "${TAG}" ] || { echo "Error: Please specify the TAG variable. e.g. support/2.2.2-foo" >&2; exit 1; }
-	@[ -n "${BASE_COMMIT}" ] || { echo "Error: Please specify the BASE_COMMIT variable. This is a commit on the master branch from which the support release shall be created." >&2; exit 1; }
-	git flow support start --showcommands ${TAG} ${BASE_COMMIT}
-	@echo "Info: Please make sure you adjust "IRMA6_DISTRO_VERSION" in kas-irma6-base-common.yml, set fixed refspecs for iris layers and that the changelog is up-to-date before tagging the support release."
-
-set-fixed-refspecs:
-	@echo "Info: Setting fixed refspecs on thirdparty layer repos for you..."
-	${KAS_COMMAND} for-all-repos --update kas-irma6-base-common.yml:kas-irma6-pa.yml 'if echo "$${KAS_REPO_NAME}" | grep -vq "iris" && [ "$${KAS_REPO_NAME}" != "this" ]; then git checkout $${KAS_REPO_REFSPEC} && yq e ".repos.$${KAS_REPO_NAME}.refspec = \"$$(git rev-parse --verify HEAD)\"" -i ../kas-irma6-base-common.yml; fi'
+set-fixed-refspecs: create-kas-lockfile
+	@echo "Warning: set-fixed-refspec is deprecated and will be removed in the future. Use create-kas-lockfile instead.

@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+#
+# Override the distro config for deploy build
 
 header:
   version: 14
 
-target:
-  - multiconfig:imx8mp-evk
+distro: "poky-iris-deploy"
