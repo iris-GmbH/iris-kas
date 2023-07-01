@@ -5,28 +5,21 @@
 - [iris-kas](#iris-kas)
   - [Latest release](#latest-release)
   - [Build status](#build-status)
-  - [Maintainers](#maintainers)
   - [What is KAS?](#what-is-kas)
   - [How does it work?](#how-does-it-work)
   - [Prerequisites](#prerequisites)
-    - [Native Installation](#native-installation)
     - [Docker (default and recommended)](#docker-default-and-recommended)
       - [Docker and SELinux](#docker-and-selinux)
-  - [Usage (general)](#usage-general)
-    - [Supported environment variables](#supported-environment-variables)
-  - [Usage (IRIS developers)](#usage-iris-developers)
-    - [Build all images](#build-all-images)
-    - [Run interactive QEMU VM](#run-interactive-qemu-vm)
-    - [Update all repos](#update-all-repos)
-    - [Force update all repos](#force-update-all-repos)
-    - [Version pinning for thirdparty layer repositories](#version-pinning-for-thirdparty-layer-repositories)
-    - [Prepare a firmware release](#prepare-a-firmware-release)
-    - [Prepare a firmware support release](#prepare-a-firmware-support-release)
-    - [Cleanup all artifacts](#cleanup-all-artifacts)
-  - [Usage (IRIS customers)](#usage-iris-customers)
-    - [Build our current base Linux distribution](#build-our-current-base-linux-distribution)
-    - [Build our base Linux distribution from a source-code dump](#build-our-base-linux-distribution-from-a-source-code-dump)
-  - [Running arbitrary KAS commands](#running-arbitrary-kas-commands)
+    - [Native Installation](#native-installation)
+  - [Usage](#usage)
+    - [Running a build (make kas-build)](#running-a-build-make-kas-build)
+    - [Updating layer repositories](#updating-layer-repositories)
+    - [Creating a release](#creating-a-release)
+    - [Advanced use-cases](#advanced-use-cases)
+      - [Building the irma6-base image](#building-the-irma6-base-image)
+      - [Running arbitrary commands in the KAS shell (make kas(-interactive)-shell)](#running-arbitrary-commands-in-the-kas-shell-make-kas-interactive-shell)
+      - [Running KAS manually](#running-kas-manually)
+      - [Reproducible pipeline builds](#reproducible-pipeline-builds)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -35,37 +28,25 @@
 ## Latest release
 [![Latest Release](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/-/badges/release.svg)](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/-/releases)
 
-
 ## Build status
 The current status of the develop branch is: [![develop status](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/badges/develop/pipeline.svg)](https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/-/commits/develop)
-
-
-## Maintainers
-- Jasper Orschulko <Jasper [dot] Orschulko [att] iris-sensing.com>
-- Erik Schumacher <Erik [dot] Schumacher [att] iris-sensing.com>
-
 
 ## What is KAS?
 KAS is a bitbake wrapper developed and maintained by Siemens.
 It minimises build setup steps and repository management.
 
-
 ## How does it work?
 - The file `kas-irma6-base.yml` is the main configuration file for our custom Linux distribution and describes how KAS should prepare our build environment. It is also used to generate various config files, such as yocto's `local.conf`.
 - The file `kas-irma6-pa.yml` contains the recipes and configuration for building our proprietary platform application on top of the iris Linux distribution.
+- Depending on the task at hand, additional include configs are used from the `include/` folder.
 
 ## Prerequisites
-
-### Native Installation
-- [native KAS installation](https://kas.readthedocs.io/en/latest/userguide.html#dependencies-installation) on a [supported host system prepared for yocto builds](https://www.yoctoproject.org/docs/3.1/mega-manual/mega-manual.html#brief-compatible-distro)
-- as IRIS developer: SSH key configured for accessing our private git repositories. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the encryption algorithm`).
-- for release preparation: [yq installed](https://github.com/mikefarah/yq#install)
-
 ### Docker (default and recommended)
 - Linux, Mac or WSL in Windows (officially we only support Linux)
 - [installed and active docker daemon](https://docs.docker.com/engine/install/), make sure the groups are [correctly set](https://docs.docker.com/engine/install/linux-postinstall/)
 - installed GNU make
-- as IRIS developer: SSH folder containing a SSH key configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the encryption algorithm`).
+- installed jq
+- as IRIS developer: SSH folder containing a SSH key configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the cryptosystem, e.g. rsa`).
 - using Docker on a host with SELinux enabled requires additional steps, as described below.
 
 #### Docker and SELinux
@@ -82,180 +63,78 @@ Alternatively, if your SSH key is password protected, ensure you have configured
 
 Afterwards you can run the `make` commands as described below.
 
-## Usage (general)
+### Native Installation
+- [native KAS installation](https://kas.readthedocs.io/en/latest/userguide.html#dependencies-installation) on a [supported host system prepared for yocto builds](https://www.yoctoproject.org/docs/3.1/mega-manual/mega-manual.html#brief-compatible-distro)
+- as IRIS developer: SSH key configured for accessing our private git repositories. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the cryptosystem, e.g. rsa`).
+- for release preparation: [yq installed](https://github.com/mikefarah/yq#install)
 
-### Supported environment variables
+## Usage
 
-Environment variables can be passed to the make command (e.g. `RELEASE=r2 make build`).
+We recommend using the provided Makefile for running KAS commands, at it does some of the heavy lifting regarding build configuration. Makefile tasks are controlled using environment variables, which are parsed to the make command, e.g. `KAS_TARGET_RECIPE=irma6-deploy make`.
 
-We currently support the following variables:
+`kas-build` is the default action when calling make and corresponds to the [kas build plugin](https://kas.readthedocs.io/en/latest/userguide.html#module-kas.plugins.build). As the name implies, this plugins main usage is to build a target recipe, however by overriding the default `KAS_TASK`, the plugin can be used in a much more versatile way.
 
-| Variable    | Description                                                                                                                                                                                                        | Default value                                                                                            |
-|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| KAS_COMMAND | The command for running the KAS executable. By default, KAS will run in a docker container (recommended). Set this to `kas` if you want to use a host installation of KAS                                          | `KAS_CONTAINER_IMAGE=${CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container --ssh-dir ${SSH_DIR} --ssh-agent` |
-| SSH_DIR     | Sets the path to a directory containing an authorized SSH key (e.g.: id_rsa, id_ed25519, ...) as well as a known_hosts file containing our private git server. This path will be mounted into the docker container | `~/.ssh`                                                                                                 |
-| RELEASE     | Sets the release you wish to build (currently `r1` for sc573-gen6 or `r2` for imx8mp-evk)                                                                                                                          | `r2`                                                                                                     |
-| TAG         | Sets the tag to use during the release or support release process (e.g. `2.3.0`, `2.3.0-custom`)                                                                                                                   | None                                                                                                     |
+### Running a build (make kas-build)
 
+> :warning: By default, kas will NOT update layer repositories after an initial clone. See section [Updating layer repositories](#updating-layer-repositories).
 
-**Optional variable overrides for all make commands:**
-- `CONTAINER_IMAGE`
-- `KAS_COMMAND`
-- `SSH_DIR`
+These are the basic settings for controlling kas-related make tasks and should cover most use-cases.
 
-## Usage (IRIS developers)
+| VARIABLE   | DESCRIPTION | DEFAULT VALUE |
+|------------|-------------|---------------|
+| MULTI_CONF | Controls the used [multiconf](https://docs.yoctoproject.org/singleindex.html#building-images-for-multiple-targets-using-multiple-configurations). We use multiconfs for differentiating between the various target platforms. E.g. `sc573-gen6` corresponds to IRMA6 R1 and `imx8mp-irma6r2` corresponds to IRMA6 R2. Click [here](https://github.com/iris-GmbH/meta-iris-base/tree/develop/conf/multiconfig) for all supported multiconfigs. | `imx8mp-irma6r2` |
+| KAS_TARGET_RECIPE | Defines one or more bitbake recipes to build. Common image targets include `irma6-maintenance`, `irma6-deploy`, `irma6-dev` | `irma6-maintenance` |
+| KAS_TARGET_RECIPE_IS_IMAGE | Should be set to `false` if the target recipe is NOT an image | `true` |
+| KAS_TASK | The bitbake task to perform. Common tasks include `build`, `populate_sdk`, `fetch`, `clean`, ... Check the Yocto docs for a more complete list. | `build` |
+| SSH_DIR | Specifies the folder containing a SSH key for authenticating against iris' proprietary repositories. | `~/.ssh` |
 
-### Build all images
+### Updating layer repositories
 
-Required variables:
-- None
+You should regularly update your layer repositories, to ensure your build is working and up-to-date.
 
-Additional, optional variable overrides:
-- `RELEASE`
+There are multiple options to update layer repositories:
 
-Commands:
-- `[ENV_VARS] make build`
+1. run your make commands with the variable `KASOPTIONS=--update`. Be advised that this option will cause your builds to ignore potentially existing KAS lock files.
+2. run `make kas-update`, which will do a one-time update of layer repositories. Note, that this skip repositories with uncommitted changes and will remove locally committed but not pushed changes on the specified branch (use `git reflog` to restore).
+3. run `make kas-force-update`, which will do a one-time update of layer repositories, discarding any changes that are uncommitted or locally committed but not pushed.
 
+### Running an interactive KAS shell (make kas-shell)
 
-### Run interactive QEMU VM
+You can start an interactive shell within the KAS/bitbake build environment by running `make kas-shell`.
 
-*Will also expose a SSH server reachable on host machine via localhost:2222*
+### Creating a release
 
-Required variables:
-- None
+> :information_source: Before creating a release in iris-kas, ensure you have appropriate releases in meta-iris(-base) layer repositories.
 
-**Additional, optional variable overrides:**
-- `RELEASE`
+1. Ensure your develop branch is up-to-date: `git checkout develop && git fetch && git merge --ff-only`
+2. Create a release or support branch, branching of the current develop (e.g. `release/3.0.0`, `support/3.0.0-support-suffix`): `git checkout -b release/3.0.0`
+3. Run `make prepare-release`, which will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-irma6-base.lock.yml`.
+4. Verify the content of the lock file. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in the lock file appropriately.
+5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`
+6. create a commit tag: `git tag <RELEASE_VERSION>`
+7. Push commit and commit tag to remote: `git push && git push --tags`
+8. Wait for the automatically triggered GitLab release pipeline to reach "blocked".
+9. Run the manual `publish-release` pipeline job for the appropriate target.
+10. If the release was successful run the manual `release-clean-sstate-cache` job to finalize the release pipeline.
 
-Commands:
-- `[ENV_VARS] make build-qemu` *(run at least 1x after initial clone, re-run regularly for updates)*
-- `[ENV_VARS] make run-qemu`
+### Advanced use-cases
+#### Running arbitrary KAS commands (make kas)
 
+In some rare cases the KAS `build` plugin might not be flexible enough for you. In these cases, you can run arbitrary KAS commands by utilizing the `make kas` command.
 
-### Update all repos
+By default `make kas` behaves identical to `make kas-build`, however it allows for a complete override of the KAS arguments by setting the `KAS_ARGS` environment variable, e.g.:
 
-*Will update repos and checkout refspecs as defined in the manifest files. WARNING: Will skip dirty repos*
+- `KAS_ARGS="shell -c \"bitbake mc:sc573-gen6:irma6-maintenance\"" make kas`
+- `KAS_ARGS="checkout" make kas`
 
-Required variables:
-- None
+#### Reproducible pipeline builds
 
-Additional, optional variable overrides:
-- None
+We try our best to keep our builds reproducible.
 
-Commands:
-- `[ENV_VARS] make pull`
+For tagged releases this is ensured by verifying the existence of a kas lockfile (*.lock.yml), locking meta-layer repositories to a fixed commit.
+Additionally, the generated [yocto buildhistory](https://docs.yoctoproject.org/singleindex.html#maintaining-build-output-quality) is stored together with the build artifacts.
+Combining the iris-kas release commit, the lockfile and the buildhistory output, it is possible to reconstruct the complete build setup and all used package versions.
 
+For development builds, only builds done from the trunk branch (develop) are kept reproducible, since we cannot guarantee that the git history on other branches are not rewritten.
 
-### Force update all repos
-
-*Will force update repos and checkout refspecs as defined in the manifest files. WARNING: Will discard any uncommitted changes in repos*
-
-Required variables:
-- None
-
-Additional, optional variable overrides:
-- None
-
-Commands:
-- `[ENV_VARS] make force-pull`
-
-
-### Version pinning for thirdparty layer repositories
-
-*Will automatically set fixed commit hashes for thirdparty layer repos in kas-irma6-base-common.yml. Useful for temporary version pinning of the base software*
-
-Required variables:
-- None
-
-Additional, optional variable overrides:
-- None
-
-Commands:
-- `[ENV_VARS] make set-fixed-refspecs`
-
-
-### Prepare a firmware release
-
-*Will create a release branch, set and commit fixed refspecs in the manifest files*
-
-Required variables:
-- `TAG`
-
-Additional, optional variable overrides:
-- None
-
-Commands:
-- `[ENV_VARS] make start-release`
-
-
-### Prepare a firmware support release
-
-*Will create a support branch, set and commit fixed refspecs in the manifest files*
-
-Required variables:
-- `TAG`
-
-Additional, optional variable overrides:
-- None
-
-Commands:
-- `[ENV_VARS] make start-support`
-
-
-### Cleanup all artifacts
-
-*Will delete the content of the build directory*
-
-Required variables:
-- None
-
-Additional, optional variable overrides:
-- None
-
-Commands:
-- `[ENV_VARS] make clean`
-
-
-## Usage (IRIS customers)
-
-### Build our current base Linux distribution
-
-*As an IRIS customer you might be interested in building our base Linux distribution, which is configured for running our proprietary platform application (not included)*
-
-Required variables:
-- None
-
-Additional, optional variable overrides:
-- `RELEASE`
-
-Commands:
-- `[ENV_VARS] make build-base`
-
-
-### Build our base Linux distribution from a source-code dump
-
-*As an IRIS customer you might want to build the base Linux image belonging to a specific firmware version using a provided source code dump*
-
-Required variables:
-- None
-
-Additional, optional variable overrides:
-- `RELEASE`
-
-Commands:
-- `[ENV_VARS] make build-base-dump`
-
-
-## Running arbitrary KAS commands
-
-In advanced use cases, it might become necessary to call KAS directly, e.g. when running custom bitbake commands.
-
-In the case of a local KAS installation, this can be done by calling the `kas` binary directly, e.g.:
-
-`kas shell -c "bitbake foo" kas-irma6-base-deploy.yml:kas-irma6-pa.yml`.
-
-When using the docker based setup, use the `kas-container` script instead ("[]" marks optional Variables):
-
-`kas-container [--ssh-dir <SSH_DIR>] [--ssh-agent] ...` 
-
-For a detailed documentation on using KAS, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/).
+To achieve this, each development build done in the pipeline will include the unique pipeline ID in the DISTRO_VERSION variable. Using the pipeline ID, the developer may identify the corresponding pipeline in GitLab and download the kas lockfile and buildhistory from the `trunk-build-reproducibility` job. These artifacts are kept on a best-effort basis for a maximum of 10 years.

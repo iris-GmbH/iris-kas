@@ -2,7 +2,7 @@
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
 
 header:
-  version: 9
+  version: 14
 
 target:
   - multiconfig:sc573-gen6

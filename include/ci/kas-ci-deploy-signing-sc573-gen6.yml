@@ -2,7 +2,9 @@
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
 header:
-  version: 9
+  version: 14
+  includes:
+    - "include/ci/kas-ci-deploy-signing.yml"
 
 local_conf_header:
   # override download develop keys with production keys for release
