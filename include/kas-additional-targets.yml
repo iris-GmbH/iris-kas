@@ -5,7 +5,7 @@
 # Additional target configurations
 
 header:
-  version: 9
+  version: 14
 
 target:
   - multiconfig:sc572-gen6
