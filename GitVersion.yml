@@ -1,0 +1,8 @@
+branches:
+  develop:
+    increment: Patch
+  feature:
+    increment: Patch
+  pull-request:
+    increment: Patch
+increment: Patch

@@ -9,9 +9,10 @@ USER root
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
-        cmake \
-        icecc \
         awscli \
+        ca-certificates \
+        cmake \
+        jq \
     && rm -rf /var/lib/apt/lists
 COPY --from=yq /usr/bin/yq /usr/bin/yq
 RUN yq --version
