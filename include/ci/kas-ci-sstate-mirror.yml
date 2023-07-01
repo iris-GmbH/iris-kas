@@ -2,7 +2,7 @@
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
 
 header:
-  version: 9
+  version: 14
 
 local_conf_header:
   sstate_mirror: |

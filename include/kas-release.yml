@@ -2,9 +2,8 @@
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
 
 header:
-  version: 9
+  version: 14
 
 local_conf_header:
-  cache_dirs: |
-    DL_DIR = "/mnt/yocto-download-mirror"
-    SSTATE_DIR = "/mnt/yocto-sstate-cache-release"
+  hashservice: |
+    unset BB_HASHSERVE
