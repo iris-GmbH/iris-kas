@@ -11,6 +11,7 @@ RUN apt-get update \
         make \
         cmake \
         git \
+        ccache \
     && rm -rf /var/lib/apt/lists
 COPY --from=build /sdk /sdk
 ADD entrypoint_sdk.sh /entrypoint.sh
