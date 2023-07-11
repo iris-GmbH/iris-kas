@@ -217,7 +217,7 @@ skip-non-default-branch-merge-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
   stage: setup
   tags:
-    - gp
+    - gp-tiny
   before_script: []
   script:
     - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
@@ -227,7 +227,7 @@ build-container-get-tag:
     - !reference [.common_template, rules, build_container_rules]
   stage: setup
   tags:
-    - gp
+    - gp-tiny
   image:
     name: busybox:1.36.1-uclibc
   before_script: []
@@ -258,7 +258,7 @@ oci-get-tag:
     - !reference [.develop_template, rules]
   stage: setup
   tags:
-    - gp
+    - gp-tiny
   image: busybox:1.36.1-uclibc
   before_script: []
   script:
@@ -313,7 +313,7 @@ build-iris-kas-container:
 merge-container-manifests:
   stage: merge-build-container
   tags:
-    - gp
+    - gp-tiny
   rules:
     - !reference [.common_template, rules, build_container_rules]
   image:
@@ -731,7 +731,7 @@ push-test-oci:
   variables:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   tags:
-    - gp
+    - gp-tiny
   image: quay.io/skopeo/stable:v1.12.0
   before_script: []
   script:
@@ -872,7 +872,7 @@ push-maintenance-oci:
   variables:
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   tags:
-    - gp
+    - gp-tiny
   image: quay.io/skopeo/stable:v1.12.0
   before_script: []
   script:
@@ -916,7 +916,7 @@ develop-upload-sdks:
       when: never
     - !reference [.develop_template, rules]
   tags:
-    - gp
+    - gp-tiny
   before_script: []
   script:
     - >
@@ -935,7 +935,7 @@ release-upload-artifacts:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - gp
+    - gp-tiny
   before_script: []
   script:
     - >
@@ -966,7 +966,7 @@ release-clean-sstate-cache:
 publish-release:
   stage: release
   tags:
-    - gp
+    - gp-tiny
   rules:
     - !reference [.release_template, rules]
   variables:
