@@ -56,7 +56,7 @@ update-non-protected-branch:
     - if: '$CI_PIPELINE_SOURCE == "web"'
   stage: setup
   tags:
-    - gp
+    - gp-tiny
   image: bitnami/git:2.38.1
   before_script:
     - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
