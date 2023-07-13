@@ -916,7 +916,7 @@ develop-upload-sdks:
       when: never
     - !reference [.develop_template, rules]
   tags:
-    - gp-tiny
+    - gp
   before_script: []
   script:
     - >
@@ -935,7 +935,7 @@ release-upload-artifacts:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - gp-tiny
+    - gp
   before_script: []
   script:
     - >
