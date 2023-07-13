@@ -6,13 +6,6 @@ RUN SCRIPT=$(find /${SDK_SOURCE} -type f -name "*.sh") \
     && /bin/sh ${SCRIPT} -d /sdk -y
 
 FROM debian:bullseye-slim
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        make \
-        cmake \
-        git \
-        ccache \
-    && rm -rf /var/lib/apt/lists
 COPY --from=build /sdk /sdk
 ADD entrypoint_sdk.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
