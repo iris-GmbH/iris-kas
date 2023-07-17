@@ -97,6 +97,9 @@ repos:
       # Add python3-tox
       0005-python3-tox-Add-initial-recipe-4.6.0:
         path: "patches/0005-python3-tox-Add-initial-recipe-4.6.0.patch"
+      # Fix gcovr for gcc-11
+      0001-python3-gcovr-Fix-parsing-of-gcc-11-gcov-metadata:
+        path: "patches/0001-python3-gcovr-Fix-parsing-of-gcc-11-gcov-metadata.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     refspec: "kirkstone"
