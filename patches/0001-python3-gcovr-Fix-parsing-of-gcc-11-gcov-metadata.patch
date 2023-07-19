@@ -8,6 +8,8 @@ error.
 
 Backported from gcovr 5.2, as kirkstone release uses gcc-11.
 
+Upstream-Status: Submitted [https://lists.openembedded.org/g/openembedded-devel/message/103965]
+
 Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
 ---
  ...001-Fix-parsing-of-gcov-metadata-601.patch | 87 +++++++++++++++++++
