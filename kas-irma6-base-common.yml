@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.0-RC16"
+    IRMA6_DISTRO_VERSION = "3.0.0-RC17"
 defaults:
   repos:
     patches:
@@ -23,7 +23,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "83734c18ccd32409bf9404fb4a03b5c380bccfe3"
+    refspec: "ac20c8026a2c5a6dd6d0ac1ea7b3e3c8b2196774"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     refspec: "ed328ee6f613f4ee8127a2fead931afafc39788a"
