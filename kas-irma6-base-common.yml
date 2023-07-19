@@ -100,6 +100,9 @@ repos:
       # Fix gcovr for gcc-11
       0001-python3-gcovr-Fix-parsing-of-gcc-11-gcov-metadata:
         path: "patches/0001-python3-gcovr-Fix-parsing-of-gcc-11-gcov-metadata.patch"
+      # Fix yaml-cpp cmake export
+      0001-yaml-cpp-Fix-cmake-export:
+        path: "patches/0001-yaml-cpp-Fix-cmake-export.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     refspec: "kirkstone"
