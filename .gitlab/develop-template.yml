@@ -9,7 +9,7 @@
     # Do not run merge request pipelines on merges to master branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
       when: never
-    - when: always
+    - when: on_success
 
   script:
     build-configuration:
@@ -35,18 +35,38 @@
           echo "Populating caches..."
           export POPULATE_CACHES=":include/ci/kas-ci-populate-caches.yml"
         fi
-      # try to checkout the current branch name (feature/bugfix/...) in all iris meta layers. This makes working with multiple repositories easier for the developers
+      # try to checkout the current branch name (feature/bugfix/...) in all iris meta layers and platform application. This makes working with multiple repositories easier for the developers
       - >
-        if [ "${USE_IDENTICAL_NAMED_LAYER_BRANCHES}" = "true" ] && [ "${BRANCH_NAME}" != "${CI_DEFAULT_BRANCH}" ] && [ "${BRANCH_NAME}" != "${RELEASE_BRANCH}" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
+        if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ] && [ "${BRANCH_NAME}" != "${CI_DEFAULT_BRANCH}" ] && [ "${BRANCH_NAME}" != "${RELEASE_BRANCH}" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
           echo "{\"header\": {\"version\": 9}, \"env\": {\"BRANCH_NAME\": \"$BRANCH_NAME\"}}" | yq > env.yml
           kas for-all-repos --update ${MAIN_KAS_FILES}:env.yml """
             test \"\$KAS_REPO_NAME\" = \"this\" || bash ../utils/set_layer_branchname.sh
           """
+          # temporary disable exit code pipeline failures
+          set +e
+          # check if i6pa repo contains the current branch ref
+          git ls-remote --heads --exit-code https://token:${I6PA_READ_TOKEN}@${I6PA_REPO_REMOTE} ${BRANCH_NAME}
+          exitcode=$?
+          set -e
+          if test $exitcode -eq 0; then
+            echo "Setting I6PA branch ref to ${BRANCH_NAME}..."
+            I6PA_BRANCH=true
+          elif test $exitcode -eq 2; then
+            echo "Branch ${BRANCH_NAME} does not exist in I6PA repo. Sticking to develop..."
+          else
+            echo "Error while trying to check for branch ${BRANCH_NAME} in I6PA repo"
+            exit 1
+          fi
         fi
       - >
         if [ "${BUILD_FROM_SCRATCH}" = "true" ]; then
           echo "This build will be done from scratch...";
           export NO_SETSCENE="--no-setscene"
+        fi
+      - >
+        if [ -n "${I6PA_BRANCH}" ] || [ "${UPSTREAM_PROJECT_NAME}" = "i6pa" ]; then
+          echo "Using I6PA branch refspec ${BRANCH_NAME} for build..."
+          kas shell -c "recipetool setvar ${COUNTER_MINIMAL_RECIPE_PATH} VERSION branch=${BRANCH_NAME}" ${MAIN_KAS_FILES}
         fi
     build:
       - echo "Building ${BUILD_TARGETS}..."
@@ -61,7 +81,7 @@
   after_script:
     # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
     move-artifacts-to-toplevel:
-      - mv build/tmp/deploy irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}
+      - mv ${JOB_ARTIFACT} irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}
   artifacts:
     develop-artifacts:
       name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
@@ -70,11 +90,5 @@
       paths:
         - "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
         - "${FAILURE_LOG_DIR}"
-      untracked: false
-      expire_in: 7 days
-    develop-qemu-artifacts:
-      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      paths:
-        - "${MULTI_CONF}-deploy.tar.gz"
       untracked: false
       expire_in: 7 days

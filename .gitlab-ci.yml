@@ -1,18 +1,29 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
+
+#####################
+### INCLUDE FILES ###
+#####################
+
 include:
   - ".gitlab/common-template.yml"
   - ".gitlab/release-template.yml"
   - ".gitlab/develop-template.yml"
-  - ".gitlab/test-qemu-template.yml"
+
+###############################
+### CI VARIABLE DEFINITIONS ###
+###############################
 
 variables:
   RELEASE_BRANCH: "master"
-  BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:latest"
+  BUILD_VERSION_TAG: "latest"
+  BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
-  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*(?<!iris-GmbH))?/([^/]*?)(?:.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
+  KAS_PREMIRRORS: |
+    ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
+    ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
   MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   SSTATE_CACHE: "/mnt/yocto-sstate-cache"
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
@@ -20,7 +31,12 @@ variables:
   ICECREAM_NETNAME: "ICECREAM"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
+  COUNTER_MINIMAL_RECIPE_PATH:
+    value: "${BUILDDIR}/../meta-iris/recipes-platform/counter/counter-minimal.bb"
+    expand: false
+  I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
   FAILURE_LOG_DIR: "failure-log"
+  JOB_ARTIFACT: "build/tmp/deploy"
   # Refspec of the systemtest_base repo to use
   SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
   # Set the name of the firmware to be programmed with systemtest_smoke job
@@ -42,25 +58,35 @@ variables:
   SC573_GEN6_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
   SC573_GEN6_SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
   SC573_GEN6_BASESOURCES: sc573-gen6-base-sources
+  RENOVATE_PLATFORM: "gitlab"
+  RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
+  RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
+  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"an.tran\", \"erik.schumacher\", \"thomas.noack\", \"michael.kirscht\", \"daniel.baumgart\" ]"
+  RENOVATE_PR_CONCURRENT_LIMIT: "0"
+  RENOVATE_PR_HOURLY_LIMIT: "0"
+  # Set extra flags for the renovate bot
+  RENOVATE_EXTRA_FLAGS: ""
+  FORCE_RENOVATE_RUN: "false"
+  RENOVATE_DRY_RUN: "false"
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
-  USE_IDENTICAL_NAMED_LAYER_BRANCHES:
+  USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
-    description: 'Set to "true" to use identical named meta layer branches during the build'
+    description: 'Set to "true" to use identical named branches in iris meta layers and i6pa during the build'
   SKIP_DEPLOY_TARGET_BUILD:
     value: "false"
     description: 'Set to "true" to skip the deploy firmware build for the sensor targets.'
   SKIP_MAINTENANCE_TARGET_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
-  SKIP_QEMU_BUILD:
+  SKIP_MAINTENANCE_OCI_BUILD:
     value: "false"
-    description: 'Set to "true" to skip the firmware build for the QEMU targets. Will be ignored if SKIP_QEMU_TESTS is set to false.'
-  SKIP_QEMU_TESTS:
+    description: 'Set to "true" to skip the irma6-maintenance OCI build for running a containerized virtual sensor on your host.'
+  SKIP_OCI_TESTS:
     value: "false"
-    description: 'Set to "true" to skip the QEMU tests.'
-  FORCE_CONTAINER_BUILD:
+    description: 'Set to "true" to skip the OCI tests.'
+  FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
   SKIP_SYSTEMTEST_SMOKE:
@@ -72,6 +98,25 @@ variables:
   BUILD_FROM_SCRATCH:
     value: "false"
     description: 'Set to "true" to build from scratch.'
+
+
+####################
+### YAML ANCHORS ###
+####################
+
+.target_multi_confs: &target_multi_confs
+  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+
+.oci_multi_confs: &oci_multi_confs
+  MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+
+.all_multi_confs: &all_multi_confs
+  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2, qemux86-64-r1, qemux86-64-r2]
+
+
+################
+### WORKFLOW ###
+################
 
 workflow:
   rules:
@@ -93,7 +138,11 @@ workflow:
     # 1.0.1, 1.0.1-RC1, 1.0.1-support-release
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+(-.+)?/'
 
-# default config for all jobs
+
+########################
+### DEFAULT SETTINGS ###
+########################
+
 default:
   image: "${BUILD_IMAGE}"
   before_script:
@@ -103,28 +152,78 @@ default:
     # run on gitlab runners designed for kas builds
     - kas
 
-# List of stages for jobs, and their order of execution
+
+##############
+### STAGES ###
+##############
+
 stages:
+  - renovate
   - setup
   - build-build-container
   - merge-build-container
-  - wipe
   - yocto-setup
-  - build-base
+  - release-sanity-checks
+  - wipe-sstate-caches
   - build
+  - push-oci-images
   - test
   - reliability-test
   - upload-artifacts
   - release
 
-container-get-tag:
+renovate-dry-run:
+  stage: renovate
+  rules:
+    - if: $RENOVATE_DRY_RUN == "true"
+  image: renovate/renovate:35.32.2
+  tags:
+    - gp
+  before_script: []
+  script:
+    - renovate --dry-run=full ${RENOVATE_EXTRA_FLAGS}
+  allow_failure: true
+
+renovate:
+  stage: renovate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $FORCE_RENOVATE_RUN == "true"
+  image: renovate/renovate:35.32.2
+  tags:
+    - gp
+  before_script: []
+  script:
+    - renovate ${RENOVATE_EXTRA_FLAGS}
+
+
+###################
+### SETUP STAGE ###
+###################
+
+# We do not want to run a pipeline on merges to non-default branch.
+# During a release process (merge target branch master), we are interested in the release candidate builds, not the merge request
+# builds, as the development and release pipelines work fundamentally different.
+# However, since a merge request is blocked regardless of branch, as long as no pipeline is run, we need a empty placeholder
+# job for the pipeline to "turn green".
+skip-non-default-branch-merge-pipeline:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
   stage: setup
+  tags:
+    - gp
+  before_script: []
+  script:
+    - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
+
+build-container-get-tag:
   rules:
     - !reference [.common_template, rules, build_container_rules]
+  stage: setup
   tags:
     - gp
   image:
-    name: alpine:3.17
+    name: alpine:3.18
   before_script: []
   script:
     # Default branch = latest tag
@@ -139,10 +238,42 @@ container-get-tag:
         BUILD_VERSION_TAG="git-${CI_COMMIT_SHORT_SHA}"
       fi
     - echo "BUILD_VERSION_TAG set to ${BUILD_VERSION_TAG}."
-    - echo "BUILD_IMAGE=${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}" >> build.env
+    - echo "BUILD_VERSION_TAG=${BUILD_VERSION_TAG}" >> build.env
   artifacts:
     reports:
       dotenv: build.env
+
+oci-get-tag:
+  rules:
+    - !reference [.release_template, rules]
+    # skip if OCI related jobs are skipped and not release
+    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: setup
+  tags:
+    - gp
+  image: busybox:1.36.1-uclibc
+  before_script: []
+  script:
+    # set correct tag on parent-child pipelines
+    - |
+      if test -n "${UPSTREAM_PROJECT_NAME}"; then
+        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+      else
+        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
+      fi
+    # export OCI_TAG to build.env for other jobs to consume
+    - |
+      echo "OCI_TAG=${OCI_TAG}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+
+###################################
+### BUILD BUILD CONTAINER STAGE ###
+###################################
 
 build-iris-kas-container:
   stage: build-build-container
@@ -157,7 +288,7 @@ build-iris-kas-container:
   tags:
     - ${TAG}
   image:
-    name: gcr.io/kaniko-project/executor:v1.9.1-debug
+    name: gcr.io/kaniko-project/executor:v1.9.2-debug
     entrypoint: [""]
   before_script: []
   script:
@@ -167,6 +298,11 @@ build-iris-kas-container:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${BUILD_IMAGE}-${ARCH}"
+
+
+###################################
+### MERGE BUILD CONTAINER STAGE ###
+###################################
 
 merge-container-manifests:
   stage: merge-build-container
@@ -187,13 +323,10 @@ merge-container-manifests:
       --template ${BUILD_IMAGE}-ARCH
       --target ${BUILD_IMAGE}
 
-wipe-sstate-caches:
-  stage: wipe
-  rules:
-    - if: '$WIPE_SSTATE_CACHE == "true"'
-      when: always
-  script:
-    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} +
+
+#########################
+### YOCTO SETUP STAGE ###
+#########################
 
 # Under certain circumstances a mirror item may fail due to invalid checksums.
 # Unfortunately, yocto does not automatically remove these
@@ -202,20 +335,24 @@ download-mirror-maintenance:
   stage: yocto-setup
   rules:
     - if: '$RUN_MAINTENANCE == "true"'
-      when: always
   script:
     - echo "Finding and deleting faulty mirror items..."
     - find "${DOWNLOAD_MIRROR}" -name '*bad-checksum*' -exec sh -c 'echo "Found faulty mirror item {}. Deleting..."; rm -f {} $(echo {} | sed -r "s/_bad-checksum.*/.done/g")' \;
     - echo "Done"
+
+
+###################################
+### RELEASE SANITY CHECKS STAGE ###
+###################################
 
 # Ensures that fixed refspecs are set for all meta-layers.
 # This is vital for build reproducibility.
 release-verify-fixed-refspecs:
   rules:
     - !reference [.release_template, rules]
-  stage: yocto-setup
+  stage: release-sanity-checks
   script:
-    - echo "Ensuring that fixed refspecs are set..."
+    - echo "Ensuring that fixed refspecs are set on meta layers..."
     - >
       kas for-all-repos --update ${MAIN_KAS_FILES} """
       if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
@@ -224,11 +361,11 @@ release-verify-fixed-refspecs:
         || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
       """
 
-# Ensures that the release selfidentifies correctly
+# Ensures that the DISTRO_VERSION variable is set correctly
 release-verify-distro-version:
   rules:
     - !reference [.release_template, rules]
-  stage: yocto-setup
+  stage: release-sanity-checks
   script:
     - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
     - >
@@ -237,15 +374,156 @@ release-verify-distro-version:
         exit 1
       fi
 
+
+################################
+### WIPE SSTATE CACHES STAGE ###
+################################
+
+wipe-sstate-caches:
+  stage: wipe-sstate-caches
+  rules:
+    - if: '$WIPE_SSTATE_CACHE == "true"'
+  script:
+    - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} +
+
 # Ensures that the release sstate cache is empty before any build is started.
 # This ensures the release is built from scratch (build reproducibility).
 release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
-  stage: wipe
+  stage: wipe-sstate-caches
   script:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+
+
+###################
+### BUILD STAGE ###
+###################
+
+develop-build-maintenance-distro-targets:
+  rules:
+    # skip if SKIP_MAINTENANCE_TARGET_BUILD is set to true
+    - if: '$SKIP_MAINTENANCE_TARGET_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+        IMAGES: "irma6-maintenance irma6-dev"
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance-distros"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.common_template, after_script, remove-symbolic-image-links]
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+
+develop-build-maintenance-oci:
+  rules:
+    # skip if SKIP_MAINTENANCE_OCI_BUILD is set to true
+    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+        IMAGES: irma6-maintenance-oci
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-other]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+
+develop-build-deploy-distro-targets:
+  rules:
+    # skip if SKIP_DEPLOY_TARGET_BUILD is set to true
+    - if: '$SKIP_DEPLOY_TARGET_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+        IMAGES: "irma6-deploy"
+  variables:
+    ARTIFACT_SUFFIX: "-deploy"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-target]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.common_template, after_script, remove-symbolic-image-links]
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+
+develop-build-test-oci:
+  rules:
+    # skip if SKIP_OCI_TESTS are set to true
+    - if: '$SKIP_OCI_TESTS == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+        IMAGES: irma6-test
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-other]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+
+develop-build-sdk:
+  rules:
+    # skip if SKIP_SDK_BUILD is set to true
+    - if: '$SKIP_SDK_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: build
+  variables:
+    BITBAKE_TASK: "-c populate_sdk"
+    ARTIFACT_SUFFIX: "-sdk"
+  parallel:
+    matrix:
+      - <<: *all_multi_confs
+        IMAGES: "irma6-maintenance"
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-other]
+    - !reference [.develop_template, script, build-configuration]
+    - !reference [.develop_template, script, build]
+  after_script:
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 # We prepare an offline-build environment for building the irma6-base image.
 # This image contains the raw iris-poky-deploy distro without any proprietary software.
@@ -258,7 +536,7 @@ release-base-build:
     - "iris-kas-release-s3-upload"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - <<: *target_multi_confs
         IMAGES: "irma6-base"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
@@ -292,7 +570,7 @@ release-build-maintenance-distros:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - <<: *target_multi_confs
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
@@ -309,17 +587,18 @@ release-build-maintenance-distros:
     - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
-release-build-qemu:
+release-build-test-oci:
   rules:
     - !reference [.release_template, rules]
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+      - <<: *oci_multi_confs
         IMAGES: irma6-test
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
-    ARTIFACT_SUFFIX: "-qemu"
+    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
   services:
     - !reference [.common_template, services, icecc-daemon]
   script:
@@ -327,8 +606,32 @@ release-build-qemu:
     - !reference [.release_template, script, populate-dl-cache]
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
-    - !reference [.common_template, script, create-artifact]
-  artifacts: !reference [.release_template, artifacts, release-qemu-artifacts]
+  after_script:
+    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.release_template, artifacts, release-artifacts]
+
+release-build-maintenance-oci:
+  rules:
+    - !reference [.release_template, rules]
+  stage: build
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+        IMAGES: irma6-maintenance-oci
+        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
+  variables:
+    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+  services:
+    - !reference [.common_template, services, icecc-daemon]
+  script:
+    - !reference [.common_template, script, generate-build-targets-other]
+    - !reference [.release_template, script, populate-dl-cache]
+    - !reference [.release_template, script, populate-dl-dir]
+    - !reference [.release_template, script, build]
+  after_script:
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
+  artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 release-build-sdk:
   rules:
@@ -339,7 +642,7 @@ release-build-sdk:
     ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - <<: *target_multi_confs
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
@@ -386,7 +689,7 @@ release-build-deploy-distros:
     - iris-kas-release
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - <<: *target_multi_confs
         IMAGES: "irma6-deploy"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
@@ -403,32 +706,194 @@ release-build-deploy-distros:
     - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
-release-test-qemu:
+
+#############################
+### PUSH OCI IMAGES STAGE ###
+#############################
+
+develop-push-test-oci:
+  rules:
+    # skip if SKIP_OCI_TESTS are set to true
+    - if: '$SKIP_OCI_TESTS == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: push-oci-images
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
+  tags:
+    - gp
+  image: quay.io/skopeo/stable:v1.11.2
+  before_script: []
+  script:
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
+
+release-push-test-oci:
+  rules:
+    - !reference [.release_template, rules]
+  stage: push-oci-images
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    ARTIFACT_SUFFIX: "-test.rootfs-oci"
+  tags:
+    - gp
+  image: quay.io/skopeo/stable:v1.11.2
+  before_script: []
+  script:
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
+
+push-maintenance-oci:
+  rules:
+    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
+    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: push-oci-images
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+  tags:
+    - gp
+  image: quay.io/skopeo/stable:v1.11.2
+  before_script: []
+  script:
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
+
+
+##################
+### TEST STAGE ###
+##################
+
+test-oci:
+  stage: test
+  rules:
+    - !reference [.release_template, rules]
+    # skip if SKIP_OCI_TESTS is set to true and not release build
+    - if: '$SKIP_OCI_TESTS == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  tags:
+    - gp
+  services:
+    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}"
+      pull_policy: always
+      alias: oci-image
+      entrypoint: ["/sbin/init"]
+  image: alpine:3.18.0
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  before_script:
+    - apk add --no-cache openssh
+  script:
+    - echo "Waiting for SSH to become available..."
+    - TIMEOUT=0
+    - |
+      while true; do
+        if ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "cat /dev/null"; then
+          break;
+        else
+          [ $TIMEOUT -le 600 ] || { echo Error: Timeout waiting for SSH server; exit 1; }
+          echo "SSH not available yet. Waiting 5 seconds..."
+          TIMEOUT=$((TIMEOUT+5));
+          sleep 5;
+        fi;
+      done
+    - echo "Starting tests..."
+    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "TEMPDIR=/mnt test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
+  after_script:
+    - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
+  artifacts:
+    when: always
+    name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-gtest-results"
+    paths:
+      - ${MULTI_CONF}-gtest_results.xml
+    reports:
+      junit: ${MULTI_CONF}-gtest_results.xml
+
+systemtest_smoke:
   stage: test
   tags:
-    - kas
-  rules:
-    - !reference [.release_template, rules]
+    - special-test
+  resource_group: systemtest
   variables:
-    # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
-    # present in openembedded-core and this can speed up the parsing
-    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-populate-release-caches.yml"
-  parallel: !reference [.test_qemu_template, parallel]
-  script: !reference [.test_qemu_template, script]
-  artifacts: !reference [.test_qemu_template, artifacts]
-
-release-sync-sstate-cache:
-  stage: release
+    SYSTEMTEST_PROJECT_DIR: systemtest
+    SENSOR1_IP: 172.16.127.3
+    SENSOR2_IP: 172.16.126.233
   rules:
-    - !reference [.release_template, rules]
+    # skip if SKIP_SYSTEMTEST_SMOKE is set to true
+    - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
+  before_script:
+    - !reference [.common_template, before_script, prepare-systemtest]
   script:
-    # don't overwrite develop sstate_cache during support release and RC tags
-    - >
-      if echo "${CI_COMMIT_TAG}" | grep -qviE '\d+\.\d+\.\d+-.*'; then
-        rsync -avh --delete ${SSTATE_CACHE_RELEASE} ${SSTATE_CACHE};
-      fi
-    # wipe release sstate cache
-    - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
+    - cp -r ${CI_PROJECT_DIR}/artifacts/images/${SYSTEMTEST_SW_NAME}/update_files/ ${CI_PROJECT_DIR}/$SYSTEMTEST_PROJECT_DIR/systemtest/resources
+    - docker --config ./.gen6tools login ${CI_REGISTRY} -u ${GEN6_TOOLS_DOCKER_REG_USER} -p ${GEN6_TOOLS_DOCKER_REG_TOKEN}
+    - echo "executing systemtest smoke tests for ${SYSTEMTEST_SW_NAME}"
+    - ./systemtest_smoke.sh
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  artifacts:
+    when: always
+    paths:
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/report.html
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/log.html
+    reports:
+      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/output_xunit.xml
+
+
+##############################
+### RELIABILITY TEST STAGE ###
+##############################
+
+systemtest_reliability:
+  stage: reliability-test
+  tags:
+    - special-test
+  resource_group: systemtest
+  variables:
+    SYSTEMTEST_PROJECT_DIR: systemtest
+    SENSOR1_IP: 172.16.127.3
+    SENSOR2_IP: 172.16.126.233
+  rules:
+    # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
+    - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
+  before_script:
+    - !reference [.common_template, before_script, prepare-systemtest]
+  script:
+    - echo "executing systemtest reliability tests for ${SYSTEMTEST_SW_NAME}"
+    - ./systemtest_reliability.sh ${SYSTEMTEST_RELIABILITY_DURATION}
+  after_script:
+    - docker logout ${CI_REGISTRY}
+  artifacts:
+    when: always
+    paths:
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/report_combined.html
+      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
+    reports:
+      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
+
+
+##############################
+### UPLOAD ARTIFACTS STAGE ###
+##############################
 
 release-upload-artifacts:
   stage: upload-artifacts
@@ -449,6 +914,24 @@ release-upload-artifacts:
         sudo tar 2>&1 --ignore-failed-read -czvf ${FOLDER}-customer.tar.gz ${FOLDER}/licenses $(find ${FOLDER} -type d -name 'update_files') $(find ${FOLDER} -type f -name '*.swu')
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${FOLDER}-customer.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${FOLDER}-customer.tar.gz"
       done
+
+
+#####################
+### RELEASE STAGE ###
+#####################
+
+release-sync-sstate-cache:
+  stage: release
+  rules:
+    - !reference [.release_template, rules]
+  script:
+    # don't overwrite develop sstate_cache during support release and RC tags
+    - >
+      if echo "${CI_COMMIT_TAG}" | grep -qviE '\d+\.\d+\.\d+-.*'; then
+        rsync -avh --delete ${SSTATE_CACHE_RELEASE} ${SSTATE_CACHE};
+      fi
+    # wipe release sstate cache
+    - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
 publish-release:
   stage: release
@@ -510,191 +993,3 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
         - name: "${SC573_GEN6_BASESOURCES}"
           url: "${SC573_GEN6_BASESOURCES_URL}"
-
-develop-build-maintenance-distro-targets:
-  rules:
-    # skip if SKIP_MAINTENANCE_TARGET_BUILD is set to true
-    - if: '$SKIP_MAINTENANCE_TARGET_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-        IMAGES: "irma6-maintenance irma6-dev"
-  variables:
-    ARTIFACT_SUFFIX: "-maintenance-distros"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
-
-develop-build-deploy-distro-targets:
-  rules:
-    # skip if SKIP_DEPLOY_TARGET_BUILD is set to true
-    - if: '$SKIP_DEPLOY_TARGET_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
-        IMAGES: "irma6-deploy"
-  variables:
-    ARTIFACT_SUFFIX: "-deploy"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
-
-develop-build-qemu:
-  rules:
-    # skip if SKIP_FIRMWARE_BUILD is set to true
-    - if: '$SKIP_QEMU_BUILD == "true" && $SKIP_QEMU_TESTS == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
-        IMAGES: irma6-test
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    ARTIFACT_SUFFIX: "-qemu"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-    - !reference [.common_template, script, create-artifact]
-  artifacts: !reference [.develop_template, artifacts, develop-qemu-artifacts]
-
-develop-build-sdk:
-  rules:
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
-  variables:
-    BITBAKE_TASK: "-c populate_sdk"
-    ARTIFACT_SUFFIX: "-sdk"
-  parallel:
-    matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
-        IMAGES: "irma6-maintenance"
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
-
-develop-test-qemu:
-  stage: test
-  timeout: 1 hour
-  tags:
-    - kas
-  rules:
-    # skip if SKIP_QEMU_TESTS is set to true
-    - if: '$SKIP_QEMU_TESTS == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  variables:
-    # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
-    # contained in openembedded-core and this can speed up the parsing
-    MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-develop.yml"
-  parallel: !reference [.test_qemu_template, parallel]
-  script: !reference [.test_qemu_template, script]
-  artifacts: !reference [.test_qemu_template, artifacts]
-
-systemtest_smoke:
-  stage: test
-  tags:
-    - special-test
-  resource_group: systemtest
-  variables:
-    SYSTEMTEST_PROJECT_DIR: systemtest
-    SENSOR1_IP: 172.16.127.3
-    SENSOR2_IP: 172.16.126.233
-  rules:
-    # skip if SKIP_SYSTEMTEST_SMOKE is set to true
-    - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
-      when: always
-  before_script:
-    - !reference [.common_template, before_script, prepare-systemtest]
-  script:
-    - cp -r ${CI_PROJECT_DIR}/artifacts/images/${SYSTEMTEST_SW_NAME}/update_files/ ${CI_PROJECT_DIR}/$SYSTEMTEST_PROJECT_DIR/systemtest/resources
-    - docker --config ./.gen6tools login ${CI_REGISTRY} -u ${GEN6_TOOLS_DOCKER_REG_USER} -p ${GEN6_TOOLS_DOCKER_REG_TOKEN}
-    - echo "executing systemtest smoke tests for ${SYSTEMTEST_SW_NAME}"
-    - ./systemtest_smoke.sh
-  after_script:
-    - docker logout ${CI_REGISTRY}
-  artifacts:
-    when: always
-    paths:
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/report.html
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/log.html
-    reports:
-      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/output_xunit.xml
-
-systemtest_reliability:
-  stage: reliability-test
-  tags:
-    - special-test
-  resource_group: systemtest
-  variables:
-    SYSTEMTEST_PROJECT_DIR: systemtest
-    SENSOR1_IP: 172.16.127.3
-    SENSOR2_IP: 172.16.126.233
-  rules:
-    # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
-    - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
-      when: always
-  before_script:
-    - !reference [.common_template, before_script, prepare-systemtest]
-  script:
-    - echo "executing systemtest reliability tests for ${SYSTEMTEST_SW_NAME}"
-    - ./systemtest_reliability.sh ${SYSTEMTEST_RELIABILITY_DURATION}
-  after_script:
-    - docker logout ${CI_REGISTRY}
-  artifacts:
-    when: always
-    paths:
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/report_combined.html
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
-    reports:
-      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
-
-# We do not want to run a pipeline on merges to non-default branch.
-# During a release process (merge target branch master), we are interested in the release candidate builds, not the merge request
-# builds, as the development and release pipelines work fundamentally different.
-# However, since a merge request is blocked regardless of branch, as long as no pipeline is run, we need a empty placeholder
-# job for the pipeline to "turn green".
-skip-non-default-branch-merge-pipeline:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
-  stage: setup
-  tags:
-    - gp
-  before_script: []
-  script:
-    - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"

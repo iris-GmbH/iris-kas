@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "2.1.6"
+    IRMA6_DISTRO_VERSION = "3.0.0"
 defaults:
   repos:
     patches:
@@ -23,37 +23,40 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    refspec: "7a8b71c07ad47954f17d26add3076fd8e5e103e4"
+    refspec: "ac20c8026a2c5a6dd6d0ac1ea7b3e3c8b2196774"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    refspec: "ee98c3f23e44063b0681127a907c993bb255d02b"
+    refspec: "ed328ee6f613f4ee8127a2fead931afafc39788a"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    refspec: "11f05ffddd0a7adf05b1c016f73b10ddfa2daa10"
+    refspec: "ab6c16cb554fa352d268c04769258f1c51ffc16d"
     layers:
       meta:
       meta-poky:
-    patches:
-      0001-prservice-https-support:
-        path: "patches/0001-prservice-Add-clientside-support-for-https-scheme.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    refspec: "7ae42df58f2bcc730153715c3339a6875b0b2497"
+    refspec: "a82d92c8a6525da01524bf8f4a60bf6b35dcbb3d"
     layers:
       meta-oe:
       meta-python:
       meta-networking:
       meta-webserver:
+      meta-filesystems:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    refspec: "90dbf9b74d3619c1ab8ffb09adfeeff8a3ed97e8"
+    refspec: "d1d4abfaf82d37c31e3cec3602d6d8d56d105185"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     refspec: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
     patches:
-      0001-Port-cryptsetup-patch-to-2.3.7:
-        path: "patches/0001-Port-cryptsetup-patch-to-2.3.7.patch"
+      0001-APC-5918-Remove-bbappend-for-cryptsetup:
+        path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
+      0002-meta-secure-imx-Update-to-new-override-syntax:
+        path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
+  meta-virtualization:
+    url: "https://git.yoctoproject.org/meta-virtualization"
+    refspec: "b3b3dbc67504e8cd498d6db202ddcf5a9dd26a9d"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
@@ -61,16 +64,19 @@ repos:
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
+    patches:
+      0001-lnxdsp-adi-meta-Update-to-new-override-syntax:
+        path: "patches/0001-lnxdsp-adi-meta-Update-to-new-override-syntax.patch"
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    refspec: "f66fdef1c2dc735690a7ec7dd44a534d69ea3918"
+    refspec: "96c9651a8db6cb39f5f8c065bbf058afe24186c7"
     patches:
-      0001-fix-compilation-of-fsl-image-mfgtool-initramfs:
-        path: "patches/Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
+      0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
+        path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    refspec: "4c0a166fa2809f74c93bd4c56d9a0f7ccb7818c8"
+    refspec: "2a65ce4cc619c3b9f265f6b1d2dce2b8044501e6"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    refspec: "5d882cdf079b3bde0bd9869ce3ca3db411acbf3b"
+    refspec: "d5bbb487b2816dfc74984a78b67f7361ce404253"

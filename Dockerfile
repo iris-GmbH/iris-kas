@@ -4,9 +4,9 @@
 # type can be set to ci. Override with "--build-arg type=ci" during build
 ARG type=base
 
-FROM mikefarah/yq:4.30.6 AS yq
+FROM mikefarah/yq:4.33.2 AS yq
 
-FROM ghcr.io/siemens/kas/kas:3.1 AS base
+FROM ghcr.io/siemens/kas/kas:3.2 AS base
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
 RUN set -ex \
     && apt-get update \
