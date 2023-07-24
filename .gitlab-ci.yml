@@ -66,6 +66,8 @@ variables:
   RENOVATE_EXTRA_FLAGS: ""
   FORCE_RENOVATE_RUN: "false"
   RENOVATE_DRY_RUN: "false"
+  DEPENDENCYTRACK_API_URL: "https://dependencytrack.devops.defra01.iris-sensing.net/api"
+  DEPENDENCYTRACK_PROJECT: "c8bcea87-ba60-45cf-a45f-51d956681850"
 
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
@@ -538,12 +540,6 @@ develop-build-maintenance-oci:
   variables:
     KAS_TARGET_RECIPE: "irma6-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
-  script:
-    - >
-      if test "${RELEASE}" = "true"; then
-        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml"
-      fi
-    - make kas-build
 
 release-build-dev-deploy-image:
   extends: .build-dev-deploy-image
@@ -551,6 +547,29 @@ release-build-dev-deploy-image:
     - !reference [.release_template, rules]
   tags:
     - kas-perf
+  script:
+    # archive copy-left sources for license compliance
+    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml"
+    # create and populate a seperate DT project during release
+    - >
+      if test "${MULTI_CONF}" = "imx8mp-irma6r2"; then
+        curl \
+        --connect-timeout 5 \
+        --max-time 10 \
+        --retry 5 \
+        --retry-delay 0 \
+        --retry-max-time 40 \
+        -o resp.json \
+        -X PUT \
+        -H "Content-Type: application/json" \
+        -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
+        --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}\", \"classifier\": \"FIRMWARE\"}" \
+        ${DEPENDENCYTRACK_API_URL}/v1/project
+        export DEPENDENCYTRACK_PROJECT="$(cat resp.json | jq -r ".uuid")"
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
+      fi
+    - make kas-build
+    # TODO: Automatically apply VEX files from dependencytrack-vex/ to release projects
 
 develop-build-dev-deploy-image:
   extends: .build-dev-deploy-image
@@ -558,6 +577,13 @@ develop-build-dev-deploy-image:
     - if: '$SKIP_DEPLOY_IMAGE_BUILD == "false"'
     - when: manual
       allow_failure: true
+  script:
+    - >
+      if test "${MULTI_CONF}" = "imx8mp-irma6r2" && test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
+        echo "Including DT tasks..."
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
+      fi
+    - make kas-build
 
 
 .build-test-oci:
