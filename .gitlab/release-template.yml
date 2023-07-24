@@ -59,7 +59,7 @@
   after_script:
     # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
     move-artifacts-to-toplevel:
-      - mv ${JOB_ARTIFACT} irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}
+      - mv build/tmp/deploy irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}
   artifacts:
     release-source-artifacts:
       name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"

@@ -613,7 +613,7 @@ release-build-test-oci:
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
   after_script:
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 release-build-maintenance-oci:
@@ -717,9 +717,10 @@ release-build-deploy-distros:
 ### PUSH TEST IMAGES STAGE ###
 ##############################
 
-develop-push-test-oci:
+push-test-oci:
   rules:
-    # skip if SKIP_OCI_TESTS are set to true
+    - !reference [.release_template, rules]
+    # skip if SKIP_OCI_TESTS are set to true and not release
     - if: '$SKIP_OCI_TESTS == "true"'
       when: never
     - !reference [.develop_template, rules]
