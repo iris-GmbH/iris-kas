@@ -300,7 +300,6 @@ build-iris-kas-container:
   script:
     - >-
       /kaniko/executor
-      --build-arg "type=ci"
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_iris_kas"
       --destination "${BUILD_IMAGE_IRIS_KAS}-${ARCH}"

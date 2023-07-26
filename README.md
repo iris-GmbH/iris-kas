@@ -4,13 +4,13 @@
 
 - [iris-kas](#iris-kas)
   - [Latest release](#latest-release)
-  - [Pipeline status](#pipeline-status)
+  - [Build status](#build-status)
   - [Maintainers](#maintainers)
   - [What is KAS?](#what-is-kas)
   - [How does it work?](#how-does-it-work)
   - [Prerequisites](#prerequisites)
     - [Native Installation](#native-installation)
-    - [Docker (default & recommended)](#docker-default--recommended)
+    - [Docker (default and recommended)](#docker-default-and-recommended)
       - [Docker and SELinux](#docker-and-selinux)
   - [Usage (general)](#usage-general)
     - [Supported environment variables](#supported-environment-variables)
@@ -58,29 +58,29 @@ It minimises build setup steps and repository management.
 
 ### Native Installation
 - [native KAS installation](https://kas.readthedocs.io/en/latest/userguide.html#dependencies-installation) on a [supported host system prepared for yocto builds](https://www.yoctoproject.org/docs/3.1/mega-manual/mega-manual.html#brief-compatible-distro)
-- as IRIS developer: SSH key (without password protection) configured for accessing our private git repositories
+- as IRIS developer: SSH key configured for accessing our private git repositories. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the encryption algorithm`).
 - for release preparation: [yq installed](https://github.com/mikefarah/yq#install)
 
-### Docker (default & recommended)
+### Docker (default and recommended)
 - Linux, Mac or WSL in Windows (officially we only support Linux)
 - [installed and active docker daemon](https://docs.docker.com/engine/install/), make sure the groups are [correctly set](https://docs.docker.com/engine/install/linux-postinstall/)
-- [installed docker-compose](https://docs.docker.com/compose/install/)
 - installed GNU make
-- as IRIS developer: SSH folder containing a SSH key (without password protection) configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature
+- as IRIS developer: SSH folder containing a SSH key configured for accessing our private git repositories, as well as a ${SSH_DIR}/known_hosts file containing our private git servers SSH signature. If your SSH key is password protected, configure the usage of a [SSH agent](https://en.wikipedia.org/wiki/Ssh-agent) (`ssh-add /path/to/your/private/key # by default : ~/.ssh/id_xxx where xxx is the encryption algorithm`).
 - using Docker on a host with SELinux enabled requires additional steps, as described below.
 
 #### Docker and SELinux
 
-The container described in `docker-compose.yml` will mount two directories of the host system. The current directory, the iris-kas repository, is mounted with the `:z` flag. This will relabel everything inside the current directory as `container_file_t`, making it read/writeable by any container process.
+When running `make <command>`, the container will mount two directories of the host system. The current iris-kas directory, as well as the `SSH_DIR` defined in Makefile (`~/.ssh` by default)
 
-To access the `SSHDIR` from within the container, you need to apply a SELinux policy that allows `container_t` processes to read from the `.ssh` directory of the current user. First, install the selinux-policy-devel package, which provides the Makefile to compile custom policies.
+To access the `SSH_DIR` from within the container, you need to apply a SELinux policy that allows `container_t` processes to read from the `~/.ssh` directory of the current user. First, install the selinux-policy-devel package, which provides the Makefile to compile custom policies.
 
 ```
 $ make -f /usr/share/selinux/devel/Makefile container_read_sshdir.pp
 $ sudo semodule -i container_read_sshdir.pp  # to remove run: semodule -r container_read_sshdir
 ```
+Alternatively, if your SSH key is password protected, ensure you have configured your key for an SSH agent and apply a SELinux policy that allows `container_t` access to the ssh-agent socket.
 
-Afterwards you can run the `docker-compose` commands as described above.
+Afterwards you can run the `make` commands as described below.
 
 ## Usage (general)
 
@@ -92,18 +92,15 @@ We currently support the following variables:
 
 | Variable    | Description                                                                                                                                                                                                        | Default value                                                                                            |
 |-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| KAS_COMMAND | The command for running the KAS executable. By default, KAS will run in a docker container (recommended). Set this to `kas` if you want to use a host installation of KAS                                          | `USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) SSH_DIR=$(SSH_DIR) docker-compose run --service-ports --rm kas` |
-| USER_ID     | Sets the user ID of the KAS user within a docker build. This will affect the ownership of the generated files                                                                                                      | `id -u`                                                                                                  |
-| GROUP_ID    | Sets the primary group ID of the KAS user within a docker build. This will affect the ownership of the generated files                                                                                             | `id -g`                                                                                                  |
+| KAS_COMMAND | The command for running the KAS executable. By default, KAS will run in a docker container (recommended). Set this to `kas` if you want to use a host installation of KAS                                          | `KAS_CONTAINER_IMAGE=${CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container --ssh-dir ${SSH_DIR} --ssh-agent` |
 | SSH_DIR     | Sets the path to a directory containing an authorized SSH key (e.g.: id_rsa, id_ed25519, ...) as well as a known_hosts file containing our private git server. This path will be mounted into the docker container | `~/.ssh`                                                                                                 |
-| RELEASE     | Sets the release you wish to build (currently `r1` for sc573-gen6 or `r2` for imx8mp-evk)                                                                                                                          | `r1`                                                                                                     |
+| RELEASE     | Sets the release you wish to build (currently `r1` for sc573-gen6 or `r2` for imx8mp-evk)                                                                                                                          | `r2`                                                                                                     |
 | TAG         | Sets the tag to use during the release or support release process (e.g. `2.3.0`, `2.3.0-custom`)                                                                                                                   | None                                                                                                     |
 
 
 **Optional variable overrides for all make commands:**
+- `CONTAINER_IMAGE`
 - `KAS_COMMAND`
-- `USER_ID`
-- `GROUP_ID`
 - `SSH_DIR`
 
 ## Usage (IRIS developers)
@@ -257,8 +254,8 @@ In the case of a local KAS installation, this can be done by calling the `kas` b
 
 `kas shell -c "bitbake foo" kas-irma6-base-deploy.yml:kas-irma6-pa.yml`.
 
-When using the docker based setup, the following needs to be added as a prefix to the command ("[]" marks optional Variables):
+When using the docker based setup, use the `kas-container` script instead ("[]" marks optional Variables):
 
-`[USER_ID=$(id -u) GROUP_ID=$(id -g) SSH_DIR=~/.ssh] docker-compose run --rm ` 
+`kas-container [--ssh-dir <SSH_DIR>] [--ssh-agent] ...` 
 
 For a detailed documentation on using KAS, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/).
