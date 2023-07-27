@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 #
-# This script will set the refspec for iris meta-layers within the kas config files to the
+# This script will set the branch name for iris meta-layers within the kas config files to the
 # current branch of iris-kas (if existing). Meant to be called within kas for-all-repos.
 # See .gitlab/develop-template.yml.
 
@@ -28,8 +28,8 @@ if git checkout "${BRANCH_NAME}" 2>/dev/null; then
         KAS_CONFIG_FILE="kas-irma6-base-common.yml"
     fi
 
-    # update the refspec for the layer repo name in the appropriate kas config file
-    yq ".repos.${KAS_REPO_NAME}.refspec = \"${BRANCH_NAME}\"" -i ../${KAS_CONFIG_FILE}
+    # update the branch for the layer repo name in the appropriate kas config file
+    yq ".repos.${KAS_REPO_NAME}.branch = \"${BRANCH_NAME}\"" -i ../${KAS_CONFIG_FILE}
 else
     echo "Branch ${BRANCH_NAME} not found in ${KAS_REPO_NAME}";
 fi
