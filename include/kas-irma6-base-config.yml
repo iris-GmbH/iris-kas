@@ -7,6 +7,10 @@
 header:
   version: 9
 
+env:
+  # define BB_ENV_PASSTHROUGH_ADDITIONS
+  KAS_WORK_DIR: None
+
 bblayers_conf_header:
   standard: |
     POKY_BBLAYERS_CONF_VERSION = "2"

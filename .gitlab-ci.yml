@@ -32,8 +32,10 @@ variables:
   ICECREAM_NETNAME: "ICECREAM"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
+  # define KAS environment variables
+  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
   COUNTER_MINIMAL_RECIPE_PATH:
-    value: "${BUILDDIR}/../meta-iris/recipes-platform/counter/counter-minimal.bb"
+    value: "${KAS_WORK_DIR}/meta-iris/recipes-platform/counter/counter-minimal.bb"
     expand: false
   I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
   FAILURE_LOG_DIR: "failure-log"
