@@ -4,7 +4,7 @@
 MAKEFILE_PATH = $(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR  = $(dir ${MAKEFILE_PATH})
 
-export IRMA6_DISTRO_VERSION := $(shell git -C ${MAKEFILE_DIR} rev-parse --short HEAD)
+IRMA6_DISTRO_VERSION ?= $(shell docker run --rm -v ${MAKEFILE_DIR}:/repo gittools/gitversion:6.0.0-alpine.3.17-7.0 /repo | jq -r '.MajorMinorPatch')-dev
 
 SSH_DIR                 ?= ~/.ssh
 MULTI_CONF              ?= imx8mp-irma6r2

@@ -297,7 +297,7 @@ develop-ci-get-firmware-version:
   stage: setup
   rules:
     - !reference [.develop_template, rules]
-  image: gittools/gitversion:5.12.0-alpine.3.14-6.0
+  image: gittools/gitversion:6.0.0-alpine.3.17-7.0
   tags:
     - gp-tiny
   script:
