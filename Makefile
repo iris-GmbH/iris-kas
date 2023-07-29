@@ -172,7 +172,7 @@ kas-int-shell:
 	${KAS_SHELL} ${KAS_CONFIG}
 
 remove-symlinks-image-dir:
-	${KAS_SHELL} -c "if [ -d "\$${TMPDIR}/deploy/images" ]; then find \$${TMPDIR}/deploy/images -type l -exec rm -f {} \; ;fi" ${KAS_CONFIG}
+	${KAS_SHELL} -c "if [ -d "${KAS_TMPDIR}/deploy/images" ]; then find ${KAS_TMPDIR}/deploy/images -type l -exec rm -f {} \; ;fi" ${KAS_CONFIG}
 
 export BRANCH_NAME ?= master
 checkout-branch-in-iris-layers:
