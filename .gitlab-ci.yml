@@ -191,7 +191,6 @@ stages:
   - build-build-container
   - merge-build-container
   - yocto-setup
-  - release-sanity-checks
   - wipe-sstate-caches
   - build
   - push-test-images
@@ -417,26 +416,13 @@ release-ci-build-setup:
   tags:
     - gp-tiny
   script:
+    - echo "Ensuring that kas lockfile exists..."
+    - ls "*.lock.yml"
     - echo "RELEASE=true" >> build.env
     - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
   artifacts:
     reports:
       dotenv: build.env
-
-
-###################################
-### RELEASE SANITY CHECKS STAGE ###
-###################################
-
-# Ensures that fixed refspecs are set for all meta-layers.
-# This is vital for build reproducibility.
-release-verify-fixed-refspecs:
-  rules:
-    - !reference [.release_template, rules]
-  stage: release-sanity-checks
-  script:
-    - echo "Ensuring that kas lockfile exists..."
-    - ls "*.lock.yml"
 
 
 ################################
