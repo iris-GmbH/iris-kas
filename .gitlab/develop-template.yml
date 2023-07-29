@@ -12,17 +12,21 @@
     - when: on_success
 
   script:
-    # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
-    move-artifacts-to-toplevel:
-      - mv ${JOB_ARTIFACT} irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}
+    create-artifacts-folder:
+      - mv ${KAS_TMPDIR} ${CI_JOB_NAME_SLUG}
+
+  after_script:
+    create-logs-folder:
+      - mkdir -p ${CI_JOB_NAME_SLUG}/logs
+      - find ${KAS_TMPDIR}/work -type f '(' -name "log.do_*" -o -name "log.task_order" ')' -exec rsync -R {} "${CI_JOB_NAME_SLUG}/logs" \;
 
   artifacts:
     develop-artifacts:
-      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
+      name: "${CI_JOB_NAME}"
       # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
       when: always
       paths:
-        - "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-        - "${FAILURE_LOG_DIR}"
-      untracked: false
+        - "${CI_JOB_NAME_SLUG}/buildhistory"
+        - "${CI_JOB_NAME_SLUG}/logs"
+        - "${CI_JOB_NAME_SLUG}/deploy"
       expire_in: 7 days

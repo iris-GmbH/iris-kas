@@ -45,7 +45,6 @@ variables:
     value: "${KAS_WORK_DIR}/meta-iris/recipes-platform/counter/counter-minimal.bb"
     expand: false
   I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
-  FAILURE_LOG_DIR: "failure-log"
   JOB_ARTIFACT: "${KAS_TMPDIR}/deploy"
   # Refspec of the systemtest_base repo to use
   SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
@@ -173,7 +172,7 @@ default:
     - if command -v git; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
     # if called from upstream pipeline, attempt to checkout identical named branch in iris-kas
     - > 
-      if [ -n "${UPSTREAM_PROJECT_NAME}" ] && command -v git; then
+      if [ -n "${UPSTREAM_PROJECT_NAME}" ] && [ "${RELEASE}" != "true" ] && command -v git; then
         echo "Trying to checkout ${BRANCH_NAME} in iris-kas";
         git checkout ${BRANCH_NAME} 2>/dev/null \
         && echo "Branch ${BRANCH_NAME} has been checked out in iris-kas" \
@@ -370,7 +369,6 @@ download-mirror-maintenance:
   script:
     - echo "Finding and deleting faulty mirror items..."
     - find "${DOWNLOAD_MIRROR}" -name '*bad-checksum*' -exec sh -c 'echo "Found faulty mirror item {}. Deleting..."; rm -f {} $(echo {} | sed -r "s/_bad-checksum.*/.done/g")' \;
-    - echo "Done"
 
 # This job will do the develop build setup:
 # a) it will unify the different variables (depending on pipeline source) defining the current (upstream) branch and write them into a single variable.
@@ -410,6 +408,8 @@ develop-ci-build-setup:
 
 release-ci-build-setup:
   stage: yocto-setup
+  variables:
+    GIT_STRATEGY: none
   rules:
     - !reference [.release_template, rules]
   image: busybox:1.36.1-uclibc
@@ -431,6 +431,8 @@ release-ci-build-setup:
 
 wipe-sstate-caches:
   stage: wipe-sstate-caches
+  variables:
+    GIT_STRATEGY: none
   rules:
     - if: '$WIPE_SSTATE_CACHE == "true"'
   script:
@@ -442,6 +444,8 @@ release-wipe-release-sstate-cache:
   rules:
     - !reference [.release_template, rules]
   stage: wipe-sstate-caches
+  variables:
+    GIT_STRATEGY: none
   script:
     - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
@@ -467,7 +471,9 @@ develop-build-maintenance-image:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, script, create-artifacts-folder]
+  after_script:
+    - !reference [.develop_template, after_script, create-logs-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-dev-image:
@@ -486,7 +492,9 @@ develop-build-dev-image:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, script, create-artifacts-folder]
+  after_script:
+    - !reference [.develop_template, after_script, create-logs-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-maintenance-oci:
@@ -505,7 +513,9 @@ develop-build-maintenance-oci:
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   script:
     - make bitbake
-    - !reference [.develop_template, script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, script, create-artifacts-folder]
+  after_script:
+    - !reference [.develop_template, after_script, create-logs-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-deploy-image:
@@ -524,7 +534,9 @@ develop-build-deploy-image:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, script, create-artifacts-folder]
+  after_script:
+    - !reference [.develop_template, after_script, create-logs-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-test-oci:
@@ -543,7 +555,9 @@ develop-build-test-oci:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   script:
     - make bitbake
-    - !reference [.develop_template, script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, script, create-artifacts-folder]
+  after_script:
+    - !reference [.develop_template, after_script, create-logs-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-sdk:
@@ -563,7 +577,9 @@ develop-build-sdk:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, move-artifacts-to-toplevel]
+    - !reference [.develop_template, script, create-artifacts-folder]
+  after_script:
+    - !reference [.develop_template, after_script, create-logs-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 # We prepare an offline-build environment for building the irma6-base image.
@@ -737,6 +753,7 @@ develop-push-test-oci:
       - <<: *oci_multi_confs
   variables:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
+    GIT_STRATEGY: none
   tags:
     - gp-tiny
   image: quay.io/skopeo/stable:v1.13.0
@@ -756,6 +773,7 @@ release-push-test-oci:
       - <<: *oci_multi_confs
   variables:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
+    GIT_STRATEGY: none
   tags:
     - gp-tiny
   image: quay.io/skopeo/stable:v1.13.0
@@ -788,6 +806,8 @@ test-oci:
       alias: oci-image
       entrypoint: ["/sbin/init"]
   image: alpine:3.18.2
+  variables:
+    GIT_STRATEGY: none
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -897,6 +917,7 @@ push-maintenance-oci:
       - <<: *oci_multi_confs
   variables:
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+    GIT_STRATEGY: none
   tags:
     - gp-tiny
   image: quay.io/skopeo/stable:v1.13.0
@@ -940,6 +961,8 @@ develop-upload-sdks:
     - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
       when: never
     - !reference [.develop_template, rules]
+  variables:
+    GIT_STRATEGY: none
   tags:
     - gp
   script:
@@ -958,6 +981,8 @@ release-upload-artifacts:
   stage: upload-artifacts
   rules:
     - !reference [.release_template, rules]
+  variables:
+    GIT_STRATEGY: none
   tags:
     - gp
   script:
@@ -982,6 +1007,8 @@ release-clean-sstate-cache:
   stage: release
   rules:
     - !reference [.release_template, rules]
+  variables:
+    GIT_STRATEGY: none
   script:
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
@@ -993,6 +1020,7 @@ publish-release:
   rules:
     - !reference [.release_template, rules]
   variables:
+    GIT_STRATEGY: none
     IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz
     SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
   image: registry.gitlab.com/gitlab-org/release-cli:v0.15.0
