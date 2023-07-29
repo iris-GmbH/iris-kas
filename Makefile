@@ -4,8 +4,6 @@
 MAKEFILE_PATH = $(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR  = $(dir ${MAKEFILE_PATH})
 
-IRMA6_DISTRO_VERSION ?= $(shell docker run --rm -v ${MAKEFILE_DIR}:/repo gittools/gitversion:6.0.0-alpine.3.17-7.0 /repo | jq -r '.MajorMinorPatch')-dev
-
 SSH_DIR                 ?= ~/.ssh
 MULTI_CONF              ?= imx8mp-irma6r2
 BITBAKE_TARGET          ?= irma6-deploy
@@ -36,15 +34,17 @@ BITBAKE_EXTRA_TARGETS ?=
 BITBAKE_EXTRA_ARGS ?=
 
 # only relevant if CI_BUILD == false
+GITVERSION_REPO_PATH ?= /repo
+GITVERSION_CMD ?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} gittools/gitversion:6.0.0-alpine.3.17-7.0 
+IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')-dev
 KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:latest
-
 KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
     --runtime-args " \
-    -e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
-    -e BUILDDIR=${BUILDDIR} \
-    -e TMPDIR=${KAS_TMPDIR} \
-    -e DL_DIR=${DL_DIR} \
-    -e SSTATE_DIR=${SSTATE_DIR} \
+    	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
+    	-e BUILDDIR=${BUILDDIR} \
+    	-e TMPDIR=${KAS_TMPDIR} \
+    	-e DL_DIR=${DL_DIR} \
+    	-e SSTATE_DIR=${SSTATE_DIR} \
 	"
 
 KAS_COMMAND ?= ${KAS_EXE} \
