@@ -36,7 +36,10 @@ BITBAKE_EXTRA_ARGS ?=
 # only relevant if CI_BUILD == false
 GITVERSION_REPO_PATH ?= /repo
 GITVERSION_CMD ?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} gittools/gitversion:6.0.0-alpine.3.17-7.0 
-IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')-dev
+ifeq (${RELEASE}, false)
+	IRMA6_DISTRO_VERSION_DEV_SUFFIX = -dev
+endif
+IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
 KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:latest
 KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
     --runtime-args " \
