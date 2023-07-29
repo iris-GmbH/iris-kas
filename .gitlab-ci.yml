@@ -479,7 +479,7 @@ develop-build-maintenance-image:
     BITBAKE_TARGET: "irma6-maintenance"
     ARTIFACT_SUFFIX: "-maintenance"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.develop_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
@@ -498,7 +498,7 @@ develop-build-dev-image:
     BITBAKE_TARGET: "irma6-dev"
     ARTIFACT_SUFFIX: "-dev"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.develop_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
@@ -518,7 +518,7 @@ develop-build-maintenance-oci:
     BITBAKE_TARGET: "irma6-maintenance-oci"
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - !reference [.develop_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
@@ -536,7 +536,7 @@ develop-build-deploy-image:
     BITBAKE_TARGET: "irma6-deploy"
     ARTIFACT_SUFFIX: "-deploy"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.develop_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
@@ -556,7 +556,7 @@ develop-build-test-oci:
     JOB_ARTIFACT: "${KAS_TMPDIR}/deploy/images/*/*.rootfs-oci"
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - !reference [.develop_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
@@ -575,7 +575,7 @@ develop-build-sdk:
     matrix:
       - <<: *all_multi_confs
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.develop_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
@@ -626,7 +626,7 @@ release-build-maintenance-image:
     ARTIFACT_SUFFIX: "-maintenance"
     BITBAKE_TARGET: "irma6-maintenance"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.release_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
@@ -642,7 +642,7 @@ release-build-dev-image:
     ARTIFACT_SUFFIX: "-dev"
     BITBAKE_TARGET: "irma6-dev"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.release_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
@@ -659,7 +659,7 @@ release-build-test-oci:
     JOB_ARTIFACT: "${KAS_TMPDIR}/deploy/images/*/*.rootfs-oci"
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - !reference [.release_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
@@ -675,7 +675,7 @@ release-build-maintenance-oci:
     JOB_ARTIFACT: "${KAS_TMPDIR}/deploy/images/*/*.rootfs-oci"
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - !reference [.release_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
@@ -691,7 +691,7 @@ release-build-sdk:
     matrix:
       - <<: *target_multi_confs
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.release_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
@@ -708,7 +708,7 @@ release-build-dev-deploy:
     BITBAKE_TARGET: "irma6-deploy"
     ARTIFACT_SUFFIX: "-dev-deploy"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.release_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
@@ -729,7 +729,7 @@ release-build-deploy:
     BITBAKE_TARGET: "irma6-deploy"
     ARTIFACT_SUFFIX: "-deploy"
   script:
-    - make bitbake-${BITBAKE_TASK}
+    - make bitbake
     - make remove-symlinks-image-dir
     - !reference [.release_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
