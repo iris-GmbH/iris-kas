@@ -342,6 +342,8 @@ merge-container-manifests:
     - gp-tiny
   rules:
     - !reference [.common_template, rules, build_container_rules]
+  variables:
+    GIT_STRATEGY: none
   image:
     name: mplatform/manifest-tool:alpine-v2.0.6
   script:
