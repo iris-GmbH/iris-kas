@@ -467,13 +467,11 @@ develop-build-maintenance-image:
       - <<: *target_multi_confs
   variables:
     BITBAKE_TARGET: "irma6-maintenance"
-    ARTIFACT_SUFFIX: "-maintenance"
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, create-artifacts-folder]
   after_script:
-    - !reference [.develop_template, after_script, create-logs-folder]
+    - !reference [.develop_template, after_script, create-artifacts-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-dev-image:
@@ -488,13 +486,11 @@ develop-build-dev-image:
       - <<: *target_multi_confs
   variables:
     BITBAKE_TARGET: "irma6-dev"
-    ARTIFACT_SUFFIX: "-dev"
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, create-artifacts-folder]
   after_script:
-    - !reference [.develop_template, after_script, create-logs-folder]
+    - !reference [.develop_template, after_script, create-artifacts-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-maintenance-oci:
@@ -508,14 +504,11 @@ develop-build-maintenance-oci:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    JOB_ARTIFACT: "${KAS_TMPDIR}/deploy/images/*/*.rootfs-oci"
     BITBAKE_TARGET: "irma6-maintenance-oci"
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   script:
     - make bitbake
-    - !reference [.develop_template, script, create-artifacts-folder]
   after_script:
-    - !reference [.develop_template, after_script, create-logs-folder]
+    - !reference [.develop_template, after_script, create-artifacts-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-deploy-image:
@@ -530,13 +523,11 @@ develop-build-deploy-image:
       - <<: *target_multi_confs
   variables:
     BITBAKE_TARGET: "irma6-deploy"
-    ARTIFACT_SUFFIX: "-deploy"
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, create-artifacts-folder]
   after_script:
-    - !reference [.develop_template, after_script, create-logs-folder]
+    - !reference [.develop_template, after_script, create-artifacts-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-test-oci:
@@ -551,13 +542,10 @@ develop-build-test-oci:
       - <<: *oci_multi_confs
   variables:
     BITBAKE_TARGET: "irma6-test"
-    JOB_ARTIFACT: "${KAS_TMPDIR}/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
   script:
     - make bitbake
-    - !reference [.develop_template, script, create-artifacts-folder]
   after_script:
-    - !reference [.develop_template, after_script, create-logs-folder]
+    - !reference [.develop_template, after_script, create-artifacts-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 develop-build-sdk:
@@ -570,16 +558,14 @@ develop-build-sdk:
   variables:
     BITBAKE_TASK: "populate_sdk"
     BITBAKE_TARGET: "irma6-maintenance"
-    ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
       - <<: *all_multi_confs
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.develop_template, script, create-artifacts-folder]
   after_script:
-    - !reference [.develop_template, after_script, create-logs-folder]
+    - !reference [.develop_template, after_script, create-artifacts-folder]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
 # We prepare an offline-build environment for building the irma6-base image.
