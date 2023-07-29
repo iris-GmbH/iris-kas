@@ -5,9 +5,5 @@ header:
   version: 14
 
 local_conf_header:
-  build_history: |
-    INHERIT += "buildhistory"
-    BUILDHISTORY_COMMIT = "1"
-
   hashservice: |
     unset BB_HASHSERVE

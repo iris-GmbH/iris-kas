@@ -25,6 +25,9 @@ local_conf_header:
     DL_DIR ?= "${TOPDIR}/dl_dir"
   sstate_dir: |
     SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
+  build_history: |
+    INHERIT += "buildhistory"
+    BUILDHISTORY_COMMIT = "0"
   diskmon: |
     BB_DISKMON_DIRS = "\
       STOPTASKS,${TMPDIR},1G,100K \
