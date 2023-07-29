@@ -24,7 +24,7 @@ variables:
   # set makefile relevant variables
   KAS_EXE: "kas"
   CI_BUILD: "true"
-  BUILDDIR: "${CI_BUILDS_DIR}/build"
+  BUILDDIR: "${CI_PROJECT_DIR}/build"
   DL_DIR: "${BUILDDIR}/dl_dir"
   SSTATE_DIR: "${BUILDDIR}/sstate_dir"
   KAS_TMPDIR: "${BUILDDIR}/tmp"
@@ -46,7 +46,7 @@ variables:
     expand: false
   I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
   FAILURE_LOG_DIR: "failure-log"
-  JOB_ARTIFACT: "build/tmp/deploy"
+  JOB_ARTIFACT: "${KAS_TMPDIR}/deploy"
   # Refspec of the systemtest_base repo to use
   SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
   # Set the name of the firmware to be programmed with systemtest_smoke job
@@ -557,7 +557,6 @@ develop-build-test-oci:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   script:
     - make bitbake-${BITBAKE_TASK}
-    - make remove-symlinks-image-dir
     - !reference [.develop_template, script, move-artifacts-to-toplevel]
   artifacts: !reference [.develop_template, artifacts, develop-artifacts]
 
