@@ -474,8 +474,8 @@ develop-build-maintenance-image:
     - make bitbake
     - make remove-symlinks-image-dir
   after_script:
-    - !reference [.develop_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 develop-build-dev-image:
   rules:
@@ -493,8 +493,8 @@ develop-build-dev-image:
     - make bitbake
     - make remove-symlinks-image-dir
   after_script:
-    - !reference [.develop_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 develop-build-maintenance-oci:
   rules:
@@ -511,8 +511,8 @@ develop-build-maintenance-oci:
   script:
     - make bitbake
   after_script:
-    - !reference [.develop_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 develop-build-deploy-image:
   rules:
@@ -530,8 +530,8 @@ develop-build-deploy-image:
     - make bitbake
     - make remove-symlinks-image-dir
   after_script:
-    - !reference [.develop_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 develop-build-test-oci:
   rules:
@@ -548,8 +548,8 @@ develop-build-test-oci:
   script:
     - make bitbake
   after_script:
-    - !reference [.develop_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 develop-build-sdk:
   rules:
@@ -568,8 +568,8 @@ develop-build-sdk:
     - make bitbake
     - make remove-symlinks-image-dir
   after_script:
-    - !reference [.develop_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 # We prepare an offline-build environment for building the irma6-base image.
 # This image contains the raw iris-poky-deploy distro without any proprietary software.
@@ -579,32 +579,25 @@ release-base-build:
     - !reference [.release_template, rules]
   stage: build
   tags:
-    - "iris-kas-release-s3-upload"
+    - kas
   parallel:
     matrix:
       - <<: *target_multi_confs
   variables:
     BITBAKE_TARGET: "irma6-base"
-    S3_BUCKET_NAME: "iris-devops-opensource-iris-sensing-com"
-    S3_PATH_PREFIX: "sources/${CI_COMMIT_TAG}/"
-    S3_STORAGE_CLASS: "STANDARD_IA"
-    S3_ACL: "public-read"
-    ARTIFACT_NAME: "${MULTI_CONF}-base-sources"
     INCLUDE_PROPRIETARY_LAYERS: "false"
+    ARTIFACT_NAME: "${MULTI_CONF}-base-sources"
+    ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
   script:
     # populate download directory with source tarballs
     - BITBAKE_EXTRA_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/ci/kas-ci-release-generate-tarballs.yml" make bitbake
     - !reference [.release_template, script, resolve-download-mirror-softlinks]
-    - !reference [.release_template, script, create-artifact-archive]
+    - !reference [.release_template, script, create-archive-from-folder]
     # verify reproducibility of offline build
     - KAS_EXTRA_INCLUDES=":include/kas-offline-build.yml" make bitbake
-    # upload base sources to public s3 bucket
-    - aws s3 cp ${ARTIFACT_NAME}.tar.gz s3://${S3_BUCKET_NAME}/${S3_PATH_PREFIX}${ARTIFACT_NAME}.tar.gz --storage-class ${S3_STORAGE_CLASS} --acl ${S3_ACL}
-    - echo "BASE_SOURCES_S3_BUCKET_NAME=$S3_BUCKET_NAME" >> build.env
-    - echo "BASE_SOURCES_S3_PATH_PREFIX=$S3_PATH_PREFIX" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
+  after_script:
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 release-build-maintenance-image:
   rules:
@@ -619,8 +612,8 @@ release-build-maintenance-image:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.release_template, script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 release-build-dev-image:
   rules:
@@ -635,8 +628,8 @@ release-build-dev-image:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.release_template, script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 release-build-test-oci:
   rules:
@@ -651,8 +644,8 @@ release-build-test-oci:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   script:
     - make bitbake
-    - !reference [.release_template, script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 release-build-maintenance-oci:
   rules:
@@ -667,8 +660,8 @@ release-build-maintenance-oci:
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   script:
     - make bitbake
-    - !reference [.release_template, script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 release-build-sdk:
   rules:
@@ -684,14 +677,16 @@ release-build-sdk:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.release_template, script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 # Build the deploy image with dev keys
 release-build-dev-deploy:
   rules:
     - !reference [.release_template, rules]
   stage: build
+  tags:
+    - kas
   parallel:
     matrix:
       - MULTI_CONF: [imx8mp-irma6r2]
@@ -701,8 +696,8 @@ release-build-dev-deploy:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.release_template, script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 # Build the deploy image with production keys
 release-build-deploy:
@@ -722,8 +717,8 @@ release-build-deploy:
   script:
     - make bitbake
     - make remove-symlinks-image-dir
-    - !reference [.release_template, script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - !reference [.common_template, after_script, create-artifacts-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 
 ##############################
