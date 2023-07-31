@@ -740,7 +740,6 @@ develop-push-test-oci:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
     GIT_STRATEGY: none
   tags:
     - gp-tiny
@@ -749,7 +748,7 @@ develop-push-test-oci:
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      oci:${CI_JOB_NAME_SLUG//develop-push-test-oci/develop-build-deploy-image}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
 
 release-push-test-oci:
