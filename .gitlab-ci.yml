@@ -745,10 +745,11 @@ develop-push-test-oci:
     - gp-tiny
   image: quay.io/skopeo/stable:v1.13.0
   script:
+    - OCI_IMAGE=$(find ${CI_JOB_NAME_SLUG//push-test-oci/build-test-oci} -name "*.rootfs-oci.tar")
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:${CI_JOB_NAME_SLUG//develop-push-test-oci/develop-build-deploy-image}:latest
+      oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
 
 release-push-test-oci:
