@@ -182,4 +182,4 @@ checkout-branch-in-iris-layers:
 	"
 
 set-fixed-refspecs: create-kas-lockfile
-	@echo "Warning: set-fixed-refspec is deprecated and will be removed in the future. Use create-kas-lockfile instead.
+	@echo "Warning: set-fixed-refspec is deprecated and will be removed in the future. Use create-kas-lockfile instead."

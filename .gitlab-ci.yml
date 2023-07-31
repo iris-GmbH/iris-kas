@@ -29,6 +29,7 @@ variables:
   SSTATE_DIR: "${BUILDDIR}/sstate_dir"
   KAS_TMPDIR: "${BUILDDIR}/tmp"
   BITBAKE_TASK: "build"
+  RELEASE: "false"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
     ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
@@ -592,11 +593,11 @@ release-base-build:
     INCLUDE_PROPRIETARY_LAYERS: "false"
   script:
     # populate download directory with source tarballs
-    - BITBAKE_EXTRA_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/ci/kas-ci-release-generate-tarballs.yml" make
+    - BITBAKE_EXTRA_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/ci/kas-ci-release-generate-tarballs.yml" make bitbake
     - !reference [.release_template, script, resolve-download-mirror-softlinks]
     - !reference [.release_template, script, create-artifact-archive]
     # verify reproducibility of offline build
-    - KAS_EXTRA_INCLUDES=":include/kas-offline-build.yml" make
+    - KAS_EXTRA_INCLUDES=":include/kas-offline-build.yml" make bitbake
     # upload base sources to public s3 bucket
     - aws s3 cp ${ARTIFACT_NAME}.tar.gz s3://${S3_BUCKET_NAME}/${S3_PATH_PREFIX}${ARTIFACT_NAME}.tar.gz --storage-class ${S3_STORAGE_CLASS} --acl ${S3_ACL}
     - echo "BASE_SOURCES_S3_BUCKET_NAME=$S3_BUCKET_NAME" >> build.env
