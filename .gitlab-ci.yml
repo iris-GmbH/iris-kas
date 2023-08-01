@@ -194,12 +194,23 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
-  - renovate
 
 
 ###################
 ### SETUP STAGE ###
 ###################
+
+renovate:
+  stage: renovate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - when: manual
+  image: renovate/renovate:36.23.2-full
+  tags:
+    - gp
+  script:
+    - renovate ${RENOVATE_EXTRA_FLAGS}
+  allow_failure: true
 
 # We do not want to run a pipeline on merges to non-default branch.
 # During a release process (merge target branch master), we are interested in the release candidate builds, not the merge request
@@ -903,19 +914,3 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
         - name: "${SC573_GEN6_BASESOURCES}"
           url: "${SC573_GEN6_BASESOURCES_URL}"
-
-######################
-### RENOVATE STAGE ###
-######################
-
-renovate:
-  stage: renovate
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - when: manual
-  image: renovate/renovate:36.23.2-full
-  tags:
-    - gp
-  script:
-    - renovate ${RENOVATE_EXTRA_FLAGS}
-  allow_failure: true
