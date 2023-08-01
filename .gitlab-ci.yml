@@ -121,13 +121,21 @@ variables:
 ####################
 
 .target_multi_confs: &target_multi_confs
-  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+  MULTI_CONF:
+    - sc573-gen6
+    - imx8mp-irma6r2
 
 .oci_multi_confs: &oci_multi_confs
-  MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+  MULTI_CONF:
+    - qemux86-64-r1
+    - qemux86-64-r2
 
 .all_multi_confs: &all_multi_confs
-  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2, qemux86-64-r1, qemux86-64-r2]
+  MULTI_CONF:
+    - sc573-gen6
+    - imx8mp-irma6r2
+    - qemux86-64-r1
+    - qemux86-64-r2
 
 ################
 ### WORKFLOW ###
@@ -440,10 +448,9 @@ release-wipe-release-sstate-cache:
 build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_MAINTENANCE_IMAGE_BUILD is set to true
-    - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - !reference [.develop_template, trunk_push_rules]
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
   stage: build
   parallel:
     matrix:
@@ -459,10 +466,8 @@ build-maintenance-image:
 build-dev-image:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_DEV_IMAGE_BUILD is set to true
-    - if: '$SKIP_DEV_IMAGE_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
   stage: build
   parallel:
     matrix:
@@ -478,10 +483,9 @@ build-dev-image:
 build-maintenance-oci:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_MAINTENANCE_OCI_BUILD is set to true
-    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - !reference [.develop_template, trunk_push_rules]
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
   stage: build
   parallel:
     matrix:
@@ -498,10 +502,9 @@ build-maintenance-oci:
 build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_DEPLOY_IMAGE_BUILD is set to true
-    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - !reference [.develop_template, trunk_push_rules]
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
   stage: build
   parallel:
     matrix:
@@ -536,10 +539,9 @@ build-test-oci:
 build-sdk:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - !reference [.develop_template, trunk_push_rules]
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
   stage: build
   variables:
     BITBAKE_TASK: "populate_sdk"
@@ -752,10 +754,7 @@ systemtest_reliability:
 
 develop-push-maintenance-oci:
   rules:
-    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
-    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - when: manual
   stage: upload-artifacts
   parallel:
     matrix:
@@ -777,9 +776,6 @@ develop-create-sdk-container-images:
   rules:
     - if: $CI_COMMIT_TAG
       when: never
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
-      when: never
     - when: manual
   stage: upload-artifacts
   tags:
@@ -787,6 +783,10 @@ develop-create-sdk-container-images:
   parallel:
     matrix:
       - <<: *all_multi_confs
+  needs:
+    - job: develop-ci-build-setup
+    - job: build-sdk
+
   image: gcr.io/kaniko-project/executor:v1.9.2-debug
   before_script:
     - SDK_SOURCE=$(find "${CI_PROJECT_DIR}" -type d -name "*${MULTI_CONF}-sdk" | sed "s%${CI_PROJECT_DIR}/%%")
@@ -804,12 +804,12 @@ develop-upload-sdks:
   rules:
     - if: $CI_COMMIT_TAG
       when: never
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
-      when: never
     - when: manual
   variables:
     GIT_STRATEGY: none
+  needs:
+    - job: develop-ci-build-setup
+    - job: build-sdk
   tags:
     - gp
   script:
