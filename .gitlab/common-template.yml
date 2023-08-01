@@ -45,8 +45,8 @@
       # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
       when: always
       paths:
-        - "${KAS_TMPDIR//${BUILDDIR}/{ARTIFACT_FOLDER}}/deploy"
-        - "${KAS_TMPDIR//${BUILDDIR}/{ARTIFACT_FOLDER}}/buildhistory"
+        - "${KAS_TMPDIR//${BUILDDIR}/${ARTIFACT_FOLDER}}/deploy"
+        - "${KAS_TMPDIR//${BUILDDIR}/${ARTIFACT_FOLDER}}/buildhistory"
         - "${ARTIFACT_FOLDER}/**/log.do_*"
         - "${ARTIFACT_FOLDER}/**/log.task_order"
       expire_in: 7 days
