@@ -183,7 +183,6 @@ default:
 ##############
 
 stages:
-  - renovate
   - setup
   - build-build-container
   - merge-build-container
@@ -195,28 +194,7 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
-
-renovate-dry-run:
-  stage: renovate
-  rules:
-    - if: $RENOVATE_DRY_RUN == "true"
-  image: renovate/renovate:36.23.2-full
-  tags:
-    - gp
-  script:
-    - renovate --dry-run=full ${RENOVATE_EXTRA_FLAGS}
-  allow_failure: true
-
-renovate:
-  stage: renovate
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:36.23.2-full
-  tags:
-    - gp
-  script:
-    - renovate ${RENOVATE_EXTRA_FLAGS}
+  - renovate
 
 
 ###################
@@ -925,3 +903,19 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
         - name: "${SC573_GEN6_BASESOURCES}"
           url: "${SC573_GEN6_BASESOURCES_URL}"
+
+######################
+### RENOVATE STAGE ###
+######################
+
+renovate:
+  stage: renovate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - when: manual
+  image: renovate/renovate:36.23.2-full
+  tags:
+    - gp
+  script:
+    - renovate ${RENOVATE_EXTRA_FLAGS}
+  allow_failure: true
