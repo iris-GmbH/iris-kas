@@ -170,7 +170,7 @@ default:
     # configure git safe directory
     - if command -v git; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
     # if called from upstream pipeline, attempt to checkout identical named branch in iris-kas
-    - > 
+    - >
       if [ -n "${UPSTREAM_PROJECT_NAME}" ] && [ "${RELEASE}" != "true" ] && command -v git; then
         echo "Trying to checkout ${BRANCH_NAME} in iris-kas";
         git checkout ${BRANCH_NAME} 2>/dev/null \
@@ -374,7 +374,7 @@ develop-ci-build-setup:
     - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
     - echo "BRANCH_NAME=$BRANCH_NAME" >> build.env;
     # if USE_IDENTICAL_NAMED_BRANCHES is set to true, we attempt to checkout BRANCH_NAME in meta-iris(-base) layers.
-    # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME 
+    # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
     - >
       if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ]; then
         make checkout-branch-in-iris-layers
@@ -927,7 +927,7 @@ publish-release:
         - name: "${SC573_GEN6_BASESOURCES}"
           url: "${SC573_GEN6_BASESOURCES_URL}"
 
- 
+
 ##################################
 ### COLLECT FAILURE LOGS STAGE ###
 ##################################
