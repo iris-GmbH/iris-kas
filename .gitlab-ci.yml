@@ -451,6 +451,7 @@ build-maintenance-image:
     - !reference [.develop_template, trunk_push_rules]
     - !reference [.develop_template, schedule_rules]
     - when: manual
+      allow_failure: true
   stage: build
   parallel:
     matrix:
@@ -468,6 +469,7 @@ build-dev-image:
     - !reference [.release_template, rules]
     - !reference [.develop_template, schedule_rules]
     - when: manual
+      allow_failure: true
   stage: build
   parallel:
     matrix:
@@ -486,6 +488,7 @@ build-maintenance-oci:
     - !reference [.develop_template, trunk_push_rules]
     - !reference [.develop_template, schedule_rules]
     - when: manual
+      allow_failure: true
   stage: build
   parallel:
     matrix:
@@ -505,6 +508,7 @@ build-dev-deploy-image:
     - !reference [.develop_template, trunk_push_rules]
     - !reference [.develop_template, schedule_rules]
     - when: manual
+      allow_failure: true
   stage: build
   parallel:
     matrix:
@@ -542,6 +546,7 @@ build-sdk:
     - !reference [.develop_template, trunk_push_rules]
     - !reference [.develop_template, schedule_rules]
     - when: manual
+      allow_failure: true
   stage: build
   variables:
     BITBAKE_TASK: "populate_sdk"
@@ -754,7 +759,10 @@ systemtest_reliability:
 
 develop-push-maintenance-oci:
   rules:
+    - if: $CI_COMMIT_TAG
+      when: never
     - when: manual
+      allow_failure: true
   stage: upload-artifacts
   parallel:
     matrix:
@@ -777,6 +785,7 @@ develop-create-sdk-container-images:
     - if: $CI_COMMIT_TAG
       when: never
     - when: manual
+      allow_failure: true
   stage: upload-artifacts
   tags:
     - gp
@@ -805,6 +814,7 @@ develop-upload-sdks:
     - if: $CI_COMMIT_TAG
       when: never
     - when: manual
+      allow_failure: true
   variables:
     GIT_STRATEGY: none
   needs:
