@@ -9,3 +9,9 @@ local_conf_header:
     BB_NUMBER_THREADS = "10"
   prservice: |
     PRSERV_HOST = "yocto-prservice-kirkstone:8585"
+  # disable image_link_name in CI
+  image_link_name: |
+    IMAGE_LINK_NAME = ""
+  # store the buildhistory in the tmpdir for easier artifact management in CI
+  buildhistory_dir: |
+    BUILDHISTORY_DIR = "${TMPDIR}/buildhistory"

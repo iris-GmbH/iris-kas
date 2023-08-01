@@ -86,7 +86,7 @@ endif
 
 # add release specific configuration
 ifeq (${RELEASE}, true)
-	KAS_EXTRA_INCLUDES += :include/kas-release.yml:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml
+	KAS_EXTRA_INCLUDES += :include/kas-release.yml
 	ifeq (${CI_BUILD}, true)
 		KAS_EXTRA_INCLUDES += :include/ci/kas-ci-populate-release-caches.yml
 	endif
@@ -170,9 +170,6 @@ kas-shell:
 
 kas-int-shell:
 	${KAS_SHELL} ${KAS_CONFIG}
-
-remove-symlinks-image-dir:
-	${KAS_SHELL} -c "if [ -d "${KAS_TMPDIR}/deploy/images" ]; then find ${KAS_TMPDIR}/deploy/images -type l -exec rm -f {} \; ;fi" ${KAS_CONFIG}
 
 export BRANCH_NAME ?= master
 checkout-branch-in-iris-layers:

@@ -28,14 +28,6 @@
       # remove temporary files
       - rm -rf ${TMPDIR} ${DL_DIR}/git2
 
-    # creates an archive ${ARTIFACT_NAME}.tar.gz from the folder ${ARTIFACT_FOLDER}
-    create-archive-from-folder: # required vars: ARTIFACT_NAME, ARTIFACT_FOLDER
-      # ensure all write operations are finished (might lead to deferred deletion otherwise)
-      - sync
-      - touch ${ARTIFACT_NAME}.tar.gz
-      - tar -I "gzip --best" --exclude=${ARTIFACT_NAME}.tar.gz -cf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_FOLDER}
-      - echo "${ARTIFACT_NAME}.tar.gz is $(echo -n $(ls -lh ${ARTIFACT_NAME}.tar.gz | awk '{print $5}')) in size."
-
     # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
     move-artifacts-to-toplevel:
       - mkdir "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"

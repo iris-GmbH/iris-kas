@@ -17,8 +17,8 @@ include:
 
 variables:
   RELEASE_BRANCH: "master"
-  BUILD_VERSION_TAG: "latest"
-  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
+  BUILD_IMAGE_TAG: "latest"
+  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_IMAGE_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
   # set makefile relevant variables
@@ -101,9 +101,6 @@ variables:
   SKIP_SDK_BUILD:
     value: "true"
     description: 'Set to "false" to run the SDK build.'
-  UPLOAD_SDK_TO_REGISTRIES:
-    value: "false"
-    description : 'Will upload the built SDK when set to "true" and combined with SKIP_SDK_BUILD="false"'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -198,6 +195,7 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
+  - collect-failure-logs
 
 renovate-dry-run:
   stage: renovate
@@ -246,48 +244,21 @@ build-container-get-tag:
   stage: setup
   tags:
     - gp-tiny
-  image:
-    name: busybox:1.36.1-uclibc
+  image: busybox:1.36.1-uclibc
   script:
     # Default branch = latest tag
     # Release = release tag
     # All other branches are tagged with the currently built commit SHA hash
     - |
       if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        BUILD_VERSION_TAG="latest"
+        BUILD_IMAGE_TAG="latest"
       elif [[ -n "$CI_COMMIT_TAG" ]]; then
-        BUILD_VERSION_TAG="$CI_COMMIT_TAG"
+        BUILD_IMAGE_TAG="$CI_COMMIT_TAG"
       else
-        BUILD_VERSION_TAG="git-${CI_COMMIT_SHORT_SHA}"
+        BUILD_IMAGE_TAG="git-${CI_COMMIT_SHORT_SHA}"
       fi
-    - echo "BUILD_VERSION_TAG set to ${BUILD_VERSION_TAG}."
-    - echo "BUILD_VERSION_TAG=${BUILD_VERSION_TAG}" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
-
-oci-get-tag:
-  rules:
-    - !reference [.release_template, rules]
-    # skip if OCI related jobs are skipped and not release
-    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && ($SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false")'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: setup
-  tags:
-    - gp-tiny
-  image: busybox:1.36.1-uclibc
-  script:
-    # set correct tag on parent-child pipelines
-    - |
-      if test -n "${UPSTREAM_PROJECT_NAME}"; then
-        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
-      else
-        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
-      fi
-    # export OCI_TAG to build.env for other jobs to consume
-    - |
-      echo "OCI_TAG=${OCI_TAG}" >> build.env
+    - echo "BUILD_IMAGE_TAG set to ${BUILD_IMAGE_TAG}."
+    - echo "BUILD_IMAGE_TAG=${BUILD_IMAGE_TAG}" >> build.env
   artifacts:
     reports:
       dotenv: build.env
@@ -322,9 +293,7 @@ build-iris-kas-container:
         ARCH: arm64
   tags:
     - ${TAG}
-  image:
-    name: gcr.io/kaniko-project/executor:v1.9.2-debug
-    entrypoint: [""]
+  image: gcr.io/kaniko-project/executor:v1.9.2-debug
   script:
     - >-
       /kaniko/executor
@@ -345,8 +314,7 @@ merge-container-manifests:
     - !reference [.common_template, rules, build_container_rules]
   variables:
     GIT_STRATEGY: none
-  image:
-    name: mplatform/manifest-tool:alpine-v2.0.6
+  image: mplatform/manifest-tool:alpine-v2.0.6
   script:
     - >-
       manifest-tool
@@ -384,14 +352,23 @@ develop-ci-build-setup:
   script:
     # set development distro version
     - echo IRMA6_DISTRO_VERSION="$(cat gitversion.json | jq -r '.MajorMinorPatch')-dev" >> build.env
+    # set OCI tag
+    - >
+      if test -n "${UPSTREAM_PROJECT_NAME}"; then
+        OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+      else
+        OCI_TAG="${CI_COMMIT_REF_SLUG}"
+      fi
+    - echo "OCI_TAG set to ${OCI_TAG}."
+    - echo "OCI_TAG=${OCI_TAG}" >> build.env;
     # identify branch name for identifying identical named branches in all iris meta layers
     # depending on pipeline source, the name of the current branch (or upstream branch) is saved as different variables. Unify into a single variable.
     # if called from an upstream project, the BRANCH_NAME variable is already defined.
     - >
       if [ -n "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" ]; then
-          export BRANCH_NAME="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+          BRANCH_NAME="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
       elif [ -n "${CI_COMMIT_BRANCH}" ]; then
-          export BRANCH_NAME="$CI_COMMIT_BRANCH"
+          BRANCH_NAME="$CI_COMMIT_BRANCH"
       fi
     - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
     - echo "BRANCH_NAME=$BRANCH_NAME" >> build.env;
@@ -423,6 +400,7 @@ release-ci-build-setup:
     - ls "*.lock.yml"
     - echo "RELEASE=true" >> build.env
     - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
+    - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
   artifacts:
     reports:
       dotenv: build.env
@@ -439,6 +417,7 @@ wipe-sstate-caches:
   rules:
     - if: '$WIPE_SSTATE_CACHE == "true"'
   script:
+    - echo "Ensure you also reset the yocto hashservice database!"
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} +
 
 # Ensures that the release sstate cache is empty before any build is started.
@@ -458,8 +437,9 @@ release-wipe-release-sstate-cache:
 ### BUILD STAGE ###
 ###################
 
-develop-build-maintenance-image:
+build-maintenance-image:
   rules:
+    - !reference [.release_template, rules]
     # skip if SKIP_MAINTENANCE_IMAGE_BUILD is set to true
     - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
       when: never
@@ -472,13 +452,13 @@ develop-build-maintenance-image:
     BITBAKE_TARGET: "irma6-maintenance"
   script:
     - make bitbake
-    - make remove-symlinks-image-dir
   after_script:
-    - !reference [.common_template, after_script, create-artifacts-folder]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-develop-build-dev-image:
+build-dev-image:
   rules:
+    - !reference [.release_template, rules]
     # skip if SKIP_DEV_IMAGE_BUILD is set to true
     - if: '$SKIP_DEV_IMAGE_BUILD == "true"'
       when: never
@@ -491,13 +471,13 @@ develop-build-dev-image:
     BITBAKE_TARGET: "irma6-dev"
   script:
     - make bitbake
-    - make remove-symlinks-image-dir
   after_script:
-    - !reference [.common_template, after_script, create-artifacts-folder]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-develop-build-maintenance-oci:
+build-maintenance-oci:
   rules:
+    - !reference [.release_template, rules]
     # skip if SKIP_MAINTENANCE_OCI_BUILD is set to true
     - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
       when: never
@@ -511,11 +491,13 @@ develop-build-maintenance-oci:
   script:
     - make bitbake
   after_script:
-    - !reference [.common_template, after_script, create-artifacts-folder]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-develop-build-deploy-image:
+# build deploy image with dev keys
+build-dev-deploy-image:
   rules:
+    - !reference [.release_template, rules]
     # skip if SKIP_DEPLOY_IMAGE_BUILD is set to true
     - if: '$SKIP_DEPLOY_IMAGE_BUILD == "true"'
       when: never
@@ -528,13 +510,13 @@ develop-build-deploy-image:
     BITBAKE_TARGET: "irma6-deploy"
   script:
     - make bitbake
-    - make remove-symlinks-image-dir
   after_script:
-    - !reference [.common_template, after_script, create-artifacts-folder]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-develop-build-test-oci:
+build-test-oci:
   rules:
+    - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS are set to true
     - if: '$SKIP_OCI_TESTS == "true"'
       when: never
@@ -548,11 +530,12 @@ develop-build-test-oci:
   script:
     - make bitbake
   after_script:
-    - !reference [.common_template, after_script, create-artifacts-folder]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-develop-build-sdk:
+build-sdk:
   rules:
+    - !reference [.release_template, rules]
     # skip if SKIP_SDK_BUILD is set to true
     - if: '$SKIP_SDK_BUILD == "true"'
       when: never
@@ -566,9 +549,8 @@ develop-build-sdk:
       - <<: *all_multi_confs
   script:
     - make bitbake
-    - make remove-symlinks-image-dir
   after_script:
-    - !reference [.common_template, after_script, create-artifacts-folder]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 # We prepare an offline-build environment for building the irma6-base image.
@@ -592,114 +574,12 @@ release-base-build:
     # populate download directory with source tarballs
     - BITBAKE_EXTRA_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/ci/kas-ci-release-generate-tarballs.yml" make bitbake
     - !reference [.release_template, script, resolve-download-mirror-softlinks]
-    - !reference [.release_template, script, create-archive-from-folder]
+    - !reference [.common_template, script, create-archive-from-folder]
     # verify reproducibility of offline build
     - KAS_EXTRA_INCLUDES=":include/kas-offline-build.yml" make bitbake
-  after_script:
-    - !reference [.common_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
+  artifacts: !reference [.common_template, artifacts, archive-folder-artifacts]
 
-release-build-maintenance-image:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
-  variables:
-    ARTIFACT_SUFFIX: "-maintenance"
-    BITBAKE_TARGET: "irma6-maintenance"
-  script:
-    - make bitbake
-    - make remove-symlinks-image-dir
-    - !reference [.common_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
-
-release-build-dev-image:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
-  variables:
-    ARTIFACT_SUFFIX: "-dev"
-    BITBAKE_TARGET: "irma6-dev"
-  script:
-    - make bitbake
-    - make remove-symlinks-image-dir
-    - !reference [.common_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
-
-release-build-test-oci:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    BITBAKE_TARGET: "irma6-test"
-    JOB_ARTIFACT: "${KAS_TMPDIR}/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
-  script:
-    - make bitbake
-    - !reference [.common_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
-
-release-build-maintenance-oci:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    BITBAKE_TARGET: "irma6-maintenance-oci"
-    JOB_ARTIFACT: "${KAS_TMPDIR}/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
-  script:
-    - make bitbake
-    - !reference [.common_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
-
-release-build-sdk:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  variables:
-    BITBAKE_TARGET: "irma6-maintenance"
-    BITBAKE_TASK: "populate_sdk"
-    ARTIFACT_SUFFIX: "-sdk"
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
-  script:
-    - make bitbake
-    - make remove-symlinks-image-dir
-    - !reference [.common_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
-
-# Build the deploy image with dev keys
-release-build-dev-deploy:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  tags:
-    - kas
-  parallel:
-    matrix:
-      - MULTI_CONF: [imx8mp-irma6r2]
-  variables:
-    BITBAKE_TARGET: "irma6-deploy"
-    ARTIFACT_SUFFIX: "-dev-deploy"
-  script:
-    - make bitbake
-    - make remove-symlinks-image-dir
-    - !reference [.common_template, after_script, create-artifacts-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
-
-# Build the deploy image with production keys
+# Build the deploy image with production keys during release
 release-build-deploy:
   rules:
     - !reference [.release_template, rules]
@@ -713,11 +593,10 @@ release-build-deploy:
         IMAGES: "irma6-deploy"
   variables:
     BITBAKE_TARGET: "irma6-deploy"
-    ARTIFACT_SUFFIX: "-deploy"
+    KAS_EXTRA_INCLUDES: ":include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
   script:
     - make bitbake
-    - make remove-symlinks-image-dir
-    - !reference [.common_template, after_script, create-artifacts-folder]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 
@@ -725,8 +604,9 @@ release-build-deploy:
 ### PUSH TEST IMAGES STAGE ###
 ##############################
 
-develop-push-test-oci:
+push-test-oci:
   rules:
+    - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS are set to true
     - if: '$SKIP_OCI_TESTS == "true"'
       when: never
@@ -746,27 +626,6 @@ develop-push-test-oci:
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:${OCI_IMAGE}:latest
-      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-
-release-push-test-oci:
-  rules:
-    - !reference [.release_template, rules]
-  stage: push-test-images
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
-    GIT_STRATEGY: none
-  tags:
-    - gp-tiny
-  image: quay.io/skopeo/stable:v1.13.0
-  before_script: []
-  script:
-    - >-
-      /usr/bin/skopeo copy
-      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
 
 
@@ -816,8 +675,8 @@ test-oci:
   after_script:
     - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
   artifacts:
+    name: "${CI_JOB_NAME}"
     when: always
-    name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-gtest-results"
     paths:
       - ${MULTI_CONF}-gtest_results.xml
     reports:
@@ -845,6 +704,7 @@ systemtest_smoke:
   after_script:
     - docker logout ${CI_REGISTRY}
   artifacts:
+    name: "${CI_JOB_NAME}"
     when: always
     paths:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/report.html
@@ -877,6 +737,7 @@ systemtest_reliability:
   after_script:
     - docker logout ${CI_REGISTRY}
   artifacts:
+    name: "${CI_JOB_NAME}"
     when: always
     paths:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/report_combined.html
@@ -889,7 +750,7 @@ systemtest_reliability:
 ### UPLOAD ARTIFACTS STAGE ###
 ##############################
 
-push-maintenance-oci:
+develop-push-maintenance-oci:
   rules:
     # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
     - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
@@ -914,19 +775,18 @@ push-maintenance-oci:
 
 develop-create-sdk-container-images:
   rules:
-    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
-    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
+    # skip if SKIP_SDK_BUILD is set to true
+    - if: '$SKIP_SDK_BUILD == "true"'
       when: never
     - !reference [.develop_template, rules]
+      when: manual
   stage: upload-artifacts
   tags:
     - gp
   parallel:
     matrix:
       - <<: *all_multi_confs
-  image:
-    name: gcr.io/kaniko-project/executor:v1.9.2-debug
-    entrypoint: [""]
+  image: gcr.io/kaniko-project/executor:v1.9.2-debug
   before_script:
     - SDK_SOURCE=$(find "${CI_PROJECT_DIR}" -type d -name "*${MULTI_CONF}-sdk" | sed "s%${CI_PROJECT_DIR}/%%")
   script:
@@ -941,10 +801,11 @@ develop-create-sdk-container-images:
 develop-upload-sdks:
   stage: upload-artifacts
   rules:
-    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
-    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
+    # skip if SKIP_SDK_BUILD is set to true
+    - if: '$SKIP_SDK_BUILD == "true"'
       when: never
     - !reference [.develop_template, rules]
+      when: manual
   variables:
     GIT_STRATEGY: none
   tags:
@@ -971,7 +832,7 @@ release-upload-artifacts:
     - gp
   script:
     - >
-      for ARTIFACT in irma6-*; do
+      for ARTIFACT in kas-*; do
         sudo tar 2>&1 -czvf ${ARTIFACT}.tar.gz ${ARTIFACT}
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${ARTIFACT}.tar.gz"
       done
@@ -1063,3 +924,27 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
         - name: "${SC573_GEN6_BASESOURCES}"
           url: "${SC573_GEN6_BASESOURCES_URL}"
+
+ 
+##################################
+### COLLECT FAILURE LOGS STAGE ###
+##################################
+
+collect-failure-logs:
+  rules:
+    - when: on_failure
+  stage: collect-failure-logs
+  tags:
+    - gp
+  image: busybox:1.36.1-uclibc
+  script:
+    - echo "Collecting failure logs..."
+  variables:
+    GIT_STRATEGY: none
+  artifacts:
+    name: "${CI_JOB_NAME}"
+    when: always
+    paths:
+      - "artifact-*/**/log.do_*"
+      - "artifact-*/**/log.task_order"
+    expire_in: 7 days
