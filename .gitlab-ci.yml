@@ -42,11 +42,7 @@ variables:
   WIPE_SSTATE_CACHE: "false"
   # define KAS environment variables
   KAS_WORK_DIR: "${CI_PROJECT_DIR}"
-  COUNTER_MINIMAL_RECIPE_PATH:
-    value: "${KAS_WORK_DIR}/meta-iris/recipes-platform/counter/counter-minimal.bb"
-    expand: false
-  I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
-  JOB_ARTIFACT: "${KAS_TMPDIR}/deploy"
+  KAS_ARTIFACT_PREFIX: "artifact-"
   # Refspec of the systemtest_base repo to use
   SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
   # Set the name of the firmware to be programmed with systemtest_smoke job
@@ -57,7 +53,6 @@ variables:
   SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
   GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
   GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
-  KAS_ARTIFACT_PREFIX: "artifact-"
   IMX8MP_IRMA6R2_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy
   IMX8MP_IRMA6R2_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy-customer
   IMX8MP_IRMA6R2_DEV_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
@@ -90,18 +85,9 @@ variables:
   SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
-  SKIP_MAINTENANCE_OCI_BUILD:
-    value: "true"
-    description: 'Set to "false" to build the irma6-maintenance OCI for running a containerized virtual sensor on your host.'
-  SKIP_DEV_IMAGE_BUILD:
-    value: "true"
-    description: 'Set to false to build the dev firmware build for the sensor targets.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
-  SKIP_SDK_BUILD:
-    value: "true"
-    description: 'Set to "false" to run the SDK build.'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -174,12 +160,17 @@ default:
     name: "${BUILD_IMAGE_IRIS_KAS}"
     pull_policy:
       - always
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
   before_script:
     # configure git safe directory
-    - if command -v git; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
+    - if command -v git >/dev/null 2>&1; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
     # if called from upstream pipeline, attempt to checkout identical named branch in iris-kas
     - >
-      if [ -n "${UPSTREAM_PROJECT_NAME}" ] && [ "${RELEASE}" != "true" ] && command -v git; then
+      if [ -n "${UPSTREAM_PROJECT_NAME}" ] && [ "${RELEASE}" != "true" ] && command -v git >/dev/null 2>&1; then
         echo "Trying to checkout ${BRANCH_NAME} in iris-kas";
         git checkout ${BRANCH_NAME} 2>/dev/null \
         && echo "Branch ${BRANCH_NAME} has been checked out in iris-kas" \
@@ -448,10 +439,10 @@ release-wipe-release-sstate-cache:
 build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
-    - !reference [.develop_template, trunk_push_rules]
-    - !reference [.develop_template, schedule_rules]
-    - when: manual
-      allow_failure: true
+    # skip if SKIP_MAINTENANCE_IMAGE_BUILD is set to true
+    - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
   stage: build
   parallel:
     matrix:
@@ -505,10 +496,9 @@ build-maintenance-oci:
 build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
-    - !reference [.develop_template, trunk_push_rules]
-    - !reference [.develop_template, schedule_rules]
-    - when: manual
-      allow_failure: true
+    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
   stage: build
   parallel:
     matrix:
