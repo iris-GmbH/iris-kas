@@ -171,7 +171,7 @@ kas-shell:
 kas-int-shell:
 	${KAS_SHELL} ${KAS_CONFIG}
 
-export BRANCH_NAME ?= master
+BRANCH_NAME ?= master
 checkout-branch-in-iris-layers:
 	${KAS_COMMAND} for-all-repos ${KAS_CONFIG} " \
 		export BRANCH_NAME=${BRANCH_NAME}; \
