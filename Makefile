@@ -35,7 +35,7 @@ BITBAKE_EXTRA_ARGS ?=
 
 # only relevant if CI_BUILD == false
 GITVERSION_REPO_PATH ?= /repo
-GITVERSION_CMD ?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} gittools/gitversion:6.0.0-alpine.3.17-7.0 
+GITVERSION_CMD ?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} gittools/gitversion:6.0.0-alpine.3.17-7.0
 ifeq (${RELEASE}, false)
 	IRMA6_DISTRO_VERSION_DEV_SUFFIX = -dev
 endif
@@ -43,11 +43,11 @@ IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -
 KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:latest
 KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
     --runtime-args " \
-    	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
-    	-e BUILDDIR=${BUILDDIR} \
-    	-e TMPDIR=${KAS_TMPDIR} \
-    	-e DL_DIR=${DL_DIR} \
-    	-e SSTATE_DIR=${SSTATE_DIR} \
+		-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
+		-e BUILDDIR=${BUILDDIR} \
+		-e TMPDIR=${KAS_TMPDIR} \
+		-e DL_DIR=${DL_DIR} \
+		-e SSTATE_DIR=${SSTATE_DIR} \
 	"
 
 KAS_COMMAND ?= ${KAS_EXE} \
