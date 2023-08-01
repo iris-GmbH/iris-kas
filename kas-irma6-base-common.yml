@@ -97,9 +97,6 @@ repos:
       # Add python3-tox
       0005-python3-tox-Add-initial-recipe-4.6.0:
         path: "patches/0005-python3-tox-Add-initial-recipe-4.6.0.patch"
-      # Fix yaml-cpp cmake export
-      0001-yaml-cpp-Fix-cmake-export:
-        path: "patches/0001-yaml-cpp-Fix-cmake-export.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     branch: "kirkstone"
