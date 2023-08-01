@@ -184,8 +184,7 @@ default:
 
 stages:
   - setup
-  - build-build-container
-  - merge-build-container
+  - build-container
   - yocto-setup
   - wipe-sstate-caches
   - build
@@ -221,6 +220,8 @@ skip-non-default-branch-merge-pipeline:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
   stage: setup
+  variables:
+    GIT_STRATEGY: none
   tags:
     - gp-tiny
   script:
@@ -270,7 +271,9 @@ develop-get-next-firmware-version:
 ###################################
 
 build-iris-kas-container:
-  stage: build-build-container
+  stage: build-container
+  needs:
+    - job: build-container-get-tag
   rules:
     - !reference [.common_template, rules, build_container_rules]
   parallel:
@@ -295,7 +298,10 @@ build-iris-kas-container:
 ###################################
 
 merge-container-manifests:
-  stage: merge-build-container
+  stage: build-container
+  needs:
+    - job: build-container-get-tag
+    - job: build-iris-kas-container
   tags:
     - gp-tiny
   rules:
@@ -598,6 +604,12 @@ push-test-oci:
       when: never
     - !reference [.develop_template, rules]
   stage: push-test-images
+  needs:
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+    - job: build-test-oci
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -621,6 +633,13 @@ push-test-oci:
 
 test-oci:
   stage: test
+  needs:
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+    - job: build-test-oci
+    - job: push-test-oci
   rules:
     - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS is set to true and not release build
@@ -773,6 +792,7 @@ develop-create-sdk-container-images:
       - <<: *all_multi_confs
   needs:
     - job: develop-ci-build-setup
+    # TODO: change to needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
     - job: build-sdk
 
   image: gcr.io/kaniko-project/executor:v1.9.2-debug
