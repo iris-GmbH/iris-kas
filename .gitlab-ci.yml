@@ -264,7 +264,7 @@ build-container-get-tag:
     reports:
       dotenv: build.env
 
-develop-ci-get-firmware-version:
+develop-get-firmware-version:
   stage: setup
   rules:
     - !reference [.develop_template, rules]
