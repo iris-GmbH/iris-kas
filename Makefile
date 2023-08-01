@@ -41,6 +41,8 @@ ifeq (${RELEASE}, false)
 endif
 IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
 KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:latest
+# branch name to use for checkout-branch-in-iris-layers task
+BRANCH_NAME ?= master
 KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
     --runtime-args " \
 		-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
@@ -48,6 +50,7 @@ KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-contain
 		-e TMPDIR=${KAS_TMPDIR} \
 		-e DL_DIR=${DL_DIR} \
 		-e SSTATE_DIR=${SSTATE_DIR} \
+		-e BRANCH_NAME=${BRANCH_NAME} \
 	"
 
 KAS_COMMAND ?= ${KAS_EXE} \
@@ -171,12 +174,22 @@ kas-shell:
 kas-int-shell:
 	${KAS_SHELL} ${KAS_CONFIG}
 
-BRANCH_NAME ?= master
 checkout-branch-in-iris-layers:
-	${KAS_COMMAND} for-all-repos ${KAS_CONFIG} " \
-		export BRANCH_NAME=${BRANCH_NAME}; \
-		test \"\$${KAS_REPO_NAME}\" = \"this\" || bash ${MAKEFILE_DIR}utils/set_layer_branchname.sh; \
-	"
+	${KAS_COMMAND} for-all-repos ${KAS_CONFIG}:include/kas-branch-name-env.yml ' \
+		if echo "$${KAS_REPO_NAME}" | grep -qvE "^meta-iris(-base)?$$"; then \
+			exit 0; \
+		fi; \
+		echo "Trying to checkout $${BRANCH_NAME} in $${KAS_REPO_NAME}"; \
+		if git checkout "$${BRANCH_NAME}" 2>/dev/null; then \
+		    echo "Branch $${BRANCH_NAME} has been checked out in $${KAS_REPO_NAME}"; \
+		    if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
+		        KAS_CONFIG_FILE="kas-irma6-pa.yml"; \
+		    else \
+		        KAS_CONFIG_FILE="kas-irma6-base.yml"; \
+			fi; \
+		    yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KAS_CONFIG_FILE}; \
+		fi; \
+	'
 
 set-fixed-refspecs: create-kas-lockfile
 	@echo "Warning: set-fixed-refspec is deprecated and will be removed in the future. Use create-kas-lockfile instead."
