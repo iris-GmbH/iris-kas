@@ -2,6 +2,8 @@
 # Copyright (C) 2022-2023 iris-GmbH infrared & intelligent sensors
 
 
+# TODO: implement to needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
+
 #####################
 ### INCLUDE FILES ###
 #####################
@@ -762,11 +764,13 @@ develop-push-maintenance-oci:
     - when: manual
       allow_failure: true
   stage: upload-artifacts
+  needs:
+    - job: develop-ci-build-setup
+    - job: build-maintenance-oci
   parallel:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
     GIT_STRATEGY: none
   tags:
     - gp-tiny
@@ -785,16 +789,14 @@ develop-create-sdk-container-images:
     - when: manual
       allow_failure: true
   stage: upload-artifacts
+  needs:
+    - job: develop-ci-build-setup
+    - job: build-sdk
   tags:
     - gp
   parallel:
     matrix:
       - <<: *all_multi_confs
-  needs:
-    - job: develop-ci-build-setup
-    # TODO: change to needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
-    - job: build-sdk
-
   image: gcr.io/kaniko-project/executor:v1.9.2-debug
   before_script:
     - SDK_SOURCE=$(find "${CI_PROJECT_DIR}" -type d -name "*${MULTI_CONF}-sdk" | sed "s%${CI_PROJECT_DIR}/%%")
@@ -860,6 +862,7 @@ release-upload-artifacts:
 
 release-clean-sstate-cache:
   stage: release
+  dependencies: []
   rules:
     - !reference [.release_template, rules]
   variables:
@@ -868,16 +871,16 @@ release-clean-sstate-cache:
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
+# TODO: Fix base sources download
 publish-release:
   stage: release
+  dependencies: []
   tags:
     - gp-tiny
   rules:
     - !reference [.release_template, rules]
   variables:
     GIT_STRATEGY: none
-    IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz
-    SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
   image: registry.gitlab.com/gitlab-org/release-cli:v0.15.0
   script:
     - echo "Publishing release $CI_COMMIT_TAG"
@@ -920,8 +923,6 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_SDK}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
-          url: "${IMX8MP_IRMA6R2_BASESOURCES_URL}"
         - name: "${SC573_GEN6_DEPLOY}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEPLOY}.tar.gz"
         - name: "${SC573_GEN6_DEPLOY_CUSTOMER}"
@@ -932,5 +933,3 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEV}.tar.gz"
         - name: "${SC573_GEN6_SDK}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
-        - name: "${SC573_GEN6_BASESOURCES}"
-          url: "${SC573_GEN6_BASESOURCES_URL}"
