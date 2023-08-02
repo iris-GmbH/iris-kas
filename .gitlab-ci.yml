@@ -3,6 +3,7 @@
 
 
 # TODO: implement to needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
+# TODO: Add use identical branch in iris software
 
 #####################
 ### INCLUDE FILES ###
@@ -889,7 +890,6 @@ release-clean-sstate-cache:
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
-# TODO: Fix base sources download
 publish-release:
   stage: release
   dependencies: []
