@@ -258,8 +258,6 @@ develop-get-next-firmware-version:
   rules:
     - !reference [.develop_template, rules]
   image: gittools/gitversion:6.0.0-alpine.3.17-7.0
-  tags:
-    - gp-tiny
   script:
     - echo $(/tools/dotnet-gitversion ${CI_PROJECT_DIR}) > gitversion.json
   artifacts:
