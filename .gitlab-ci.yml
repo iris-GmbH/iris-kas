@@ -881,7 +881,6 @@ release-clean-sstate-cache:
 
 publish-release:
   stage: release
-  dependencies: []
   tags:
     - gp-tiny
   rules:
