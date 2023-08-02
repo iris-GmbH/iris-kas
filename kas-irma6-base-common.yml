@@ -102,7 +102,7 @@ repos:
     branch: "kirkstone"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    branch: "dunfell"
+    commit: "bb6e0f6d1e5de695c8c7f80e8158ec326db61226"
     patches:
       0001-APC-5918-Remove-bbappend-for-cryptsetup:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
