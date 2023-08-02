@@ -26,7 +26,8 @@ variables:
   # set makefile relevant variables
   KAS_EXE: "kas"
   CI_BUILD: "true"
-  BUILDDIR: "${CI_PROJECT_DIR}/build"
+  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
+  BUILDDIR: "${KAS_WORK_DIR}/build"
   DL_DIR: "${BUILDDIR}/dl_dir"
   SSTATE_DIR: "${BUILDDIR}/sstate_dir"
   KAS_TMPDIR: "${BUILDDIR}/tmp"
@@ -38,13 +39,11 @@ variables:
     ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
   SSTATE_CACHE: "/mnt/yocto-sstate-cache"
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
+  KAS_ARTIFACT_PREFIX: "artifact-"
   FORCE_POPULATE_CACHES: "false"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
-  # define KAS environment variables
-  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
-  KAS_ARTIFACT_PREFIX: "artifact-"
   # Refspec of the systemtest_base repo to use
   SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
   # Set the name of the firmware to be programmed with systemtest_smoke job
