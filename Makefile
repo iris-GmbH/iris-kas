@@ -6,7 +6,7 @@ MAKEFILE_DIR  = $(dir ${MAKEFILE_PATH})
 
 SSH_DIR                 ?= ~/.ssh
 MULTI_CONF              ?= imx8mp-irma6r2
-BITBAKE_TARGET          ?= irma6-deploy
+BITBAKE_TARGET          ?= irma6-maintenance
 BITBAKE_TARGET_IS_IMAGE ?= true
 BITBAKE_TASK            ?= build
 BUILD_FROM_SCRATCH      ?= false
