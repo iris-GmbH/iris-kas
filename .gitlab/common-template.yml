@@ -39,6 +39,8 @@
       - mkdir ${KAS_ARTIFACT_FOLDER}
       - mv ${KAS_TMPDIR}/deploy ${KAS_ARTIFACT_FOLDER}
       - mv ${BUILDDIR}/buildhistory ${KAS_ARTIFACT_FOLDER}
+      # create variable for identifying artifact folder
+      - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '[:lower:]' '[:upper:]' | tr '-' '_')=${KAS_ARTIFACT_FOLDER}" >> build.env
 
   artifacts:
     kas-artifacts: # required vars: ARTIFACT_FOLDER
@@ -50,6 +52,8 @@
         - "${KAS_TMPDIR}/work/**/log.do_*"
         - "${KAS_TMPDIR}/work/**/log.task_order"
       expire_in: 7 days
+      reports:
+        dotenv: build.env
 
     archive-folder-artifacts: # required vars: ARTIFACT_NAME
       name: "${CI_JOB_NAME}"

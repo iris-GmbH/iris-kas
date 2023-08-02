@@ -56,19 +56,8 @@ variables:
   SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
   GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
   GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
-  IMX8MP_IRMA6R2_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy
   IMX8MP_IRMA6R2_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy-customer
-  IMX8MP_IRMA6R2_DEV_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
-  IMX8MP_IRMA6R2_MAINTENANCE: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance
-  IMX8MP_IRMA6R2_DEV: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev
-  IMX8MP_IRMA6R2_SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
-  IMX8MP_IRMA6R2_BASESOURCES: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-base-sources
-  SC573_GEN6_DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
   SC573_GEN6_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy-customer
-  SC573_GEN6_MAINTENANCE: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance
-  SC573_GEN6_DEV: irma6-${CI_COMMIT_TAG}-sc573-gen6-dev
-  SC573_GEN6_SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
-  SC573_GEN6_BASESOURCES: irma6-${CI_COMMIT_TAG}-sc573-gen6-base-sources
   RENOVATE_PLATFORM: "gitlab"
   RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
   RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
@@ -916,7 +905,7 @@ publish-release:
       | ${IMX8MP_IRMA6R2_MAINTENANCE} | Firmware package containing image suitable for debugging. | Internal |
       | ${IMX8MP_IRMA6R2_DEV} | Firmware package containing image suitable for developing. | Internal |
       | ${IMX8MP_IRMA6R2_SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${IMX8MP_IRMA6R2_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
+      | ${IMX8MP_IRMA6R2_BASE_SOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
 
       ## SC573-GEN6 (IRMA6 HW Release 1)
       | Asset Name | Description | Clearance |
@@ -926,7 +915,7 @@ publish-release:
       | ${SC573_GEN6_MAINTENANCE} | Firmware package containing image suitable for debugging. | Internal |
       | ${SC573_GEN6_DEV} | Firmware package containing image suitable for developing. | Internal |
       | ${SC573_GEN6_SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${SC573_GEN6_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
+      | ${SC573_GEN6_BASE_SOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
     assets:
       links:
         - name: "${IMX8MP_IRMA6R2_DEPLOY}"
@@ -941,8 +930,8 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV}.tar.gz"
         - name: "${IMX8MP_IRMA6R2_SDK}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz"
+        - name: "${IMX8MP_IRMA6R2_BASE_SOURCES}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_BASE_SOURCES}.tar.gz"
         - name: "${SC573_GEN6_DEPLOY}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEPLOY}.tar.gz"
         - name: "${SC573_GEN6_DEPLOY_CUSTOMER}"
@@ -953,5 +942,5 @@ publish-release:
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEV}.tar.gz"
         - name: "${SC573_GEN6_SDK}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
-        - name: "${SC573_GEN6_BASESOURCES}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_BASESOURCES}.tar.gz"
+        - name: "${SC573_GEN6_BASE_SOURCES}"
+          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_BASE_SOURCES}.tar.gz"
