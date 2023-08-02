@@ -195,7 +195,7 @@ renovate:
   stage: setup
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
-    - when: manual
+    - if: $FORCE_RENOVATE_RUN == "true"
   image: renovate/renovate:36.23.2-full
   tags:
     - gp
