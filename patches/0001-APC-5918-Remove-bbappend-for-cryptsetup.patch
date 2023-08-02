@@ -1,15 +1,17 @@
-From 0a6cfb2634e7140fa4aa7bcbc22f10a9e0655d8d Mon Sep 17 00:00:00 2001
+From edf6fa9c36ca6d435d8ab67f70df6fe82202301c Mon Sep 17 00:00:00 2001
 From: Erik Schumacher <erik.schumacher@iris-sensing.com>
 Date: Mon, 6 Feb 2023 11:40:23 +0100
-Subject: [PATCH] [APC-5918] Remove bbappend for cryptsetup
+Subject: [PATCH] Remove bbappend for cryptsetup
 
 This bbappend was needed to "update" cryptsetup from 2.3.2 to 2.3.7. But
 in kirkstone, the original version already is 2.3.7. So this patch
 fails to apply.
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
 ---
  .../cryptsetup/cryptsetup_%.bbappend          |   5 -
- ...Kernel-keyring-key-descriptor-in-PLA.patch | 121 ------------------
- 2 files changed, 126 deletions(-)
+ ...Kernel-keyring-key-descriptor-in-PLA.patch | 122 ------------------
+ 2 files changed, 127 deletions(-)
  delete mode 100644 recipes-crypto/cryptsetup/cryptsetup_%.bbappend
  delete mode 100644 recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch
 
@@ -26,26 +28,27 @@ index 173981d..0000000
 -"
 diff --git a/recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch b/recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch
 deleted file mode 100644
-index 87b3934..0000000
+index 082e5fd..0000000
 --- a/recipes-crypto/cryptsetup/files/0001-Allow-passing-a-Kernel-keyring-key-descriptor-in-PLA.patch
 +++ /dev/null
-@@ -1,121 +0,0 @@
--From 1423387f44d5a38514e23c06a60ecac9fdf74d44 Mon Sep 17 00:00:00 2001
--From: Heiko Schocher <hs@denx.de>
--Date: Tue, 23 Jun 2020 09:36:41 +0200
+@@ -1,122 +0,0 @@
+-From 2469692b0f5b6d9f85043c056efece66401b0c15 Mon Sep 17 00:00:00 2001
+-From: Lukasz Majewski <lukma@denx.de>
+-Date: Wed, 5 Jul 2023 15:06:50 +0200
 -Subject: [PATCH] Allow passing a Kernel keyring key descriptor in PLAIN mode.
 -
 -Signed-off-by: Richard Weinberger <richard@nod.at>
--
--ported to 2.3.2 from
 -Signed-off-by: Heiko Schocher <hs@denx.de>
+-[ported to 2.3.2]
+-Signed-off-by: Lukasz Majewski <lukma@denx.de>
+-[ported to 2.3.7]
 ----
 - lib/setup.c      | 15 +++++++++++----
 - src/cryptsetup.c | 18 ++++++++++++++++++
 - 2 files changed, 29 insertions(+), 4 deletions(-)
 -
 -diff --git a/lib/setup.c b/lib/setup.c
--index 567f262..0a09101 100644
+-index 376b920..3cff6c6 100644
 ---- a/lib/setup.c
 -+++ b/lib/setup.c
 -@@ -248,7 +248,7 @@ int init_crypto(struct crypt_device *ctx)
@@ -71,7 +74,7 @@ index 87b3934..0000000
 - 	if (hash_name) {
 - 		r = crypt_plain_hash(cd, hash_name, (*vk)->key, key_size, pass, passLen);
 - 		if (r < 0) {
--@@ -4102,7 +4109,7 @@ static int _activate_by_passphrase(struct crypt_device *cd,
+-@@ -4150,7 +4157,7 @@ static int _activate_by_passphrase(struct crypt_device *cd,
 - 
 - 		r = process_key(cd, cd->u.plain.hdr.hash,
 - 				cd->u.plain.key_size,
@@ -80,7 +83,7 @@ index 87b3934..0000000
 - 		if (r < 0)
 - 			goto out;
 - 
--@@ -4635,7 +4642,7 @@ int crypt_volume_key_get(struct crypt_device *cd,
+-@@ -4693,7 +4700,7 @@ int crypt_volume_key_get(struct crypt_device *cd,
 - 
 - 	if (isPLAIN(cd->type) && cd->u.plain.hdr.hash) {
 - 		r = process_key(cd, cd->u.plain.hdr.hash, key_len,
@@ -89,7 +92,7 @@ index 87b3934..0000000
 - 		if (r < 0)
 - 			log_err(cd, _("Cannot retrieve volume key for plain device."));
 - 	} else if (isLUKS1(cd->type)) {
--@@ -5875,7 +5882,7 @@ int crypt_use_keyring_for_vk(struct crypt_device *cd)
+-@@ -5936,7 +5943,7 @@ int crypt_use_keyring_for_vk(struct crypt_device *cd)
 - 	uint32_t dmc_flags;
 - 
 - 	/* dm backend must be initialized */
@@ -99,18 +102,18 @@ index 87b3934..0000000
 - 
 - 	if (!_vk_via_keyring || !kernel_keyring_support())
 -diff --git a/src/cryptsetup.c b/src/cryptsetup.c
--index 129d64a..9cc7ccb 100644
+-index fcc3571..0d0dba2 100644
 ---- a/src/cryptsetup.c
 -+++ b/src/cryptsetup.c
--@@ -32,6 +32,7 @@ static int opt_verify_passphrase = 0;
-- static const char *opt_json_file = NULL;
-- static const char *opt_key_file = NULL;
-- static const char *opt_keyfile_stdin = NULL;
+-@@ -30,6 +30,7 @@ static char *opt_hash = NULL;
+- static char *opt_json_file = NULL;
+- static char *opt_key_file = NULL;
+- static char *opt_keyfile_stdin = NULL;
 -+static const char *opt_key_desc = NULL;
-- static int opt_keyfiles_count = 0;
-- static const char *opt_keyfiles[MAX_KEYFILES];
-- 
--@@ -327,6 +328,9 @@ static int action_open_plain(void)
+- static char *opt_keyfiles[MAX_KEYFILES];
+- static char *opt_master_key_file = NULL;
+- static char *opt_header_backup_file = NULL;
+-@@ -372,6 +373,9 @@ static int action_open_plain(void)
 - 	if (opt_shared)
 - 		activate_flags |= CRYPT_ACTIVATE_SHARED;
 - 
@@ -120,7 +123,7 @@ index 87b3934..0000000
 - 	_set_activation_flags(&activate_flags);
 - 
 - 	if (!tools_is_stdin(opt_key_file)) {
--@@ -339,6 +343,19 @@ static int action_open_plain(void)
+-@@ -384,6 +388,19 @@ static int action_open_plain(void)
 - 		r = crypt_activate_by_keyfile_device_offset(cd, action_argv[1],
 - 			CRYPT_ANY_SLOT, opt_key_file, key_size_max,
 - 			opt_keyfile_offset, activate_flags);
@@ -140,17 +143,17 @@ index 87b3934..0000000
 - 	} else {
 - 		key_size_max = (opt_key_file && !params.hash) ? key_size : (size_t)opt_keyfile_size;
 - 		r = tools_get_key(NULL, &password, &passwordLen,
--@@ -3486,6 +3503,7 @@ int main(int argc, const char **argv)
+-@@ -3648,6 +3665,7 @@ int main(int argc, const char **argv)
 - 		{ "hash",              'h',  POPT_ARG_STRING, &opt_hash,                0, N_("The hash used to create the encryption key from the passphrase"), NULL },
 - 		{ "verify-passphrase", 'y',  POPT_ARG_NONE, &opt_verify_passphrase,     0, N_("Verifies the passphrase by asking for it twice"), NULL },
-- 		{ "key-file",          'd',  POPT_ARG_STRING, &opt_key_file,            6, N_("Read the key from a file"), NULL },
+- 		{ "key-file",          'd',  POPT_ARG_STRING, NULL,                     6, N_("Read the key from a file"), NULL },
 -+		{ "key-desc",         '\0',  POPT_ARG_STRING, &opt_key_desc,            0, N_("Keyring descriptor to use"), NULL },
 - 		{ "master-key-file",  '\0',  POPT_ARG_STRING, &opt_master_key_file,     0, N_("Read the volume (master) key from file."), NULL },
 - 		{ "dump-master-key",  '\0',  POPT_ARG_NONE, &opt_dump_master_key,       0, N_("Dump volume (master) key instead of keyslots info"), NULL },
 - 		{ "key-size",          's',  POPT_ARG_INT, &opt_key_size,               0, N_("The size of the encryption key"), N_("BITS") },
 --- 
--2.20.1
+-2.37.2
 -
 -- 
-2.39.1
+2.41.0
 
