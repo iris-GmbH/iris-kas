@@ -71,12 +71,6 @@ variables:
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named branches in iris meta layers and i6pa during the build'
-  SKIP_DEPLOY_IMAGE_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the deploy firmware build for the sensor targets.'
-  SKIP_MAINTENANCE_IMAGE_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
@@ -430,10 +424,9 @@ release-wipe-release-sstate-cache:
 build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_MAINTENANCE_IMAGE_BUILD is set to true
-    - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - !reference [.develop_template, trunk_mr_rules]
+    - when: manual
+      allow_failure: true
   stage: build
   parallel:
     matrix:
@@ -490,9 +483,9 @@ build-maintenance-oci:
 build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
-    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+    - !reference [.develop_template, trunk_mr_rules]
+    - when: manual
+      allow_failure: true
   stage: build
   parallel:
     matrix:
