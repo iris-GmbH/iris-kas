@@ -617,7 +617,7 @@ push-test-oci:
       - <<: *oci_multi_confs
   variables:
     GIT_STRATEGY: none
-    KAS_ARTIFACT_SUFFIX: "test-oci"
+    KAS_ARTIFACT_SUFFIX: "-test-oci"
   tags:
     - gp-tiny
   image: quay.io/skopeo/stable:v1.13.0
