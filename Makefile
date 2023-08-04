@@ -4,6 +4,10 @@
 MAKEFILE_PATH = $(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR  = $(dir ${MAKEFILE_PATH})
 
+######################
+### BASIC SETTINGS ###
+######################
+
 SSH_DIR                 ?= ~/.ssh
 MULTI_CONF              ?= imx8mp-irma6r2
 BITBAKE_TARGET          ?= irma6-maintenance
@@ -11,8 +15,22 @@ BITBAKE_TARGET_IS_IMAGE ?= true
 BITBAKE_TASK            ?= build
 BUILD_FROM_SCRATCH      ?= false
 
+KAS_EXTRA_ARGS ?=
+KAS_EXTRA_INCLUDES ?=
+BITBAKE_EXTRA_TARGETS ?=
+BITBAKE_EXTRA_ARGS ?=
+
 # whether to include proprietary code. Will require access to iris internal repositories
 INCLUDE_PROPRIETARY_LAYERS ?= true
+
+#########################
+### ADVANCED SETTINGS ###
+#########################
+
+BUILDDIR    	?= /build
+KAS_TMPDIR      ?= ${BUILDDIR}/tmp
+DL_DIR      	?= ${BUILDDIR}/dl_dir
+SSTATE_DIR  	?= ${BUILDDIR}/sstate_dir
 
 # Note, that building a release is usually only ever done via CI, as key
 # material is required. Theoretically it is possible to build a release
@@ -21,17 +39,6 @@ INCLUDE_PROPRIETARY_LAYERS ?= true
 # and should only be considered as a last resort.
 RELEASE  ?= false
 CI_BUILD ?= false
-
-# only change these if you know what you are doing
-BUILDDIR    	?= /build
-KAS_TMPDIR      ?= ${BUILDDIR}/tmp
-DL_DIR      	?= ${BUILDDIR}/dl_dir
-SSTATE_DIR  	?= ${BUILDDIR}/sstate_dir
-
-KAS_EXTRA_ARGS ?=
-KAS_EXTRA_INCLUDES ?=
-BITBAKE_EXTRA_TARGETS ?=
-BITBAKE_EXTRA_ARGS ?=
 
 # only relevant if CI_BUILD == false
 GITVERSION_REPO_PATH ?= /repo
@@ -81,9 +88,6 @@ ifeq (${CI_BUILD}, true)
 		ifeq (${BRANCH_NAME}, ${CI_DEFAULT_BRANCH})
 			KAS_EXTRA_INCLUDES += :include/ci/kas-ci-populate-caches.yml
 		endif
-		ifeq (${FORCE_POPULATE_CACHES}, true)
-			KAS_EXTRA_INCLUDES += :include/ci/kas-ci-populate-caches.yml
-		endif
 	endif
 endif
 
@@ -100,7 +104,7 @@ ifeq (irma6-deploy, $(findstring irma6-deploy, ${BITBAKE_TARGET}))
 	KAS_EXTRA_INCLUDES += :include/kas-irma6-deploy-distro.yml
 endif
 
-# if release 2 multiconf and bitbake build target is an image,
+# if release 2 target multiconf and bitbake build target is an image,
 # also build the required swu and uuu files.
 ifeq (${MULTI_CONF}, imx8mp-irma6r2)
 	ifeq (${BITBAKE_TARGET_IS_IMAGE}, true)
@@ -193,3 +197,19 @@ checkout-branch-in-iris-layers:
 
 set-fixed-refspecs: create-kas-lockfile
 	@echo "Warning: set-fixed-refspec is deprecated and will be removed in the future. Use create-kas-lockfile instead."
+
+KAS_ARTIFACT_PREFIX ?= irma6-
+# override KAS_ARTIFACT_SUFFIX with something meaningful during build,
+# e.g. "-deploy" for deploy image build
+KAS_ARTIFACT_SUFFIX ?=
+KAS_ARTIFACT_FOLDER ?= ${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}
+FILE_OPERATION ?= mv
+create-kas-artifact-folder:
+	@if test -z "${KAS_ARTIFACT_SUFFIX}"; then \
+		echo "Error: Please specify variable KAS_ARTIFACT_SUFFIX for artifact identification."; \
+		exit 1; \
+	fi
+	mkdir ${MAKEFILE_DIR}${KAS_ARTIFACT_FOLDER}
+	${FILE_OPERATION} ${KAS_TMPDIR}/deploy ${KAS_ARTIFACT_FOLDER}
+	${FILE_OPERATION} ${BUILDDIR}/buildhistory ${KAS_ARTIFACT_FOLDER}
+
