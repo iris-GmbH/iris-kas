@@ -866,8 +866,8 @@ publish-release:
       allow_failure: true
       variables:
         RELEASE: "true"
-  matrix:
-    parallel:
+  parallel:
+    matrix:
       - <<: *target_multi_confs
   before_script:
     - !reference [.common_template, script, identify_release_from_multiconf]
