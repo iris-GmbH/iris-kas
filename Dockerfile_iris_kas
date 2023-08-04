@@ -2,7 +2,6 @@
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
 FROM mikefarah/yq:4.33.2 AS yq
-FROM registry.gitlab.com/gitlab-org/release-cli:v0.15.0 as release-cli
 
 FROM ghcr.io/siemens/kas/kas:4.0
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
@@ -17,6 +16,4 @@ RUN set -ex \
     && rm -rf /var/lib/apt/lists
 COPY --from=yq /usr/bin/yq /usr/bin/yq
 RUN yq --version
-COPY --from=release-cli /usr/local/bin/release-cli /usr/bin/release-cli
-RUN release-cli -v
 USER builder
