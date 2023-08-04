@@ -2,9 +2,10 @@
 # Copyright (C) 2022-2023 iris-GmbH infrared & intelligent sensors
 
 
-# TODO: implement to needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
+# TODO: implement needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
 # TODO: test release
 # TODO: Add use identical branch in iris software
+# TODO: Test parent pipeline
 
 #####################
 ### INCLUDE FILES ###
