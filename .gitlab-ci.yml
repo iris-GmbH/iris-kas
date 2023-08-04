@@ -768,6 +768,7 @@ develop-push-maintenance-oci:
   needs:
     - job: develop-ci-build-setup
     - job: build-maintenance-oci
+    - job: test-oci
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -795,6 +796,7 @@ develop-create-sdk-container-images:
   needs:
     - job: develop-ci-build-setup
     - job: build-sdk
+    - job: test-oci
   tags:
     - gp
   parallel:
@@ -827,6 +829,7 @@ develop-upload-sdks:
   needs:
     - job: develop-ci-build-setup
     - job: build-sdk
+    - job: test-oci
   tags:
     - gp
   script:
