@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
 
-MAKEFILE_PATH 	= $(abspath $(lastword ${MAKEFILE_LIST}))
-MAKEFILE_DIR  	= $(dir ${MAKEFILE_PATH})
-KAS_TARGET 		= ${_MULTI_CONF}${KAS_TARGET_RECIPE}
-.DEFAULT_GOAL 	:= kas-build
+MAKEFILE_PATH 		= $(abspath $(lastword ${MAKEFILE_LIST}))
+MAKEFILE_DIR  		= $(dir ${MAKEFILE_PATH})
+export KAS_TARGET	= ${_MULTI_CONF}${KAS_TARGET_RECIPE}
+.DEFAULT_GOAL 		:= kas-build
+
 .PHONY: kas-build
 
 ######################
@@ -34,7 +35,7 @@ DL_DIR      	?= ${BUILDDIR}/dl_dir
 SSTATE_DIR  	?= ${BUILDDIR}/sstate_dir
 
 KASOPTIONS 				?=
-KASFILE_EXTRA 		?=
+KASFILE_EXTRA 			?=
 KAS_EXTRA_BITBAKE_ARGS 	?=
 
 # Note, that building a release is usually only ever done via CI, as key
