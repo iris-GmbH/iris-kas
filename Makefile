@@ -3,7 +3,6 @@
 
 MAKEFILE_PATH 		= $(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR  		= $(dir ${MAKEFILE_PATH})
-export KAS_TARGET	= ${_MULTI_CONF}${KAS_TARGET_RECIPE}
 .DEFAULT_GOAL 		:= kas-build
 
 .PHONY: kas-build
@@ -50,11 +49,10 @@ GITVERSION_CONTAINER_IMAGE 	?= gittools/gitversion:6.0.0-alpine.3.17-7.0
 GITVERSION_CMD 				?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} ${GITVERSION_CONTAINER_IMAGE}
 IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
 
-KAS_CONTAINER_ENV_VARS ?= KAS_PREMIRRORS="${KAS_PREMIRRORS}" KAS_TASK="${KAS_TASK}" KAS_TARGET="${KAS_TARGET}" KAS_DISTRO="${KAS_DISTRO}"
 KAS_CONTAINER_TAG ?= latest
 KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:${KAS_CONTAINER_TAG}
 KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent
-KAS_EXE ?= ${KAS_CONTAINER_ENV_VARS} KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
+KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
     --runtime-args " \
 		-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
 		-e BUILDDIR=${BUILDDIR} \
@@ -63,6 +61,8 @@ KAS_EXE ?= ${KAS_CONTAINER_ENV_VARS} KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} 
 		-e SSTATE_DIR=${SSTATE_DIR} \
 		-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
+
+export KAS_TARGET = ${_MULTI_CONF}${KAS_TARGET_RECIPE}
 
 OPTIONS ?= --log-level ${KAS_LOG_LEVEL}
 KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
@@ -81,7 +81,7 @@ endif
 
 ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
 	KASFILE_EXTRA += :kas-irma6-pa.yml
-	KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
+	export KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
 endif
 
 ifeq (${BUILD_FROM_SCRATCH}, true)
