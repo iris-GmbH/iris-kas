@@ -24,7 +24,6 @@ KAS_DISTRO 				?= poky-iris-maintenance
 KAS_TARGET_IS_IMAGE 	?= true
 KAS_LOG_LEVEL 			?= info
 BUILD_FROM_SCRATCH      ?= false
-IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
 
 # whether to include proprietary code. Will require access to iris internal repositories
 INCLUDE_PROPRIETARY_LAYERS ?= true
@@ -34,9 +33,9 @@ KAS_TMPDIR      ?= ${BUILDDIR}/tmp
 DL_DIR      	?= ${BUILDDIR}/dl_dir
 SSTATE_DIR  	?= ${BUILDDIR}/sstate_dir
 
-KAS_EXTRA_ARGS ?=
-KAS_EXTRA_INCLUDES ?=
-KAS_EXTRA_BITBAKE_ARGS ?=
+KASOPTIONS 				?=
+KASFILE_EXTRA 		?=
+KAS_EXTRA_BITBAKE_ARGS 	?=
 
 # Note, that building a release is usually only ever done via CI, as key
 # material is required. Theoretically it is possible to build a release
@@ -45,11 +44,11 @@ KAS_EXTRA_BITBAKE_ARGS ?=
 # and should only be considered as a last resort.
 RELEASE  ?= false
 
-GITVERSION_REPO_PATH ?= /repo
-GITVERSION_CMD ?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} gittools/gitversion:6.0.0-alpine.3.17-7.0
-ifeq (${RELEASE}, false)
-	IRMA6_DISTRO_VERSION_DEV_SUFFIX = -dev
-endif
+GITVERSION_REPO_PATH 		?= /repo
+GITVERSION_CONTAINER_IMAGE 	?= gittools/gitversion:6.0.0-alpine.3.17-7.0
+GITVERSION_CMD 				?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} ${GITVERSION_CONTAINER_IMAGE}
+IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
+
 KAS_ENV_VARS ?= KAS_PREMIRRORS="${KAS_PREMIRRORS}" KAS_TASK="${KAS_TASK}" KAS_TARGET="${KAS_TARGET_MC}" KAS_DISTRO="${KAS_DISTRO}"
 KAS_CONTAINER_TAG ?= latest
 KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:${KAS_CONTAINER_TAG}
@@ -63,19 +62,22 @@ KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-contain
 		-e BRANCH_NAME=${BRANCH_NAME} \
 	"
 OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent --log-level ${KAS_LOG_LEVEL}
-
 KAS_COMMAND ?= ${KAS_ENV_VARS} ${KAS_EXE} ${OPTIONS}
+
+ifeq (${RELEASE}, false)
+	IRMA6_DISTRO_VERSION_DEV_SUFFIX := -dev
+endif
 
 ifneq (, ${MULTI_CONF})
 	_MULTI_CONF = mc:${MULTI_CONF}:
 	# check if multiconf target override exists to speed up recipe parse time
 	ifneq (,$(wildcard ${MAKEFILE_DIR}include/kas-irma6-${MULTI_CONF}.yml))
-		KAS_EXTRA_INCLUDES += :include/kas-irma6-${MULTI_CONF}.yml
+		KASFILE_EXTRA += :include/kas-irma6-${MULTI_CONF}.yml
 	endif
 endif
 
 ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
-	KAS_EXTRA_INCLUDES += :kas-irma6-pa.yml
+	KASFILE_EXTRA += :kas-irma6-pa.yml
 	KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
 endif
 
@@ -85,7 +87,7 @@ endif
 
 # add release specific configuration
 ifeq (${RELEASE}, true)
-	KAS_EXTRA_INCLUDES += :include/kas-release.yml
+	KASFILE_EXTRA += :include/kas-release.yml
 endif
 
 # if KAS_TARGET contains "irma6-deploy", set distro accordingly
@@ -104,17 +106,17 @@ ifeq (${MULTI_CONF}, imx8mp-irma6r2)
 	endif
 endif
 
-KAS_BUILD = ${KAS_COMMAND} build ${KAS_EXTRA_ARGS}
-KAS_SHELL = ${KAS_COMMAND} shell ${KAS_EXTRA_ARGS}
+KAS_BUILD = ${KAS_COMMAND} build ${KASOPTIONS}
+KAS_SHELL = ${KAS_COMMAND} shell ${KASOPTIONS}
 
-# finalize KAS_CONFIG into list
-$(foreach word,$(KAS_EXTRA_INCLUDES),$(eval KAS_EXTRA_INCLUDES_LIST := $(KAS_EXTRA_INCLUDES_LIST)$(word)))
-KAS_CONFIG = kas-irma6-base.yml${KAS_EXTRA_INCLUDES_LIST}
+# finalize KASFILE into list
+$(foreach word,$(KASFILE_EXTRA),$(eval KASFILE_EXTRA_LIST := $(KASFILE_EXTRA_LIST)$(word)))
+KASFILE = kas-irma6-base.yml${KASFILE_EXTRA_LIST}
 
 ###
 # default action: run kas build
 kas-build:
-	${KAS_BUILD} ${KAS_CONFIG} -- ${KAS_EXTRA_BITBAKE_ARGS}
+	${KAS_BUILD} ${KASFILE} -- ${KAS_EXTRA_BITBAKE_ARGS}
 
 # Updates the README table of contents
 update-toc:
@@ -124,39 +126,39 @@ build-iris-kas-container:
 	docker build -t ${KAS_CONTAINER_IMAGE} -f ${MAKEFILE_DIR}Dockerfile_iris_kas ${MAKEFILE_DIR}
 
 clean-tmp-dir:
-	${KAS_SHELL} -c 'rm -rf $${TMPDIR}' ${KAS_CONFIG}
+	${KAS_SHELL} -c 'rm -rf $${TMPDIR}' ${KASFILE}
 
 clean-dl-dir:
-	${KAS_SHELL} -c 'rm -rf $${DL_DIR}' ${KAS_CONFIG}
+	${KAS_SHELL} -c 'rm -rf $${DL_DIR}' ${KASFILE}
 
 clean-sstate-dir:
-	${KAS_SHELL} -c 'rm -rf $${SSTATE_DIR}' ${KAS_CONFIG}
+	${KAS_SHELL} -c 'rm -rf $${SSTATE_DIR}' ${KASFILE}
 
 clean-builddir:
-	${KAS_SHELL} -c 'rm -rf $${BUILDDIR}' ${KAS_CONFIG}
+	${KAS_SHELL} -c 'rm -rf $${BUILDDIR}' ${KASFILE}
 
 pull-layers:
-	${KAS_COMMAND} checkout --update ${KAS_CONFIG}
+	${KAS_COMMAND} checkout --update ${KASFILE}
 
 force-pull-layers:
-	${KAS_COMMAND} checkout --update --force-checkout ${KAS_CONFIG}
+	${KAS_COMMAND} checkout --update --force-checkout ${KASFILE}
 
 run-qemu:
-	${KAS_SHELL} -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KAS_CONFIG}
+	${KAS_SHELL} -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
 
 create-kas-lockfile:
-	${KAS_COMMAND} dump --lock --inplace ${KAS_CONFIG}
+	${KAS_COMMAND} dump --lock --inplace ${KASFILE}
 
 KAS_SHELL_CMD ?= echo Hello World!
 kas-shell:
-	${KAS_SHELL} -c "${KAS_SHELL_CMD}" ${KAS_CONFIG}
+	${KAS_SHELL} -c "${KAS_SHELL_CMD}" ${KASFILE}
 
 kas-interactive-shell:
-	${KAS_SHELL} ${KAS_CONFIG}
+	${KAS_SHELL} ${KASFILE}
 
 BRANCH_NAME ?= master
 checkout-branch-in-iris-layers:
-	${KAS_COMMAND} for-all-repos ${KAS_CONFIG}:include/kas-branch-name-env.yml ' \
+	${KAS_COMMAND} for-all-repos ${KASFILE}:include/kas-branch-name-env.yml ' \
 		if echo "$${KAS_REPO_NAME}" | grep -qvE "^meta-iris(-base)?$$"; then \
 			exit 0; \
 		fi; \
@@ -164,11 +166,11 @@ checkout-branch-in-iris-layers:
 		if git checkout "$${BRANCH_NAME}" 2>/dev/null; then \
 		    echo "Branch $${BRANCH_NAME} has been checked out in $${KAS_REPO_NAME}"; \
 		    if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
-		        KAS_CONFIG_FILE="kas-irma6-pa.yml"; \
+		        KASFILE_FILE="kas-irma6-pa.yml"; \
 		    else \
-		        KAS_CONFIG_FILE="kas-irma6-base.yml"; \
+		        KASFILE_FILE="kas-irma6-base.yml"; \
 			fi; \
-		    yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KAS_CONFIG_FILE}; \
+		    yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KASFILE_FILE}; \
 		fi; \
 	'
 
@@ -178,9 +180,9 @@ patch-thirdparty-hostbuild: patch-thirdparty-hostbuild-r2
 
 patch-thirdparty-hostbuild-r1:
 	@echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
-	${KAS_SHELL} -c "bitbake mc:qemux86_64-r1:${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KAS_CONFIG}
+	${KAS_SHELL} -c "bitbake mc:qemux86_64-r1:${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
 
 patch-thirdparty-hostbuild-r2:
 	@echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
-	${KAS_SHELL} -c "bitbake mc:qemux86_64-r2:${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KAS_CONFIG}
+	${KAS_SHELL} -c "bitbake mc:qemux86_64-r2:${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
 
