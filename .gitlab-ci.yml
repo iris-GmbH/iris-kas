@@ -338,7 +338,7 @@ develop-ci-build-setup:
     - !reference [.develop_template, rules]
   script:
     # set development distro version
-    - echo IRMA6_DISTRO_VERSION="$(cat gitversion.json | jq -r '.MajorMinorPatch')-dev" >> build.env
+    - echo IRMA6_DISTRO_VERSION="$(cat gitversion.json | jq -r '.MajorMinorPatch')-pipeline-${CI_PIPELINE_ID}-dev" >> build.env
     # set OCI tag
     - >
       if test -n "${UPSTREAM_PROJECT_NAME}"; then
@@ -835,7 +835,7 @@ develop-upload-sdks:
     - gp
   script:
     - >
-      for ARTIFACT in ${ARTIFACT_PREFIX}*${KAS_ARTIFACT_SUFFIX}; do
+      for ARTIFACT in ${KAS_ARTIFACT_PREFIX}*${KAS_ARTIFACT_SUFFIX}; do
         # remove the commit sha from the artifact file name, so that we can make use of GitLabs package registry cleanup for identical named packages
         ARTIFACT_NO_SHA=$(echo ${ARTIFACT} | sed "s/-${CI_COMMIT_SHORT_SHA}//g")
         sudo mv ${ARTIFACT} ${ARTIFACT_NO_SHA}
@@ -843,6 +843,25 @@ develop-upload-sdks:
         sudo tar 2>&1 -cvf ${ARTIFACT_NO_SHA}.tar ${ARTIFACT_NO_SHA}
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT_NO_SHA}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT_NO_SHA}.tar"
       done
+
+# this job will archive the artifacts necessary for reproducing a trunk branch build
+trunk-build-reproducibility:
+  stage: upload-artifacts
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - gp-tiny
+  script:
+    - echo "Archiving trunk branch build setup files for build reproducibility."
+  artifacts:
+    name: "$CI_JOB_NAME"
+    expire_in: "20 yrs"
+    paths:
+      - "*.lock.yml"
+      - "${KAS_ARTIFACT_PREFIX}*/**/buildhistory"
 
 
 #####################
