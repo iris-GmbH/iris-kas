@@ -387,8 +387,8 @@ release-ci-build-setup:
   script:
     - echo "Ensuring that kas lockfile exists..."
     - >
-      if ! test -f *.lock.yml; then
-        echo "Error: Could not find a KAS lockfile. Please generate a lock file by running `make create-kas-lockfile` and add it to the tagged commit."
+      if ! ls *.lock.yml >/dev/null 2>&1; then
+        echo "Error: Could not find a KAS lockfile. Please generate a lock file by running 'make create-kas-lockfile' and add it to the tagged commit."
         exit 1
       fi
     - echo "RELEASE=true" >> build.env
