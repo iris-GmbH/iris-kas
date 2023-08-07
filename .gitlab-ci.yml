@@ -29,7 +29,6 @@ variables:
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   # set makefile relevant variables
-  KAS_ENV_VARS: ""
   KAS_EXE: "kas"
   KAS_WORK_DIR: "${CI_PROJECT_DIR}"
   BUILDDIR: "${KAS_WORK_DIR}/build"
@@ -448,7 +447,7 @@ build-maintenance-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET: "irma6-maintenance"
+    KAS_TARGET_RECIPE: "irma6-maintenance"
     KAS_ARTIFACT_SUFFIX: "-maintenance"
   script:
     - make kas-build
@@ -467,7 +466,7 @@ build-dev-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET: "irma6-dev"
+    KAS_TARGET_RECIPE: "irma6-dev"
     KAS_ARTIFACT_SUFFIX: "-dev"
   script:
     - make kas-build
@@ -487,7 +486,7 @@ build-maintenance-oci:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    KAS_TARGET: "irma6-maintenance-oci"
+    KAS_TARGET_RECIPE: "irma6-maintenance-oci"
     KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
   script:
     - make kas-build
@@ -507,7 +506,7 @@ build-dev-deploy-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET: "irma6-deploy"
+    KAS_TARGET_RECIPE: "irma6-deploy"
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
   script:
     - make kas-build
@@ -527,7 +526,7 @@ build-test-oci:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    KAS_TARGET: "irma6-test"
+    KAS_TARGET_RECIPE: "irma6-test"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
   script:
     - make kas-build
@@ -545,7 +544,7 @@ build-sdk:
   stage: build
   variables:
     KAS_TASK: "populate_sdk"
-    KAS_TARGET: "irma6-maintenance"
+    KAS_TARGET_RECIPE: "irma6-maintenance"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
   parallel:
     matrix:
@@ -569,7 +568,7 @@ release-base-build:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET: "irma6-base"
+    KAS_TARGET_RECIPE: "irma6-base"
     INCLUDE_PROPRIETARY_LAYERS: "false"
     KAS_ARTIFACT_SUFFIX: "-base-sources"
     ARTIFACT_NAME: "${KAS_ARTIFACT_FOLDER}"
@@ -597,7 +596,7 @@ release-build-deploy:
       - <<: *target_multi_confs
         IMAGES: "irma6-deploy"
   variables:
-    KAS_TARGET: "irma6-deploy"
+    KAS_TARGET_RECIPE: "irma6-deploy"
     KAS_ARTIFACT_SUFFIX: "-deploy"
     KASFILE_EXTRA: ":include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
   script:

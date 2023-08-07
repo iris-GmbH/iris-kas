@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
 
-MAKEFILE_PATH = $(abspath $(lastword ${MAKEFILE_LIST}))
-MAKEFILE_DIR  = $(dir ${MAKEFILE_PATH})
-KAS_TARGET_MC = ${_MULTI_CONF}${KAS_TARGET}
-.DEFAULT_GOAL := kas-build
+MAKEFILE_PATH 	= $(abspath $(lastword ${MAKEFILE_LIST}))
+MAKEFILE_DIR  	= $(dir ${MAKEFILE_PATH})
+KAS_TARGET 		= ${_MULTI_CONF}${KAS_TARGET_RECIPE}
+.DEFAULT_GOAL 	:= kas-build
 .PHONY: kas-build
 
 ######################
@@ -13,17 +13,17 @@ KAS_TARGET_MC = ${_MULTI_CONF}${KAS_TARGET}
 
 SSH_DIR                 ?= ~/.ssh
 MULTI_CONF              ?= imx8mp-irma6r2
-KAS_TARGET          	?= irma6-maintenance
+KAS_TARGET_RECIPE      	?= irma6-maintenance
 KAS_TASK 		        ?= build
 
 #########################
 ### ADVANCED SETTINGS ###
 #########################
 
-KAS_DISTRO 				?= poky-iris-maintenance
-KAS_TARGET_IS_IMAGE 	?= true
-KAS_LOG_LEVEL 			?= info
-BUILD_FROM_SCRATCH      ?= false
+KAS_DISTRO 					?= poky-iris-maintenance
+KAS_TARGET_RECIPE_IS_IMAGE 	?= true
+KAS_LOG_LEVEL 				?= info
+BUILD_FROM_SCRATCH      	?= false
 
 # whether to include proprietary code. Will require access to iris internal repositories
 INCLUDE_PROPRIETARY_LAYERS ?= true
@@ -49,10 +49,11 @@ GITVERSION_CONTAINER_IMAGE 	?= gittools/gitversion:6.0.0-alpine.3.17-7.0
 GITVERSION_CMD 				?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} ${GITVERSION_CONTAINER_IMAGE}
 IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
 
-KAS_ENV_VARS ?= KAS_PREMIRRORS="${KAS_PREMIRRORS}" KAS_TASK="${KAS_TASK}" KAS_TARGET="${KAS_TARGET_MC}" KAS_DISTRO="${KAS_DISTRO}"
+KAS_CONTAINER_ENV_VARS ?= KAS_PREMIRRORS="${KAS_PREMIRRORS}" KAS_TASK="${KAS_TASK}" KAS_TARGET="${KAS_TARGET}" KAS_DISTRO="${KAS_DISTRO}"
 KAS_CONTAINER_TAG ?= latest
 KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:${KAS_CONTAINER_TAG}
-KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
+KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent
+KAS_EXE ?= ${KAS_CONTAINER_ENV_VARS} KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
     --runtime-args " \
 		-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
 		-e BUILDDIR=${BUILDDIR} \
@@ -60,9 +61,10 @@ KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-contain
 		-e DL_DIR=${DL_DIR} \
 		-e SSTATE_DIR=${SSTATE_DIR} \
 		-e BRANCH_NAME=${BRANCH_NAME} \
-	"
-OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent --log-level ${KAS_LOG_LEVEL}
-KAS_COMMAND ?= ${KAS_ENV_VARS} ${KAS_EXE} ${OPTIONS}
+	" ${KAS_CONTAINER_OPTIONS}
+
+OPTIONS ?= --log-level ${KAS_LOG_LEVEL}
+KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
 
 ifeq (${RELEASE}, false)
 	IRMA6_DISTRO_VERSION_DEV_SUFFIX := -dev
@@ -90,8 +92,8 @@ ifeq (${RELEASE}, true)
 	KASFILE_EXTRA += :include/kas-release.yml
 endif
 
-# if KAS_TARGET contains "irma6-deploy", set distro accordingly
-ifeq (irma6-deploy, $(findstring irma6-deploy, ${KAS_TARGET}))
+# if KAS_TARGET_RECIPE contains "irma6-deploy", set distro accordingly
+ifeq (irma6-deploy, $(findstring irma6-deploy, ${KAS_TARGET_RECIPE}))
 	KAS_DISTRO = poky-iris-deploy
 endif
 
@@ -99,9 +101,9 @@ endif
 # also build the required swu and uuu files.
 # FIXME: this distinction should be done in yocto recipe itself
 ifeq (${MULTI_CONF}, imx8mp-irma6r2)
-	ifeq (${KAS_TARGET_IS_IMAGE}, true)
+	ifeq (${KAS_TARGET_RECIPE_IS_IMAGE}, true)
 		ifeq (${KAS_TASK}, build)
-			KAS_TARGET_MC = ${_MULTI_CONF}${KAS_TARGET} ${_MULTI_CONF}${KAS_TARGET}-uuu ${_MULTI_CONF}${KAS_TARGET}-swuimage
+			KAS_TARGET = ${_MULTI_CONF}${KAS_TARGET_RECIPE} ${_MULTI_CONF}${KAS_TARGET_RECIPE}-uuu ${_MULTI_CONF}${KAS_TARGET_RECIPE}-swuimage
 		endif
 	endif
 endif
