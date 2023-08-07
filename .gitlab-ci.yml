@@ -569,7 +569,7 @@ release-base-build:
     ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
   script:
     # populate download directory with source tarballs
-    - BITBAKE_EXTRA_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/ci/kas-ci-release-generate-tarballs.yml" make bitbake
+    - BITBAKE_EXTRA_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/kas-release-generate-tarballs.yml" make bitbake
     - !reference [.release_template, script, resolve-download-mirror-softlinks]
     - !reference [.common_template, script, create-archive-from-folder]
     # verify reproducibility of offline build
