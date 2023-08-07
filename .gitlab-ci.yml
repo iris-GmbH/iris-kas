@@ -386,7 +386,11 @@ release-ci-build-setup:
     - gp-tiny
   script:
     - echo "Ensuring that kas lockfile exists..."
-    - test -f *.lock.yml
+    - >
+      if ! test -f *.lock.yml; then
+        echo "Error: Could not find a KAS lockfile. Please generate a lock file by running `make create-kas-lockfile` and add it to the tagged commit."
+        exit 1
+      fi
     - echo "RELEASE=true" >> build.env
     - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
     - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
