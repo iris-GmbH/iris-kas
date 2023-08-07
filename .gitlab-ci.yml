@@ -378,7 +378,6 @@ develop-ci-build-setup:
 release-ci-build-setup:
   stage: yocto-setup
   variables:
-    GIT_STRATEGY: none
   rules:
     - !reference [.release_template, rules]
   image: busybox:1.36.1-uclibc
