@@ -29,6 +29,7 @@ variables:
   SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   # set makefile relevant variables
+  KAS_ENV_VARS: ""
   KAS_EXE: "kas"
   KAS_WORK_DIR: "${CI_PROJECT_DIR}"
   BUILDDIR: "${KAS_WORK_DIR}/build"
