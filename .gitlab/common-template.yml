@@ -49,7 +49,14 @@
 
   after_script:
     create-kas-artifact-folder:
-      - make create-kas-artifact-folder
+      - >
+        if test -z "${KAS_ARTIFACT_SUFFIX}"; then
+          echo "Error: Please specify variable KAS_ARTIFACT_SUFFIX for artifact identification."
+          exit 1
+        fi
+	  - mkdir ${KAS_ARTIFACT_FOLDER}
+	  - mv ${KAS_TMPDIR}/deploy ${KAS_ARTIFACT_FOLDER}
+	  - mv ${BUILDDIR}/buildhistory ${KAS_ARTIFACT_FOLDER}
       # create variable for identifying artifact folder
       - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${KAS_ARTIFACT_FOLDER}" >> build.env
 

@@ -6,5 +6,6 @@ header:
 
 local_conf_header:
   cache_dirs: |
-    DL_DIR = "/mnt/yocto-download-mirror"
+    # DL_DIR needs to be overridable for offline build fetch
+    DL_DIR ?= "/mnt/yocto-download-mirror"
     SSTATE_DIR = "/mnt/yocto-sstate-cache-release"

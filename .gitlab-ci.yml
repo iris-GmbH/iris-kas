@@ -25,25 +25,23 @@ variables:
   BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_IMAGE_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
+  SSTATE_CACHE: "/mnt/yocto-sstate-cache"
+  SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
+  DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   # set makefile relevant variables
   KAS_EXE: "kas"
-  CI_BUILD: "true"
   KAS_WORK_DIR: "${CI_PROJECT_DIR}"
   BUILDDIR: "${KAS_WORK_DIR}/build"
-  DL_DIR: "${BUILDDIR}/dl_dir"
-  SSTATE_DIR: "${BUILDDIR}/sstate_dir"
   KAS_TMPDIR: "${BUILDDIR}/tmp"
-  BITBAKE_TASK: "build"
+  KAS_TASK: "build"
   RELEASE: "false"
+  KAS_EXTRA_INCLUDES: ":include/ci/kas-ci-common.yml"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
     ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
     ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
-  SSTATE_CACHE: "/mnt/yocto-sstate-cache"
-  SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
   KAS_ARTIFACT_PREFIX: "irma6-"
   KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
-  DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
   # Refspec of the systemtest_base repo to use
@@ -338,7 +336,7 @@ develop-ci-build-setup:
     - !reference [.develop_template, rules]
   script:
     # set development distro version
-    - echo IRMA6_DISTRO_VERSION="$(cat gitversion.json | jq -r '.MajorMinorPatch')-pipeline-${CI_PIPELINE_ID}-dev" >> build.env
+    - echo "IRMA6_DISTRO_VERSION=$(cat gitversion.json | jq -r '.MajorMinorPatch')-pipeline-${CI_PIPELINE_ID}-dev" >> build.env
     # set OCI tag
     - >
       if test -n "${UPSTREAM_PROJECT_NAME}"; then
@@ -367,6 +365,13 @@ develop-ci-build-setup:
       if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ]; then
         make checkout-branch-in-iris-layers
       fi
+    # we append develop specific KAS_EXTRA_INCLUDES
+    - KAS_EXTRA_INCLUDES="${KAS_EXTRA_INCLUDES}:include/ci/kas-ci-develop.yml"
+    - >
+      if test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
+        KAS_EXTRA_INCLUDES="${KAS_EXTRA_INCLUDES}:include/ci/kas-ci-populate-caches.yml"
+      fi
+    - echo "KAS_EXTRA_INCLUDES=${KAS_EXTRA_INCLUDES}" >> build.env
     # we finish by generating a kas lock file, which will be used by all following build jobs.
     - make create-kas-lockfile
   artifacts:
@@ -384,16 +389,17 @@ release-ci-build-setup:
   tags:
     - gp-tiny
   script:
+    - echo "RELEASE=true" >> build.env
+    - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
+    - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
+    - echo "KAS_ARTIFACT_PREFIX=${KAS_ARTIFACT_PREFIX}${CI_COMMIT_TAG}-" >> build.env
+    - echo "KAS_EXTRA_INCLUDES=${KAS_EXTRA_INCLUDES}:include/kas-release.yml:include/ci/kas-ci-populate-release-caches.yml" >> build.env
     - echo "Ensuring that kas lockfile exists..."
     - >
       if ! ls *.lock.yml >/dev/null 2>&1; then
         echo "Error: Could not find a KAS lockfile. Please generate a lock file by running 'make create-kas-lockfile' and add it to the tagged commit."
         exit 1
       fi
-    - echo "RELEASE=true" >> build.env
-    - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
-    - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
-    - echo "KAS_ARTIFACT_PREFIX=${KAS_ARTIFACT_PREFIX}${CI_COMMIT_TAG}-"
   artifacts:
     reports:
       dotenv: build.env
@@ -441,10 +447,10 @@ build-maintenance-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    BITBAKE_TARGET: "irma6-maintenance"
+    KAS_TARGET: "irma6-maintenance"
     KAS_ARTIFACT_SUFFIX: "-maintenance"
   script:
-    - make bitbake
+    - make kas-build
   after_script:
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
@@ -460,10 +466,10 @@ build-dev-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    BITBAKE_TARGET: "irma6-dev"
+    KAS_TARGET: "irma6-dev"
     KAS_ARTIFACT_SUFFIX: "-dev"
   script:
-    - make bitbake
+    - make kas-build
   after_script:
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
@@ -480,10 +486,10 @@ build-maintenance-oci:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    BITBAKE_TARGET: "irma6-maintenance-oci"
+    KAS_TARGET: "irma6-maintenance-oci"
     KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
   script:
-    - make bitbake
+    - make kas-build
   after_script:
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
@@ -500,10 +506,10 @@ build-dev-deploy-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    BITBAKE_TARGET: "irma6-deploy"
+    KAS_TARGET: "irma6-deploy"
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
   script:
-    - make bitbake
+    - make kas-build
   after_script:
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
@@ -520,10 +526,10 @@ build-test-oci:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    BITBAKE_TARGET: "irma6-test"
+    KAS_TARGET: "irma6-test"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
   script:
-    - make bitbake
+    - make kas-build
   after_script:
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
@@ -537,14 +543,14 @@ build-sdk:
       allow_failure: true
   stage: build
   variables:
-    BITBAKE_TASK: "populate_sdk"
-    BITBAKE_TARGET: "irma6-maintenance"
+    KAS_TASK: "populate_sdk"
+    KAS_TARGET: "irma6-maintenance"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
   parallel:
     matrix:
       - <<: *all_multi_confs
   script:
-    - make bitbake
+    - make kas-build
   after_script:
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
@@ -562,18 +568,19 @@ release-base-build:
     matrix:
       - <<: *target_multi_confs
   variables:
-    BITBAKE_TARGET: "irma6-base"
+    KAS_TARGET: "irma6-base"
     INCLUDE_PROPRIETARY_LAYERS: "false"
     KAS_ARTIFACT_SUFFIX: "-base-sources"
     ARTIFACT_NAME: "${KAS_ARTIFACT_FOLDER}"
     ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
+    DL_DIR: "${BUILDDIR}/dl_dir"
   script:
     # populate download directory with source tarballs
-    - BITBAKE_EXTRA_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/kas-release-generate-tarballs.yml" make bitbake
+    - KAS_EXTRA_BITBAKE_ARGS="--runonly=fetch" KAS_EXTRA_INCLUDES=":include/kas-release-generate-tarballs.yml" make kas-build
     - !reference [.release_template, script, resolve-download-mirror-softlinks]
     - !reference [.common_template, script, create-archive-from-folder]
     # verify reproducibility of offline build
-    - KAS_EXTRA_INCLUDES=":include/kas-offline-build.yml" make bitbake
+    - KAS_EXTRA_INCLUDES=":include/kas-offline-build.yml" make kas-build
   artifacts: !reference [.common_template, artifacts, archive-folder-artifacts]
 
 # Build the deploy image with production keys during release
@@ -589,11 +596,11 @@ release-build-deploy:
       - <<: *target_multi_confs
         IMAGES: "irma6-deploy"
   variables:
-    BITBAKE_TARGET: "irma6-deploy"
+    KAS_TARGET: "irma6-deploy"
     KAS_ARTIFACT_SUFFIX: "-deploy"
     KAS_EXTRA_INCLUDES: ":include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
   script:
-    - make bitbake
+    - make kas-build
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
