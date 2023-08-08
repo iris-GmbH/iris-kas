@@ -68,7 +68,7 @@ OPTIONS ?= --log-level ${KAS_LOG_LEVEL}
 KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
 
 ifeq (${RELEASE}, false)
-	IRMA6_DISTRO_VERSION_DEV_SUFFIX := -dev
+IRMA6_DISTRO_VERSION_DEV_SUFFIX := -dev
 endif
 
 ifneq (, ${MULTI_CONF})
