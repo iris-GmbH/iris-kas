@@ -28,27 +28,4 @@
       - echo "copying ${DOWNLOAD_MIRROR}/uninative to ${DL_DIR}/uninative"
       - cp -rp "${DOWNLOAD_MIRROR}/uninative/" "${DL_DIR}/uninative"
       # remove temporary files
-      - rm -rf ${TMPDIR} ${DL_DIR}/git2
-
-    # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
-    move-artifacts-to-toplevel:
-      - mkdir "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      - mv "${KAS_BUILD_DIR}/buildhistory" "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      - mv "${TMPDIR}/deploy" "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-
-  artifacts:
-    release-source-artifacts:
-      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      paths:
-        - "${MULTI_CONF}-base-sources.tar.gz"
-      untracked: false
-    release-artifacts:
-      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      paths:
-        - "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      untracked: false
-    release-oci-artifacts:
-      name: "irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      paths:
-        - "${MULTI_CONF}-deploy.tar.gz"
-      untracked: false
+      - rm -rf ${KAS_TMPDIR} ${DL_DIR}/git2/*

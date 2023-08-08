@@ -555,7 +555,7 @@ build-sdk:
 # We prepare an offline-build environment for building the irma6-base image.
 # This image contains the raw iris-poky-deploy distro without any proprietary software.
 # After a test build, this build environment is saved for license compliance.
-release-base-build:
+release-build-base:
   rules:
     - !reference [.release_template, rules]
   stage: build
@@ -573,7 +573,7 @@ release-base-build:
     DL_DIR: "${CI_PROJECT_DIR}/build/dl_dir"
   script:
     # populate download directory with source tarballs
-    - KAS_EXTRA_BITBAKE_ARGS="--runonly=fetch" KASFILE_EXTRA=":include/kas-release-generate-tarballs.yml" make kas-build
+    - KAS_EXTRA_BITBAKE_ARGS="--runonly=fetch" KASFILE_EXTRA=":include/kas-release-generate-tarballs.yml:include/ci/kas-ci-download-mirror.yml" make kas-build
     - !reference [.release_template, script, resolve-download-mirror-softlinks]
     - !reference [.common_template, script, create-archive-from-folder]
     # verify reproducibility of offline build
