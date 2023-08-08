@@ -56,7 +56,7 @@
         fi
       - mkdir ${KAS_ARTIFACT_FOLDER}
       - mv ${KAS_TMPDIR}/deploy ${KAS_ARTIFACT_FOLDER}
-      - mv ${BUILDDIR}/buildhistory ${KAS_ARTIFACT_FOLDER}
+      - mv ${KAS_BUILD_DIR}/buildhistory ${KAS_ARTIFACT_FOLDER}
       # create variable for identifying artifact folder
       - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${KAS_ARTIFACT_FOLDER}" >> build.env
 

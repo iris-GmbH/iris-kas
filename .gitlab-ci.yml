@@ -31,8 +31,8 @@ variables:
   # set makefile relevant variables
   KAS_EXE: "kas"
   KAS_WORK_DIR: "${CI_PROJECT_DIR}"
-  BUILDDIR: "${KAS_WORK_DIR}/build"
-  KAS_TMPDIR: "${BUILDDIR}/tmp"
+  KAS_BUILD_DIR: "${KAS_WORK_DIR}/build"
+  KAS_TMPDIR: "${KAS_BUILD_DIR}/tmp"
   KAS_TASK: "build"
   RELEASE: "false"
   KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
@@ -573,7 +573,7 @@ release-base-build:
     KAS_ARTIFACT_SUFFIX: "-base-sources"
     ARTIFACT_NAME: "${KAS_ARTIFACT_FOLDER}"
     ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
-    DL_DIR: "${BUILDDIR}/dl_dir"
+    DL_DIR: "${KAS_BUILD_DIR}/dl_dir"
   script:
     # populate download directory with source tarballs
     - KAS_EXTRA_BITBAKE_ARGS="--runonly=fetch" KASFILE_EXTRA=":include/kas-release-generate-tarballs.yml" make kas-build

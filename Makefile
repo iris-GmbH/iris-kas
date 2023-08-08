@@ -21,6 +21,7 @@ export KAS_TASK ?= build
 #########################
 
 export KAS_DISTRO ?= poky-iris-maintenance
+KAS_CMD ?= bitbake ${KAS_TARGET}
 KAS_TARGET_RECIPE_IS_IMAGE ?= true
 KAS_LOG_LEVEL ?= info
 BUILD_FROM_SCRATCH ?= false
@@ -28,10 +29,10 @@ BUILD_FROM_SCRATCH ?= false
 # whether to include proprietary code. Will require access to iris internal repositories
 INCLUDE_PROPRIETARY_LAYERS ?= true
 
-export BUILDDIR ?= /build
-export KAS_TMPDIR ?= ${BUILDDIR}/tmp
-export DL_DIR ?= ${BUILDDIR}/dl_dir
-export SSTATE_DIR ?= ${BUILDDIR}/sstate_dir
+export KAS_BUILD_DIR ?= /build
+export KAS_TMPDIR ?= ${KAS_BUILD_DIR}/tmp
+export DL_DIR ?= ${KAS_BUILD_DIR}/dl_dir
+export SSTATE_DIR ?= ${KAS_BUILD_DIR}/sstate_dir
 
 KASOPTIONS ?=
 KASFILE_EXTRA ?=
@@ -55,14 +56,14 @@ KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent
 KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
 	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
-	-e BUILDDIR=${BUILDDIR} \
+	-e KAS_BUILD_DIR=${KAS_BUILD_DIR} \
 	-e TMPDIR=${KAS_TMPDIR} \
 	-e DL_DIR=${DL_DIR} \
 	-e SSTATE_DIR=${SSTATE_DIR} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
 
-export KAS_TARGET = ${_MULTI_CONF}${KAS_TARGET_RECIPE}
+export KAS_TARGET ?= ${_MULTI_CONF}${KAS_TARGET_RECIPE}
 
 OPTIONS ?= --log-level ${KAS_LOG_LEVEL}
 KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
@@ -104,13 +105,14 @@ endif
 ifeq (${MULTI_CONF}, imx8mp-irma6r2)
 ifeq (${KAS_TARGET_RECIPE_IS_IMAGE}, true)
 ifeq (${KAS_TASK}, build)
-KAS_TARGET = ${_MULTI_CONF}${KAS_TARGET_RECIPE} ${_MULTI_CONF}${KAS_TARGET_RECIPE}-uuu ${_MULTI_CONF}${KAS_TARGET_RECIPE}-swuimage
+KAS_TARGET ?= ${_MULTI_CONF}${KAS_TARGET_RECIPE} ${_MULTI_CONF}${KAS_TARGET_RECIPE}-uuu ${_MULTI_CONF}${KAS_TARGET_RECIPE}-swuimage
 endif
 endif
 endif
 
 KAS_BUILD := ${KAS_COMMAND} build ${KASOPTIONS}
 KAS_SHELL := ${KAS_COMMAND} shell ${KASOPTIONS}
+KAS_FOR_ALL_REPOS := ${KAS_COMMAND} for-all-repos ${KASOPTIONS}
 
 # finalize KASFILE into list
 $(foreach word,$(KASFILE_EXTRA),$(eval KASFILE_EXTRA_LIST := $(KASFILE_EXTRA_LIST)$(word)))
@@ -120,6 +122,12 @@ KASFILE := kas-irma6-base.yml${KASFILE_EXTRA_LIST}
 # default action: run kas build
 kas-build:
 	${KAS_BUILD} ${KASFILE} -- ${KAS_EXTRA_BITBAKE_ARGS}
+
+kas-shell:
+	${KAS_SHELL} -c "${KAS_CMD}" ${KASFILE}
+
+kas-interactive-shell:
+	${KAS_SHELL} ${KASFILE}
 
 # Updates the README table of contents
 update-toc:
@@ -138,7 +146,7 @@ clean-sstate-dir:
 	${KAS_SHELL} -c 'rm -rf $${SSTATE_DIR}' ${KASFILE}
 
 clean-builddir:
-	${KAS_SHELL} -c 'rm -rf $${BUILDDIR}' ${KASFILE}
+	${KAS_SHELL} -c 'rm -rf $${KAS_BUILD_DIR}' ${KASFILE}
 
 pull-layers:
 	${KAS_COMMAND} checkout --update ${KASFILE}
@@ -151,13 +159,6 @@ run-qemu:
 
 create-kas-lockfile:
 	${KAS_COMMAND} dump --lock --inplace ${KASFILE}
-
-KAS_SHELL_CMD ?= echo Hello World!
-kas-shell:
-	${KAS_SHELL} -c "${KAS_SHELL_CMD}" ${KASFILE}
-
-kas-interactive-shell:
-	${KAS_SHELL} ${KASFILE}
 
 export BRANCH_NAME ?= master
 checkout-branch-in-iris-layers:
