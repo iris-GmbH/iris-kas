@@ -75,7 +75,7 @@ build-${RELEASE}:
 	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:irma6-maintenance mc:${TARGET_MULTI_CONF}:irma6-dev" ${MAINTENANCE_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
 
 patch-thirdparty-hostbuild-${RELEASE}:
-	${KAS_COMMAND} shell -c "bitbake mc:${TARGET_MULTI_CONF}:${THIRDPARTY} -c do_patch" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
+	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} -c do_patch" ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
 
 shell-${RELEASE}:
 	${KAS_COMMAND} shell ${DEPLOY_PA_KAS_CONFIG}:include/kas-irma6-${TARGET_MULTI_CONF}.yml
