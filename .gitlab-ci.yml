@@ -573,7 +573,7 @@ release-build-base:
     DL_DIR: "${CI_PROJECT_DIR}/build/dl_dir"
   script:
     # populate download directory with source tarballs
-    - KAS_EXTRA_BITBAKE_ARGS="--runonly=fetch" KASFILE_EXTRA=":include/kas-release-generate-tarballs.yml:include/ci/kas-ci-download-mirror.yml" make kas-build
+    - KAS_EXTRA_BITBAKE_ARGS="--runonly=fetch --force" KASFILE_EXTRA=":include/kas-release-generate-tarballs.yml:include/ci/kas-ci-download-mirror.yml" make kas-build
     - !reference [.release_template, script, resolve-download-mirror-softlinks]
     - !reference [.common_template, script, create-archive-from-folder]
     # verify reproducibility of offline build
