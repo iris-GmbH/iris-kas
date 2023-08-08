@@ -22,9 +22,9 @@ local_conf_header:
   standard: |
     CONF_VERSION = "2"
   dl_dir: |
-    DL_DIR ?= "${TOPDIR}/dl_dir"
+    DL_DIR ?= "${KAS_WORK_DIR}/dl_dir_test"
   sstate_dir: |
-    SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
+    SSTATE_DIR ?= "${KAS_WORK_DIR}/sstate_dir"
   build_history: |
     INHERIT += "buildhistory"
     BUILDHISTORY_COMMIT = "0"

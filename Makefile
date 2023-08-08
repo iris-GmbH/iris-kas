@@ -29,10 +29,10 @@ BUILD_FROM_SCRATCH ?= false
 # whether to include proprietary code. Will require access to iris internal repositories
 INCLUDE_PROPRIETARY_LAYERS ?= true
 
-export KAS_BUILD_DIR ?= /build
-export KAS_TMPDIR ?= ${KAS_BUILD_DIR}/tmp
-export DL_DIR ?= ${KAS_BUILD_DIR}/dl_dir
-export SSTATE_DIR ?= ${KAS_BUILD_DIR}/sstate_dir
+export KAS_BUILD_DIR ?= ${MAKEFILE_DIR}/build
+export KAS_TMPDIR ?= ${MAKEFILE_DIR}/build/tmp
+export DL_DIR ?= ${MAKEFILE_DIR}/build/dl_dir
+export SSTATE_DIR ?= ${MAKEFILE_DIR}/build/sstate_dir
 
 KASOPTIONS ?=
 KASFILE_EXTRA ?=
@@ -56,7 +56,6 @@ KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent
 KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
 	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
-	-e KAS_BUILD_DIR=${KAS_BUILD_DIR} \
 	-e TMPDIR=${KAS_TMPDIR} \
 	-e DL_DIR=${DL_DIR} \
 	-e SSTATE_DIR=${SSTATE_DIR} \
@@ -146,7 +145,7 @@ clean-sstate-dir:
 	${KAS_SHELL} -c 'rm -rf $${SSTATE_DIR}' ${KASFILE}
 
 clean-builddir:
-	${KAS_SHELL} -c 'rm -rf $${KAS_BUILD_DIR}' ${KASFILE}
+	${KAS_SHELL} -c 'rm -rf $${BUILDDIR}' ${KASFILE}
 
 pull-layers:
 	${KAS_COMMAND} checkout --update ${KASFILE}
