@@ -5,10 +5,6 @@ header:
   version: 14
 
 local_conf_header:
-  dl_dir: |
-    DL_DIR = "/mnt/yocto-download-mirror"
-  sstate_dir: |
-    SSTATE_DIR = "/mnt/yocto-sstate-cache"
   sstate_mirror: |
     unset SSTATE_MIRRORS
   dl_mirror: |
