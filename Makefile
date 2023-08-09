@@ -80,7 +80,7 @@ export KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
 ### KAS SHELL SETTINGS ###
 ##########################
 
-export KAS_SHELL_CMD ?= bitbake ${KAS_TARGET}
+export KAS_SHELL_CMD ?= bitbake ${KAS_TARGET} -c ${KAS_TASK} ${KAS_EXTRA_BITBAKE_ARGS}
 
 ###############################################
 ### CHECKOUT-BRANCH-IN-IRIS-LAYERS SETTINGS ###
@@ -155,7 +155,7 @@ kas-build:
 	${KAS_BUILD} ${KASFILE} -- ${KAS_EXTRA_BITBAKE_ARGS}
 
 kas-shell:
-	${KAS_SHELL} -c "${KAS_SHELL_CMD}" ${KASFILE}
+	${KAS_SHELL} -c "$(subst ", \", ${KAS_SHELL_CMD})" ${KASFILE}
 
 kas-interactive-shell:
 	${KAS_SHELL} ${KASFILE}
@@ -179,19 +179,19 @@ clean-sstate-dir:
 clean-builddir:
 	rm -rf ${KAS_BUILD_DIR}
 
-pull-layers:
+kas-update:
 	${KAS_COMMAND} checkout --update ${KASFILE}
 
-force-pull-layers:
+kas-force-update:
 	${KAS_COMMAND} checkout --update --force-checkout ${KASFILE}
 
 run-qemu:
 	${KAS_SHELL} -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
 
-create-kas-lockfile:
+kas-dump-lockfile:
 	${KAS_COMMAND} dump --lock --inplace ${KASFILE}
 
-checkout-branch-in-iris-layers:
+kas-checkout-branch-in-iris-layers:
 	${KAS_COMMAND} for-all-repos ${KASFILE}:include/kas-branch-name-env.yml ' \
 		if echo "$${KAS_REPO_NAME}" | grep -qvE "^meta-iris(-base)?$$"; then \
 			exit 0; \
@@ -208,7 +208,7 @@ checkout-branch-in-iris-layers:
 		fi; \
 		'
 
-prepare-release: checkout-branch-in-iris-layers create-kas-lockfile
+prepare-release: kas-force-update kas-checkout-branch-in-iris-layers kas-dump-lockfile
 
 patch-thirdparty-hostbuild: patch-thirdparty-hostbuild-r2
 

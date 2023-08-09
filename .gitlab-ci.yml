@@ -363,7 +363,7 @@ develop-ci-build-setup:
     # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
     - >
       if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ]; then
-        make checkout-branch-in-iris-layers
+        make kas-checkout-branch-in-iris-layers
       fi
     # we append develop specific KASFILE_EXTRA
     - KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-develop.yml"
@@ -373,7 +373,7 @@ develop-ci-build-setup:
       fi
     - echo "KASFILE_EXTRA=${KASFILE_EXTRA}" >> build.env
     # we finish by generating a kas lock file, which will be used by all following build jobs.
-    - make create-kas-lockfile
+    - make kas-dump-lockfile
   artifacts:
     paths:
       - "*.lock.yml"
@@ -397,7 +397,7 @@ release-ci-build-setup:
     - echo "Ensuring that kas lockfile exists..."
     - >
       if ! ls *.lock.yml >/dev/null 2>&1; then
-        echo "Error: Could not find a KAS lockfile. Please generate a lock file by running 'make create-kas-lockfile' and add it to the tagged commit."
+        echo "Error: Could not find a KAS lockfile. Please read the README section on how to create a release."
         exit 1
       fi
   artifacts:
