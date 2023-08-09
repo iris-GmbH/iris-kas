@@ -14,9 +14,10 @@
   - [Usage](#usage)
     - [Running a build (make kas-build)](#running-a-build-make-kas-build)
     - [Updating layer repositories](#updating-layer-repositories)
+    - [Creating a release](#creating-a-release)
     - [Advanced use-cases](#advanced-use-cases)
       - [Building the irma6-base image](#building-the-irma6-base-image)
-      - [Running arbitrary commands in the KAS shell (make kas-shell)](#running-arbitrary-commands-in-the-kas-shell-make-kas-shell)
+      - [Running arbitrary commands in the KAS shell (make kas(-interactive)-shell)](#running-arbitrary-commands-in-the-kas-shell-make-kas-interactive-shell)
       - [Running KAS manually](#running-kas-manually)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
