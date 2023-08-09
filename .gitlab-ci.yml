@@ -34,6 +34,8 @@ variables:
   KAS_BUILD_DIR: "${CI_PROJECT_DIR}/build"
   KAS_TMPDIR: "${KAS_BUILD_DIR}/tmp"
   KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
+  DL_DIR: "${DOWNLOAD_MIRROR}"
+  SSTATE_DIR: "${SSTATE_CACHE}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
     ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
@@ -356,7 +358,7 @@ develop-ci-build-setup:
           export BRANCH_NAME="$CI_COMMIT_BRANCH"
       fi
     - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
-    - echo "BRANCH_NAME=$BRANCH_NAME" >> build.env;
+    - echo "BRANCH_NAME=${BRANCH_NAME}" >> build.env;
     # if USE_IDENTICAL_NAMED_BRANCHES is set to true, we attempt to checkout BRANCH_NAME in meta-iris(-base) layers.
     # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
     - >
@@ -391,7 +393,7 @@ release-ci-build-setup:
     - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
     - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
     - echo "KAS_ARTIFACT_PREFIX=${KAS_ARTIFACT_PREFIX}${CI_COMMIT_TAG}-" >> build.env
-    - echo "KASFILE_EXTRA=${KASFILE_EXTRA}:include/kas-release.yml:include/ci/kas-ci-populate-release-caches.yml" >> build.env
+    - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
     - echo "Ensuring that kas lockfile exists..."
     - >
       if ! ls *.lock.yml >/dev/null 2>&1; then
@@ -571,7 +573,7 @@ release-build-base:
     KAS_ARTIFACT_SUFFIX: "-base-sources"
     ARTIFACT_NAME: "${KAS_ARTIFACT_FOLDER}"
     ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
-    DL_DIR: "${CI_PROJECT_DIR}/build/dl_dir"
+    DL_DIR: "${KAS_BUILD_DIR}/dl_dir"
   script:
     # populate download directory with source tarballs
     - KAS_EXTRA_BITBAKE_ARGS="--runonly=fetch --force" KASFILE_EXTRA=":include/kas-release-generate-tarballs.yml:include/ci/kas-ci-download-mirror.yml" make kas-build
