@@ -3,8 +3,7 @@
 
 
 # TODO: implement needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
-# TODO: test release
-# TODO: Test parent pipeline
+# TODO: Adjust & test parent pipeline
 
 #####################
 ### INCLUDE FILES ###
@@ -192,7 +191,7 @@ stages:
 renovate:
   stage: setup
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - !reference [.develop_template, schedule_rules]
     - if: $FORCE_RENOVATE_RUN == "true"
   image: renovate/renovate:36.23.2-full
   tags:
@@ -863,7 +862,7 @@ trunk-build-reproducibility:
     - echo "Archiving trunk branch build setup files for build reproducibility."
   artifacts:
     name: "$CI_JOB_NAME"
-    expire_in: "20 yrs"
+    expire_in: "10 yrs"
     paths:
       - "*.lock.yml"
       - "${KAS_ARTIFACT_PREFIX}*/**/buildhistory"

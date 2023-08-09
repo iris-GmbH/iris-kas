@@ -143,3 +143,15 @@ When using the docker based setup, use the `kas-container` script instead ("[]" 
 `kas-container [--ssh-dir <SSH_DIR>] [--ssh-agent] ...`
 
 For a detailed documentation on using KAS, please visit [https://kas.readthedocs.io/en/latest/](https://kas.readthedocs.io/en/latest/).
+
+#### Reproducible pipeline builds
+
+We try our best to keep our builds reproducible.
+
+For tagged releases this is ensured by verifying the existence of a kas lockfile (*.lock.yml), locking meta-layer repositories to a fixed commit.
+Additionally, the generated [yocto buildhistory](https://docs.yoctoproject.org/singleindex.html#maintaining-build-output-quality) is stored together with the build artifacts.
+Combining the iris-kas release commit, the lockfile and the buildhistory output, it is possible to reconstruct the complete build setup and all used package versions.
+
+For development builds, only builds done from the trunk branch (develop) are kept reproducible, since we cannot guarantee that the git history on other branches are not rewritten.
+
+To achieve this, each development build done in the pipeline will include the unique pipeline ID in the DISTRO_VERSION variable. Using the pipeline ID, the developer may identify the corresponding pipeline in GitLab and download the kas lockfile and buildhistory from the `trunk-build-reproducibility` job. These artifacts are kept on a best-effort basis but limited for a maximum of 10 years.
