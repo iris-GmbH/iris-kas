@@ -45,6 +45,7 @@ export SSTATE_DIR ?= ${MAKEFILE_DIR}/build/sstate_dir
 ####################################
 
 export GITVERSION_REPO_PATH ?= /repo
+# TODO: add renovate regex rule
 export GITVERSION_CONTAINER_IMAGE ?= gittools/gitversion:6.0.0-alpine.3.17-7.0
 export GITVERSION_CMD ?= docker run --rm -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} ${GITVERSION_CONTAINER_IMAGE}
 export IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
@@ -58,6 +59,7 @@ export KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-pr
 export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent
 export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
+	--pull always \
 	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
@@ -73,9 +75,9 @@ export KASOPTIONS ?=
 export KASFILE_EXTRA ?=
 export KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
 
-###################################
-### ADVANCED KAS SHELL SETTINGS ###
-###################################
+##########################
+### KAS SHELL SETTINGS ###
+##########################
 
 export KAS_SHELL_CMD ?= bitbake ${KAS_TARGET}
 
@@ -165,16 +167,16 @@ build-iris-kas-container:
 	docker build -t ${KAS_CONTAINER_IMAGE} -f ${MAKEFILE_DIR}Dockerfile_iris_kas ${MAKEFILE_DIR}
 
 clean-tmp-dir:
-	${KAS_SHELL} -c 'rm -rf $${TMPDIR}' ${KASFILE}
+	rm -rf ${KAS_TMPDIR}
 
 clean-dl-dir:
-	${KAS_SHELL} -c 'rm -rf $${DL_DIR}' ${KASFILE}
+	rm -rf ${DL_DIR}
 
 clean-sstate-dir:
-	${KAS_SHELL} -c 'rm -rf $${SSTATE_DIR}' ${KASFILE}
+	rm -rf ${SSTATE_DIR}
 
 clean-builddir:
-	${KAS_SHELL} -c 'rm -rf $${BUILDDIR}' ${KASFILE}
+	rm -rf ${KAS_BUILD_DIR}
 
 pull-layers:
 	${KAS_COMMAND} checkout --update ${KASFILE}
