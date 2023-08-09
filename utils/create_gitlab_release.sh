@@ -18,7 +18,7 @@ fi
 
 REQUIRED_VARS="MULTI_CONF CI_COMMIT_TAG CI_PROJECT_DIR CI_JOB_TOKEN KAS_ARTIFACT_PREFIX PACKAGE_REGISTRY_URL RELEASE_NAME RELEASE_VERSION"
 for var in ${REQUIRED_VARS}; do
-    if test -n "${var}"; then
+    if test -z "${var}"; then
         echo "Error: Required variable ${var} not set."
         exit 1
     fi
