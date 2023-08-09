@@ -29,6 +29,7 @@ BUILD_FROM_SCRATCH ?= false
 # whether to include proprietary code. Will require access to iris internal repositories
 INCLUDE_PROPRIETARY_LAYERS ?= true
 
+export KAS_WORK_DIR ?= ${MAKEFILE_DIR}
 export KAS_BUILD_DIR ?= ${MAKEFILE_DIR}/build
 export KAS_TMPDIR ?= ${MAKEFILE_DIR}/build/tmp
 export DL_DIR ?= ${MAKEFILE_DIR}/build/dl_dir
