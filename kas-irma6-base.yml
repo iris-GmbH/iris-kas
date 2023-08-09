@@ -21,13 +21,9 @@ bblayers_conf_header:
 local_conf_header:
   standard: |
     CONF_VERSION = "2"
-  dl_dir: |
-    DL_DIR ?= "${KAS_WORK_DIR}/dl_dir_test"
-  sstate_dir: |
-    SSTATE_DIR ?= "${KAS_WORK_DIR}/sstate_dir"
   build_history: |
     INHERIT += "buildhistory"
-    BUILDHISTORY_COMMIT = "0"
+    BUILDHISTORY_COMMIT ?= "1"
   diskmon: |
     BB_DISKMON_DIRS = "\
       STOPTASKS,${TMPDIR},1G,100K \
