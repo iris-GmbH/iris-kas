@@ -4,6 +4,7 @@
 
 # TODO: implement needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
 # TODO: use GitLab CI variables for defining multiconf, once supported: https://gitlab.com/gitlab-org/gitlab/-/issues/11549
+# TODO: move renovate configuration into renovate.json
 
 #####################
 ### INCLUDE FILES ###
