@@ -97,9 +97,6 @@ variables:
 ### YAML ANCHORS ###
 ####################
 
-# TODO: use CI/CD UI variables to define parallelism for multiconf, once supported.
-# see: https://gitlab.com/gitlab-org/gitlab/-/issues/11549
-
 .target_multi_confs: &target_multi_confs
   MULTI_CONF:
     - sc573-gen6
@@ -552,7 +549,7 @@ build-sdk:
 # We prepare an offline-build environment for building the irma6-base image.
 # This image contains the raw iris-poky-deploy distro without any proprietary software.
 # After a test build, this build environment is saved for license compliance.
-release-build-base:
+release-archive-base-image-sources:
   rules:
     - !reference [.release_template, rules]
   stage: build
@@ -575,6 +572,7 @@ release-build-base:
     - !reference [.common_template, script, create-archive-from-folder]
     # verify reproducibility of offline build
     - KASFILE_EXTRA=":include/kas-offline-build.yml" make kas-build
+    - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${ARTIFACT_NAME}.tar.gz" >> build.env
   artifacts: !reference [.common_template, artifacts, archive-folder-artifacts]
 
 # Build the deploy image with production keys during release

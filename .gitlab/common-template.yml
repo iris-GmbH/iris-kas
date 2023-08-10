@@ -78,3 +78,5 @@
       paths:
         - "${ARTIFACT_NAME}.tar.gz"
       expire_in: 7 days
+      reports:
+        dotenv: build.env
