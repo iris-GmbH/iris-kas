@@ -72,6 +72,12 @@ variables:
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
+  SKIP_DEPLOY_IMAGE_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the deploy image build'
+  SKIP_MAINTENANCE_IMAGE_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the maintenance image build'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -433,10 +439,11 @@ release-wipe-release-sstate-cache:
 build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
-    - !reference [.develop_template, trunk_mr_rules]
-    - !reference [.develop_template, schedule_rules]
-    - when: manual
+    # skip if SKIP_DEPLOY_IMAGE_BUILD are set to true
+    - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
+      when: manual
       allow_failure: true
+    - !reference [.develop_template, rules]
   stage: build
   parallel:
     matrix:
@@ -493,10 +500,11 @@ build-maintenance-oci:
 build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
-    - !reference [.develop_template, trunk_mr_rules]
-    - !reference [.develop_template, schedule_rules]
-    - when: manual
+    # skip if SKIP_DEPLOY_IMAGE_BUILD are set to true
+    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "true"'
+      when: manual
       allow_failure: true
+    - !reference [.develop_template, rules]
   stage: build
   parallel:
     matrix:
@@ -515,7 +523,8 @@ build-test-oci:
     - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS are set to true
     - if: '$SKIP_OCI_TESTS == "true"'
-      when: never
+      when: manual
+      allow_failure: true
     - !reference [.develop_template, rules]
   stage: build
   parallel:
@@ -610,7 +619,8 @@ push-test-oci:
     - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS are set to true
     - if: '$SKIP_OCI_TESTS == "true"'
-      when: never
+      when: manual
+      allow_failure: true
     - !reference [.develop_template, rules]
   stage: push-test-images
   needs:
@@ -654,7 +664,8 @@ test-oci:
     - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS is set to true and not release build
     - if: '$SKIP_OCI_TESTS == "true"'
-      when: never
+      when: manual
+      allow_failure: true
     - !reference [.develop_template, rules]
   tags:
     - gp
