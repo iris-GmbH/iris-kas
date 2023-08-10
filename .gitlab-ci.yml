@@ -539,7 +539,7 @@ build-sdk:
   variables:
     KAS_TASK: "populate_sdk"
     KAS_TARGET_RECIPE: "irma6-maintenance"
-    KAS_ARTIFACT_SUFFIX: "-test-oci"
+    KAS_ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
       - <<: *all_multi_confs
