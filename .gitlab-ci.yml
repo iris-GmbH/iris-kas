@@ -434,6 +434,7 @@ build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
     - !reference [.develop_template, trunk_mr_rules]
+    - !reference [.develop_template, schedule_rules]
     - when: manual
       allow_failure: true
   stage: build
@@ -493,6 +494,7 @@ build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
     - !reference [.develop_template, trunk_mr_rules]
+    - !reference [.develop_template, schedule_rules]
     - when: manual
       allow_failure: true
   stage: build
