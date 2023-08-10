@@ -19,6 +19,7 @@
       - [Building the irma6-base image](#building-the-irma6-base-image)
       - [Running arbitrary commands in the KAS shell (make kas(-interactive)-shell)](#running-arbitrary-commands-in-the-kas-shell-make-kas-interactive-shell)
       - [Running KAS manually](#running-kas-manually)
+      - [Reproducible pipeline builds](#reproducible-pipeline-builds)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 

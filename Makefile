@@ -74,7 +74,7 @@ export KAS_LOG_LEVEL ?= info
 export OPTIONS ?= --log-level ${KAS_LOG_LEVEL}
 export KASOPTIONS ?=
 export KASFILE_EXTRA ?=
-export KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
+export KAS_COMMAND ?= TMPDIR="${KAS_TMPDIR}" ${KAS_EXE} ${OPTIONS}
 
 ##########################
 ### KAS SHELL SETTINGS ###
