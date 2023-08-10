@@ -36,7 +36,7 @@ for ARTIFACT_VAR in ${REQUIRED_MULTI_CONF_RELEASE_ARTIFACT_VARS}; do
         echo "Error: Artifact variable ${ARTIFACT_VAR} not defined."
         exit 1
     fi
-    if test ! -d "${CI_PROJECT_DIR}/${!ARTIFACT_VAR}"; then
+    if test ! -e "${CI_PROJECT_DIR}/${!ARTIFACT_VAR}"; then
         echo "Error: Artifact ${ARTIFACT_VAR} not found at ${CI_PROJECT_DIR}/${!ARTIFACT_VAR}."
         exit 1
     fi
