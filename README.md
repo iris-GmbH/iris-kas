@@ -106,8 +106,9 @@ There are multiple options to update layer repositories:
 5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`
 6. create a commit tag: `git tag <RELEASE_VERSION>`
 7. Push commit and commit tag to remote: `git push && git push --tags`
-8. Wait for the automatically triggered GitLab release pipeline to finish.
+8. Wait for the automatically triggered GitLab release pipeline to reach "blocked".
 9. Run the manual `publish-release` pipeline job for the appropriate targets.
+10. If the release was successful run the manual `release-clean-sstate-cache` job to finalize the release pipeline.
 
 ### Advanced use-cases
 

@@ -420,18 +420,6 @@ wipe-sstate-caches:
     - echo "Ensure you also reset the yocto hashservice database!"
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} +
 
-# Ensures that the release sstate cache is empty before any build is started.
-# This ensures the release is built from scratch (build reproducibility).
-release-wipe-release-sstate-cache:
-  rules:
-    - !reference [.release_template, rules]
-  stage: wipe-sstate-caches
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
-    - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
-
 
 ###################
 ### BUILD STAGE ###
