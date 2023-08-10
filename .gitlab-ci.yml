@@ -876,7 +876,8 @@ release-clean-sstate-cache:
   stage: release
   dependencies: []
   rules:
-    - !reference [.release_template, rules]
+    - if: '$CI_COMMIT_TAG'
+      when: manual
   variables:
     GIT_STRATEGY: none
   script:
