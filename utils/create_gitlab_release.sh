@@ -66,13 +66,13 @@ fi
 
 for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
     echo "Creating artifact archive ${!ARTIFACT_VAR}.tar.gz..."
-    tar 2>&1 -czvf "${!ARTIFACT_VAR}.tar.gz" "${!ARTIFACT_VAR}"
+    tar 2>&1 -czf "${!ARTIFACT_VAR}.tar.gz" "${!ARTIFACT_VAR}"
     echo "Uploading artifact archive ${!ARTIFACT_VAR}.tar.gz to GitLab package registry..."
     curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${!ARTIFACT_VAR}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${!ARTIFACT_VAR}.tar.gz"
     if test "${ARTIFACT_VAR}" = "deploy"; then
         deploy_customer="${KAS_ARTIFACT_PREFIX}${MULTI_CONF}-deploy-customer"
         echo "Creating customer deploy archive ${deploy_customer}.tar.gz..."
-        tar 2>&1 --ignore-failed-read -czvf "${deploy_customer}.tar.gz" \
+        tar 2>&1 --ignore-failed-read -czf "${deploy_customer}.tar.gz" \
             "${!ARTIFACT_VAR}/deploy/licenses" \
             "$(find "${!ARTIFACT_VAR}" -type d -name 'update_files')" \
             "$(find "${!ARTIFACT_VAR}" -type f -name '*.swu')"
