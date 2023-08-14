@@ -84,7 +84,7 @@ for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
             "$(find "${!ARTIFACT_VAR}" -type f -name '*.swu')"
         echo "Uploading customer deploy archive ${deploy_customer}.tar.gz to GitLab package registry..."
         curl --connect-timeout 5 \
-        --max-time 10 \
+        --max-time 60 \
         --retry 5 \
         --retry-delay 0 \
         --retry-max-time 40 \
