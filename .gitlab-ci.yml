@@ -73,9 +73,6 @@ variables:
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
-  SKIP_DEPLOY_IMAGE_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the deploy image build'
   SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance image build'
@@ -486,11 +483,8 @@ build-maintenance-oci:
 build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_DEPLOY_IMAGE_BUILD are set to true
-    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "true"'
-      when: manual
+    - when: manual
       allow_failure: true
-    - !reference [.develop_template, rules]
   stage: build
   parallel:
     matrix:
