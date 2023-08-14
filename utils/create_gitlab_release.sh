@@ -69,7 +69,7 @@ for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
     tar 2>&1 -czf "${!ARTIFACT_VAR}.tar.gz" "${!ARTIFACT_VAR}"
     echo "Uploading artifact archive ${!ARTIFACT_VAR}.tar.gz to GitLab package registry..."
     curl --connect-timeout 5 \
-    --max-time 10 \
+    --max-time 60 \
     --retry 5 \
     --retry-delay 0 \
     --retry-max-time 40 \
