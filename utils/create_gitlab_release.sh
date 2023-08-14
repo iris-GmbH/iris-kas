@@ -93,12 +93,9 @@ for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
     fi
 done
 
-# add customer archive to required release artifacts
-REQUIRED_RELEASE_ARTIFACT_VARS="${REQUIRED_RELEASE_ARTIFACT_VARS} deploy_customer"
-
-RELEASE_DESCRIPTION_FILE="${CI_PROJECT_DIR}/${MULTI_CONF}-release-description.md"
+RELEASE_DESCRIPTION_FILE="${MULTI_CONF}-release-description.md"
 echo "Creating release description file..."
-cat >"${RELEASE_DESCRIPTION_FILE}" <<EOF
+cat > "${RELEASE_DESCRIPTION_FILE}" <<EOF
 # Assets
 ## ${MULTI_CONF} (${RELEASE_NAME}-${RELEASE_VERSION})
 | Asset Name | Description | Clearance |
@@ -115,7 +112,7 @@ echo "Publishing release on GitLab..."
 release-cli create --name "Release ${MULTI_CONF} ${CI_COMMIT_TAG}" --tag-name "${CI_COMMIT_TAG}" \
     --description "${RELEASE_DESCRIPTION_FILE}" \
     --assets-link "{\"name\":\"${deploy}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${deploy}.tar.gz\"}" \
-    --assets-link "{\"name\":\"${maintenace}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${maintenance}.tar.gz\"}" \
+    --assets-link "{\"name\":\"${maintenance}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${maintenance}.tar.gz\"}" \
     --assets-link "{\"name\":\"${dev}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${dev}.tar.gz\"}" \
     --assets-link "{\"name\":\"${sdk}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${sdk}.tar.gz\"}" \
     --assets-link "{\"name\":\"${deploy_customer}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${deploy_customer}.tar.gz\"}" \
