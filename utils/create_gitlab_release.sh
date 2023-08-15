@@ -16,6 +16,11 @@ if ! command -v release-cli >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+    echo "Error: jq binary not found. See https://github.com/jqlang/jq."
+    exit 1
+fi
+
 REQUIRED_VARS="MULTI_CONF CI_COMMIT_TAG CI_PROJECT_DIR CI_JOB_TOKEN KAS_ARTIFACT_PREFIX PACKAGE_REGISTRY_URL RELEASE_NAME RELEASE_VERSION CI_COMMIT_SHA CI_COMMIT_REF_SLUG"
 for var in ${REQUIRED_VARS}; do
     if test -z "${var}"; then

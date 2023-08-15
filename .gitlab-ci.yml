@@ -894,6 +894,6 @@ publish-release:
       - <<: *target_multi_confs
   before_script:
     - !reference [.common_template, script, identify_release_from_multiconf]
-    - apk add --no-cache curl bash
+    - apk add --no-cache curl bash jq
   script:
     - utils/create_gitlab_release.sh
