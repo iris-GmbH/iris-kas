@@ -16,7 +16,7 @@ if ! command -v release-cli >/dev/null 2>&1; then
     exit 1
 fi
 
-REQUIRED_VARS="MULTI_CONF CI_COMMIT_TAG CI_PROJECT_DIR CI_JOB_TOKEN KAS_ARTIFACT_PREFIX PACKAGE_REGISTRY_URL RELEASE_NAME RELEASE_VERSION"
+REQUIRED_VARS="MULTI_CONF CI_COMMIT_TAG CI_PROJECT_DIR CI_JOB_TOKEN KAS_ARTIFACT_PREFIX PACKAGE_REGISTRY_URL RELEASE_NAME RELEASE_VERSION CI_COMMIT_SHA CI_COMMIT_REF_SLUG"
 for var in ${REQUIRED_VARS}; do
     if test -z "${var}"; then
         echo "Error: Required variable ${var} not set."
@@ -73,9 +73,10 @@ for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
     --retry-delay 0 \
     --retry-max-time 40 \
     --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-    --upload-file "${!ARTIFACT_VAR}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${!ARTIFACT_VAR}.tar.gz"
+    --upload-file "${!ARTIFACT_VAR}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${!ARTIFACT_VAR}.tar.gz"
     if test "${ARTIFACT_VAR}" = "deploy"; then
         deploy_customer="${KAS_ARTIFACT_PREFIX}${MULTI_CONF}-deploy-customer"
+        REQUIRED_RELEASE_ARTIFACT_VARS="${REQUIRED_RELEASE_ARTIFACT_VARS} deploy_customer"
         echo "Creating customer deploy archive ${deploy_customer}.tar.gz..."
         tar 2>&1 --ignore-failed-read -czf "${deploy_customer}.tar.gz" \
             "${!ARTIFACT_VAR}/deploy/licenses" \
@@ -87,7 +88,7 @@ for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
         --retry-delay 0 \
         --retry-max-time 40 \
         --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-        --upload-file "${deploy_customer}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${deploy_customer}.tar.gz"
+        --upload-file "${deploy_customer}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${deploy_customer}.tar.gz"
     fi
 done
 
@@ -106,12 +107,19 @@ cat > "${RELEASE_DESCRIPTION_FILE}" <<EOF
 | ${base_sources} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
 EOF
 
+ASSET_LINK=$( \
+    for artifact in $REQUIRED_RELEASE_ARTIFACT_VARS; do
+        jq -n \
+            --arg name "${!artifact}" \
+            --arg url "https://hello.world/${!artifact}" \
+            '{name: $name, url: $url}' \
+    ; done \
+    | jq -nc '. |= [inputs]' \
+)
+
+echo "ASSET_LINK string is ${ASSET_LINK}"
+
 echo "Publishing release on GitLab..."
-release-cli create --name "Release ${MULTI_CONF} ${CI_COMMIT_TAG}" --tag-name "${CI_COMMIT_TAG}" \
+release-cli create --name "Release ${MULTI_CONF} ${CI_COMMIT_TAG}" --tag-name "${CI_COMMIT_TAG}" --ref "${CI_COMMIT_SHA}" \
     --description "${RELEASE_DESCRIPTION_FILE}" \
-    --assets-link "{\"name\":\"${deploy}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${deploy}.tar.gz\"}" \
-    --assets-link "{\"name\":\"${maintenance}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${maintenance}.tar.gz\"}" \
-    --assets-link "{\"name\":\"${dev}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${dev}.tar.gz\"}" \
-    --assets-link "{\"name\":\"${sdk}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${sdk}.tar.gz\"}" \
-    --assets-link "{\"name\":\"${deploy_customer}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${deploy_customer}.tar.gz\"}" \
-    --assets-link "{\"name\":\"${base_sources}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${base_sources}.tar.gz\"}" \
+    --assets-link "${ASSET_LINK}"
