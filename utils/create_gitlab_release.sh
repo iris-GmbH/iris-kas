@@ -54,6 +54,18 @@ for var in ${REQUIRED_MULTI_CONF_RELEASE_ARTIFACT_VARS}; do
     REQUIRED_RELEASE_ARTIFACT_VARS="${REQUIRED_RELEASE_ARTIFACT_VARS} ${var}"
 done
 
+for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
+    echo "Creating artifact archive ${!ARTIFACT_VAR}.tar.gz..."
+    tar 2>&1 -czf "${!ARTIFACT_VAR}.tar.gz" "${!ARTIFACT_VAR}"
+    echo "Uploading artifact archive ${!ARTIFACT_VAR}.tar.gz to GitLab package registry..."
+    curl --connect-timeout 5 \
+    --retry 5 \
+    --retry-delay 0 \
+    --retry-max-time 40 \
+    --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+    --upload-file "${!ARTIFACT_VAR}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${!ARTIFACT_VAR}.tar.gz"
+done
+
 echo "Creating customer-deploy artifact..."
 deploy_customer="${KAS_ARTIFACT_PREFIX}${MULTI_CONF}-deploy-customer"
 REQUIRED_RELEASE_ARTIFACT_VARS="${REQUIRED_RELEASE_ARTIFACT_VARS} deploy_customer"
@@ -83,18 +95,6 @@ curl --connect-timeout 5 \
 --retry-max-time 40 \
 --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
 --upload-file "${deploy_customer}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${deploy_customer}.tar.gz"
-
-for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
-    echo "Creating artifact archive ${!ARTIFACT_VAR}.tar.gz..."
-    tar 2>&1 -czf "${!ARTIFACT_VAR}.tar.gz" "${!ARTIFACT_VAR}"
-    echo "Uploading artifact archive ${!ARTIFACT_VAR}.tar.gz to GitLab package registry..."
-    curl --connect-timeout 5 \
-    --retry 5 \
-    --retry-delay 0 \
-    --retry-max-time 40 \
-    --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-    --upload-file "${!ARTIFACT_VAR}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${!ARTIFACT_VAR}.tar.gz"
-done
 
 RELEASE_DESCRIPTION_FILE="${MULTI_CONF}-release-description.md"
 echo "Creating release description file..."
