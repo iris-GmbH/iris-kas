@@ -116,7 +116,7 @@ ASSET_LINK=$( \
     for artifact in $REQUIRED_RELEASE_ARTIFACT_VARS; do
         jq -n \
             --arg name "${!artifact}" \
-            --arg url "https://hello.world/${!artifact}" \
+            --arg url "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${!artifact}.tar.gz" \
             '{name: $name, url: $url}' \
     ; done \
     | jq -nc '. |= [inputs]' \
