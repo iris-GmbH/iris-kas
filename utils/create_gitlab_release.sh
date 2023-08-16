@@ -33,7 +33,7 @@ done
 MULTI_CONF_TR="$(echo "${MULTI_CONF}" | tr '-' '_')"
 
 # each of these variables should be defined beforehand and point to a existing artifact folder in the CI_PROJECT_DIR
-REQUIRED_MULTI_CONF_RELEASE_ARTIFACT_VARS="${MULTI_CONF_TR}_deploy ${MULTI_CONF_TR}_maintenance ${MULTI_CONF_TR}_dev_deploy ${MULTI_CONF_TR}_sdk ${MULTI_CONF_TR}_base_sources"
+REQUIRED_MULTI_CONF_RELEASE_ARTIFACT_VARS="${MULTI_CONF_TR}_deploy ${MULTI_CONF_TR}_maintenance ${MULTI_CONF_TR}_dev_deploy ${MULTI_CONF_TR}_sdk ${MULTI_CONF_TR}_base_sources ${MULTI_CONF_TR}_dev"
 
 echo "Verifying all necessary release artifacts are available..."
 for ARTIFACT_VAR in ${REQUIRED_MULTI_CONF_RELEASE_ARTIFACT_VARS}; do
@@ -54,20 +54,35 @@ for var in ${REQUIRED_MULTI_CONF_RELEASE_ARTIFACT_VARS}; do
     REQUIRED_RELEASE_ARTIFACT_VARS="${REQUIRED_RELEASE_ARTIFACT_VARS} ${var}"
 done
 
-# verifying customer update files are available
+echo "Creating customer-deploy artifact..."
+deploy_customer="${KAS_ARTIFACT_PREFIX}${MULTI_CONF}-deploy-customer"
+REQUIRED_RELEASE_ARTIFACT_VARS="${REQUIRED_RELEASE_ARTIFACT_VARS} deploy_customer"
 # sc573-gen6 uses the legacy zip update file
 if test "${MULTI_CONF}" == "sc573-gen6"; then
     if ! find "${deploy}/images/${MULTI_CONF}/update_files" -type f -name "bootloader-*.zip" || ! find "${deploy}/images/${MULTI_CONF}/update_files" -type f -name "firmware-*.zip" ; then
         echo "Error: Could not find update_files in ${deploy}."
         exit 1
     fi
+    tar 2>&1 -czf "${deploy_customer}.tar.gz" \
+        "${!ARTIFACT_VAR}/deploy/licenses" \
+        "$(find "${!ARTIFACT_VAR}" -type d -name 'update_files')" \
 # newer firmware uses swu.
 else
     if ! find "${deploy}" -type f -name "*.swu"; then
         echo "Error: Could not find any swu file in ${deploy}."
         exit 1
     fi
+    tar 2>&1 -czf "${deploy_customer}.tar.gz" \
+        "${!ARTIFACT_VAR}/deploy/licenses" \
+        "$(find "${!ARTIFACT_VAR}" -type f -name '*.swu')"
 fi
+echo "Uploading customer deploy archive ${deploy_customer}.tar.gz to GitLab package registry..."
+curl --connect-timeout 5 \
+--retry 5 \
+--retry-delay 0 \
+--retry-max-time 40 \
+--header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+--upload-file "${deploy_customer}.tar.gz" "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${deploy_customer}.tar.gz"
 
 for ARTIFACT_VAR in ${REQUIRED_RELEASE_ARTIFACT_VARS}; do
     echo "Creating artifact archive ${!ARTIFACT_VAR}.tar.gz..."
