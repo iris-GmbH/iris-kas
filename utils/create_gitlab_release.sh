@@ -71,7 +71,7 @@ deploy_customer="${KAS_ARTIFACT_PREFIX}${MULTI_CONF}-deploy-customer"
 REQUIRED_RELEASE_ARTIFACT_VARS="${REQUIRED_RELEASE_ARTIFACT_VARS} deploy_customer"
 # sc573-gen6 uses the legacy zip update file
 if test "${MULTI_CONF}" == "sc573-gen6"; then
-    if ! find "${deploy}/images/${MULTI_CONF}/update_files" -type f -name "bootloader-*.zip" || ! find "${deploy}/images/${MULTI_CONF}/update_files" -type f -name "firmware-*.zip" ; then
+    if ! find "${deploy}/deploy/images/${MULTI_CONF}/update_files" -type f -name "bootloader-*" || ! find "${deploy}/deploy/images/${MULTI_CONF}/update_files" -type f -name "firmware-*" ; then
         echo "Error: Could not find update_files in ${deploy}."
         exit 1
     fi
