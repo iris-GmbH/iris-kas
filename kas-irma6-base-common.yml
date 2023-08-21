@@ -11,7 +11,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.0-1_RC2"
+    IRMA6_DISTRO_VERSION = "3.0.0-APC7006_RC1"
 defaults:
   repos:
     patches:
