@@ -8,4 +8,4 @@ header:
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    commit: "82ab7be714055a696b4d203e3f3d71d7bb3d5a6d"
+    commit: "fe613abc6e6c5fcd6e274c76156a163f069a1435"
