@@ -781,7 +781,7 @@ test-oci:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.18.2
+  image: alpine:3.18.3
   parallel:
     matrix:
       - <<: *oci_multi_confs
