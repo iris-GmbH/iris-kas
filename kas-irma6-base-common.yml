@@ -97,6 +97,9 @@ repos:
       # Add python3-tox
       0005-python3-tox-Add-initial-recipe-4.6.0:
         path: "patches/0005-python3-tox-Add-initial-recipe-4.6.0.patch"
+      # Add patch for Json-schema.-validator
+      0001-json-schema-validator-Updrade-to-2.2.0.patch:
+        path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     branch: "kirkstone"
