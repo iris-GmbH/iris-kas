@@ -443,7 +443,7 @@ build-maintenance-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET_RECIPE: "irma6-maintenance"
+    KAS_TARGET_RECIPE: "irma6-maintenance-bundle"
     KAS_ARTIFACT_SUFFIX: "-maintenance"
   script:
     - make kas-build
@@ -463,7 +463,7 @@ build-dev-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET_RECIPE: "irma6-dev"
+    KAS_TARGET_RECIPE: "irma6-dev-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev"
   script:
     - make kas-build
@@ -505,7 +505,7 @@ build-dev-deploy-image:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET_RECIPE: "irma6-deploy"
+    KAS_TARGET_RECIPE: "irma6-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
   script:
     - >
@@ -594,7 +594,7 @@ release-build-deploy:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET_RECIPE: "irma6-deploy"
+    KAS_TARGET_RECIPE: "irma6-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-deploy"
     KASFILE_EXTRA: ":include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
   script:

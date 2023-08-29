@@ -70,7 +70,7 @@ Afterwards you can run the `make` commands as described below.
 
 ## Usage
 
-We recommend using the provided Makefile for running KAS commands, at it does some of the heavy lifting regarding build configuration. Makefile tasks are controlled using environment variables, which are parsed to the make command, e.g. `KAS_TARGET_RECIPE=irma6-deploy make`.
+We recommend using the provided Makefile for running KAS commands, at it does some of the heavy lifting regarding build configuration. Makefile tasks are controlled using environment variables, which are parsed to the make command, e.g. `KAS_TARGET_RECIPE=irma6-deploy-bundle make`.
 
 `kas-build` is the default action when calling make and corresponds to the [kas build plugin](https://kas.readthedocs.io/en/latest/userguide.html#module-kas.plugins.build). As the name implies, this plugins main usage is to build a target recipe, however by overriding the default `KAS_TASK`, the plugin can be used in a much more versatile way.
 
@@ -83,8 +83,7 @@ These are the basic settings for controlling kas-related make tasks and should c
 | VARIABLE   | DESCRIPTION | DEFAULT VALUE |
 |------------|-------------|---------------|
 | MULTI_CONF | Controls the used [multiconf](https://docs.yoctoproject.org/singleindex.html#building-images-for-multiple-targets-using-multiple-configurations). We use multiconfs for differentiating between the various target platforms. E.g. `sc573-gen6` corresponds to IRMA6 R1 and `imx8mp-irma6r2` corresponds to IRMA6 R2. Click [here](https://github.com/iris-GmbH/meta-iris-base/tree/develop/conf/multiconfig) for all supported multiconfigs. | `imx8mp-irma6r2` |
-| KAS_TARGET_RECIPE | Defines one or more bitbake recipes to build. Common image targets include `irma6-maintenance`, `irma6-deploy`, `irma6-dev` | `irma6-maintenance` |
-| KAS_TARGET_RECIPE_IS_IMAGE | Should be set to `false` if the target recipe is NOT an image | `true` |
+| KAS_TARGET_RECIPE | Defines one or more bitbake recipes to build. Common targets include `irma6-maintenance-bundle`, `irma6-deploy-bundle`, `irma6-dev-bundle` | `irma6-maintenance-bundle` |
 | KAS_TASK | The bitbake task to perform. Common tasks include `build`, `populate_sdk`, `fetch`, `clean`, ... Check the Yocto docs for a more complete list. | `build` |
 | SSH_DIR | Specifies the folder containing a SSH key for authenticating against iris' proprietary repositories. | `~/.ssh` |
 
@@ -124,7 +123,7 @@ In some rare cases the KAS `build` plugin might not be flexible enough for you. 
 
 By default `make kas` behaves identical to `make kas-build`, however it allows for a complete override of the KAS arguments by setting the `KAS_ARGS` environment variable, e.g.:
 
-- `KAS_ARGS="shell -c \"bitbake mc:sc573-gen6:irma6-maintenance\"" make kas`
+- `KAS_ARGS="shell -c \"bitbake mc:sc573-gen6:irma6-maintenance-bundle\"" make kas`
 - `KAS_ARGS="checkout" make kas`
 
 #### Reproducible pipeline builds
