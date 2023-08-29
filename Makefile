@@ -14,8 +14,7 @@ GROUP_ID := $(shell id -g)
 ######################
 
 export MULTI_CONF ?= imx8mp-irma6r2
-export KAS_TARGET_RECIPE ?= irma6-maintenance
-export KAS_TARGET_RECIPE_IS_IMAGE ?= true
+export KAS_TARGET_RECIPE ?= irma6-maintenance-bundle
 export KAS_TASK ?= build
 export SSH_DIR ?= ~/.ssh
 
@@ -122,21 +121,10 @@ endif
 
 # if KAS_TARGET_RECIPE contains "irma6-deploy", set distro accordingly
 ifeq (irma6-deploy, $(findstring irma6-deploy, ${KAS_TARGET_RECIPE}))
-export KAS_DISTRO = poky-iris-deploy
+export KAS_DISTRO ?= poky-iris-deploy
 endif
-
 
 $(foreach word, ${KAS_TARGET_RECIPE},$(eval KAS_TARGET ?= ${KAS_TARGET} mc:${MULTI_CONF}:$(word)))
-# if release 2 target multiconf and bitbake build target is an image,
-# also build the required swu and uuu files.
-# FIXME: this distinction should be done in yocto recipe itself
-ifeq (${MULTI_CONF}, imx8mp-irma6r2)
-ifeq (${KAS_TARGET_RECIPE_IS_IMAGE}, true)
-ifeq (${KAS_TASK}, build)
-$(foreach word, ${KAS_TARGET},$(eval KAS_TARGET ?= ${KAS_TARGET} $(word)-uuu $(word)-swuimage))
-endif
-endif
-endif
 export KAS_TARGET
 
 # finalize KASFILE into list
