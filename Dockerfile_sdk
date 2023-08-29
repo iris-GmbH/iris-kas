@@ -1,4 +1,4 @@
-FROM python:3.11.4-bullseye as build
+FROM python:3.11.5-bullseye as build
 ARG SDK_SOURCE
 ADD ${SDK_SOURCE} /${SDK_SOURCE}
 RUN SCRIPT=$(find /${SDK_SOURCE} -type f -name "*.sh") \
