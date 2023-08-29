@@ -184,7 +184,7 @@ renovate-dry-run:
   stage: renovate
   rules:
     - if: $RENOVATE_DRY_RUN == "true"
-  image: renovate/renovate:36.23.2-full
+  image: renovate/renovate:36.68.1-full
   tags:
     - gp
   before_script: []
@@ -197,7 +197,7 @@ renovate:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:36.23.2-full
+  image: renovate/renovate:36.68.1-full
   tags:
     - gp
   before_script: []
