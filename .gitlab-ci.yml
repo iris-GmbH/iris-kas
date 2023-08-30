@@ -20,6 +20,7 @@ include:
 ###############################
 
 variables:
+  GET_SOURCES_ATTEMPTS: 3
   RELEASE_BRANCH: "master"
   BUILD_IMAGE_TAG: "latest"
   BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_IMAGE_TAG}"
