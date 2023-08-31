@@ -1,0 +1,7 @@
+FROM python:3.11-alpine3.18
+RUN pip install pipenv
+RUN apk add --no-cache \
+    git \
+    make
+
+CMD ["make", "coverage"]

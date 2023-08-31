@@ -34,19 +34,6 @@
       - tar -I "gzip --best" --exclude=${ARTIFACT_NAME}.tar.gz -cf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_FOLDER}
       - echo "${ARTIFACT_NAME}.tar.gz is $(echo -n $(ls -lh ${ARTIFACT_NAME}.tar.gz | awk '{print $5}')) in size."
 
-    identify_release_from_multiconf:
-      - >
-        if test "${MULTI_CONF}" = "sc573-gen6" || test "${MULTI_CONF}" = "qemux86-64-r1"; then
-          export RELEASE_NAME="IRMA6"
-          export RELEASE_VERSION="r1"
-        elif test "${MULTI_CONF}" = "imx8mp-irma6r2" || test "${MULTI_CONF}" = "qemux86-64-r2"; then
-          export RELEASE_NAME="IRMA6"
-          export RELEASE_VERSION="r2"
-        else
-          echo "Error: Could not identify release from multi_conf ${MULTI_CONF}"
-          exit 1
-        fi
-
   after_script:
     create-kas-artifact-folder:
       - >
