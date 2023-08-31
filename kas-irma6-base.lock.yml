@@ -11,11 +11,11 @@ overrides:
         meta-freescale-distro:
             commit: d5bbb487b2816dfc74984a78b67f7361ce404253
         meta-iris:
-            commit: 3db2fa6d5daf03b10723f790bfd0734ca335f2fe
+            commit: b98a4a49204e50827adb6cb948aa98e91182eb5c
         meta-iris-base:
-            commit: b133a3facb8113d70adf2b26526711750eff631a
+            commit: b05167d371bc6b99077ec06f7672392b6deaf2a5
         meta-iris-thirdparty:
-            commit: 0795704bf2e01af38844fe07c9a298efe96c62c5
+            commit: 10924b533eefd20e24cf694b5fbbfb28c69380ac
         meta-openembedded:
             commit: 529620141e773080a6a7be4615fb7993204af883
         meta-secure-imx:
@@ -25,4 +25,4 @@ overrides:
         meta-virtualization:
             commit: e60f59f3567b78286ea34337dbae468a5f18f1c6
         poky:
-            commit: 3272e64a731280206d13fe746e4b9e3a5e7c73a8
+            commit: e42cc7d900fd2f1b6a12184cb3e4c81d5bda5206
