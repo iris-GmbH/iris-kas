@@ -901,9 +901,8 @@ publish-release:
       when: manual
       variables:
         RELEASE: "true"
-        RELEASE_MULTI_CONFS:
-          value: "imx8mp-irma6r2 sc573-gen6"
-          description: "Adjust if release should only include a subset of targets"
+        # override this if you want to release for a subset of targets.
+        RELEASE_MULTI_CONFS: "imx8mp-irma6r2 sc573-gen6"
   before_script:
     - apk add --no-cache curl bash jq
   script:
