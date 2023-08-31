@@ -13,7 +13,13 @@ RUN set -ex \
         ca-certificates \
         cmake \
         jq \
+        python3-pip \
+        python3-click \
+        python3-requests \
+        python3-gitlab \
     && rm -rf /var/lib/apt/lists
 COPY --from=yq /usr/bin/yq /usr/bin/yq
-RUN yq --version
+ADD utils/create_gitlab_release/src/create_gitlab_release.py /usr/bin/create_gitlab_release
 USER builder
+RUN yq --version
+RUN create_gitlab_release --help

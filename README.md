@@ -105,16 +105,16 @@ You can start an interactive shell within the KAS/bitbake build environment by r
 
 > :information_source: Before creating a release in iris-kas, ensure you have appropriate releases in meta-iris(-base) layer repositories.
 
-1. Ensure your develop branch is up-to-date: `git checkout develop && git fetch && git merge --ff-only`
+1. Ensure your develop branch is up-to-date: `git checkout develop && git pull --ff-only`
 2. Create a release or support branch, branching of the current develop (e.g. `release/3.0.0`, `support/3.0.0-support-suffix`): `git checkout -b release/3.0.0`
 3. Run `make prepare-release`, which will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-irma6-base.lock.yml`.
 4. Verify the content of the lock file. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in the lock file appropriately.
 5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`
 6. create a commit tag: `git tag <RELEASE_VERSION>`
 7. Push commit and commit tag to remote: `git push && git push --tags`
-8. Wait for the automatically triggered GitLab release pipeline to reach "blocked".
-9. Run the manual `publish-release` pipeline job for the appropriate target.
-10. If the release was successful run the manual `release-clean-sstate-cache` job to finalize the release pipeline.
+8. Wait for the automatically triggered GitLab release pipeline to reach the manually triggerable `set-release-multi-confs` job. The pipeline will now be in a "blocked" state, waiting for user input. If you plan to release for a single multi-conf (e.g. sc573-gen6), you may now override the variable `RELEASE_MULTI_CONFS` (by default this variable is set to `imx8mp-irma6r2 sc573-gen6`) and trigger the job. Note that due to a [limitation in GitLab
+   CI](https://gitlab.com/gitlab-org/gitlab/-/issues/11549), all releases will be currently built independently of the content of `RELEASE_MULTI_CONFS`. The latter will only affect the publication of build artifacts on GitLab packages and the GitLab release page.
+9. If the release build was successful run the manual `release-clean-sstate-cache` job to finalize the release pipeline.
 
 ### Advanced use-cases
 #### Running arbitrary KAS commands (make kas)

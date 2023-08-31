@@ -3,7 +3,7 @@
 
 
 # TODO: implement needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
-# TODO: use GitLab CI variables for defining multiconf, once supported: https://gitlab.com/gitlab-org/gitlab/-/issues/11549
+# TODO: use GitLab CI variables for defining parallism, once supported: https://gitlab.com/gitlab-org/gitlab/-/issues/11549
 # TODO: move renovate configuration into renovate.json
 
 #####################
@@ -265,6 +265,23 @@ develop-get-next-firmware-version:
   artifacts:
     paths:
       - gitversion.json
+
+set-release-multi-confs:
+  stage: release
+  tags:
+    - gp-tiny
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+      variables:
+        RELEASE: "true"
+        # override this if you want to release for a subset of targets.
+        RELEASE_MULTI_CONFS: "imx8mp-irma6r2 sc573-gen6"
+  script:
+    - echo "RELEASE_MULTI_CONFS=$RELEASE_MULTI_CONFS" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
 
 
 ###################################
@@ -895,18 +912,7 @@ publish-release:
   stage: release
   tags:
     - gp
-  image: registry.gitlab.com/gitlab-org/release-cli:v0.15.0
   rules:
     - if: '$CI_COMMIT_TAG'
-      when: manual
-      allow_failure: true
-      variables:
-        RELEASE: "true"
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
-  before_script:
-    - !reference [.common_template, script, identify_release_from_multiconf]
-    - apk add --no-cache curl bash jq
   script:
-    - utils/create_gitlab_release.sh
+    - create_gitlab_release
