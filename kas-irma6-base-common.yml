@@ -74,6 +74,8 @@ repos:
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
+      0001-Replace-tinycompress-src_uri:
+        path: "patches/0001-Replace-tinycompress-src_uri.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
     commit: "2a65ce4cc619c3b9f265f6b1d2dce2b8044501e6"
