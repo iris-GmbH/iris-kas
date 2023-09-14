@@ -294,7 +294,6 @@ build-iris-kas-container:
   script:
     - >-
       /kaniko/executor
-      --build-arg "type=ci"
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${BUILD_IMAGE}-${ARCH}"
@@ -347,19 +346,19 @@ download-mirror-maintenance:
 
 # Ensures that fixed refspecs are set for all meta-layers.
 # This is vital for build reproducibility.
-release-verify-fixed-refspecs:
-  rules:
-    - !reference [.release_template, rules]
-  stage: release-sanity-checks
-  script:
-    - echo "Ensuring that fixed refspecs are set on meta layers..."
-    - >
-      kas for-all-repos --update ${MAIN_KAS_FILES} """
-      if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
-        git checkout \${KAS_REPO_REFSPEC} \
-        && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
-        || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
-      """
+#release-verify-fixed-refspecs:
+#  rules:
+#    - !reference [.release_template, rules]
+#  stage: release-sanity-checks
+#  script:
+#    - echo "Ensuring that fixed refspecs are set on meta layers..."
+#    - >
+#      kas for-all-repos --update ${MAIN_KAS_FILES} """
+#      if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
+#        git checkout \${KAS_REPO_REFSPEC} \
+#        && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
+#        || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
+#      """
 
 # Ensures that the DISTRO_VERSION variable is set correctly
 release-verify-distro-version:
@@ -725,7 +724,7 @@ develop-push-test-oci:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   tags:
     - gp
-  image: quay.io/skopeo/stable:v1.11.2
+  image: quay.io/skopeo/stable:v1.13.2
   before_script: []
   script:
     - >-
@@ -745,7 +744,7 @@ release-push-test-oci:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   tags:
     - gp
-  image: quay.io/skopeo/stable:v1.11.2
+  image: quay.io/skopeo/stable:v1.13.2
   before_script: []
   script:
     - >-
@@ -768,7 +767,7 @@ push-maintenance-oci:
     ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
   tags:
     - gp
-  image: quay.io/skopeo/stable:v1.11.2
+  image: quay.io/skopeo/stable:v1.13.2
   before_script: []
   script:
     - >-
