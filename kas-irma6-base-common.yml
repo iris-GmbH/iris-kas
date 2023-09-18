@@ -103,6 +103,9 @@ repos:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     branch: "kirkstone"
+    patches:
+      0001-Mongoose-Fix-request-handling:
+        path: "patches/0001-APC-7142-Fix-request-handling-of-malformed-data.patch"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     branch: "dunfell"
