@@ -645,22 +645,6 @@ push-test-oci:
 ### TEST STAGE ###
 ##################
 
-dry-run-release:
-  stage: test
-  tags:
-    - gp
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes:
-        - .gitlab/**/*
-        - .gitlab-ci.yml
-        - utils/create_gitlab_release/**/*
-    - when: manual
-      allow_failure: true
-  script:
-    - create_gitlab_release --dry-run true
-
-
 test-oci:
   stage: test
   needs:
