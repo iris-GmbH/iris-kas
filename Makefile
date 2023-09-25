@@ -174,7 +174,7 @@ run-qemu:
 	${KAS_SHELL} -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
 
 kas-dump-lockfile:
-	${KAS_COMMAND} dump --lock --inplace ${KASFILE}
+	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}
 
 kas-checkout-branch-in-iris-layers:
 	${KAS_COMMAND} for-all-repos ${KASFILE}:include/kas-branch-name-env.yml ' \
