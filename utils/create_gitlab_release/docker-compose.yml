@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  gitlab-test-instance:
+    build: docker-gitlab-test
+    ports:
+      - 127.0.0.1:8000:8000
