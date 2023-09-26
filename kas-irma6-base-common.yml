@@ -13,7 +13,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.2-dev"
+    IRMA6_DISTRO_VERSION = "3.0.2-RC1"
 
 defaults:
   repos:
@@ -27,10 +27,10 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    branch: "develop"
+    commit: a49442d3598bdd68a919cefb2447842946ee623a
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    branch: "kirkstone"
+    commit: f421d0d8fdb564ef427b1db3e4d52571271f1648
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
