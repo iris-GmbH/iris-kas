@@ -14,8 +14,9 @@ RUN apk add --no-cache \
     && git clone --single-branch -b ${REPO_REV} https://android.googlesource.com/tools/repo /repo \
     && chmod +x /repo/repo
 
-FROM ghcr.io/siemens/kas/kas:3.1 AS base
+FROM ghcr.io/siemens/kas/kas:4.0 AS base
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
+USER root
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
@@ -23,7 +24,8 @@ RUN set -ex \
     && rm -rf /var/lib/apt/lists
 COPY --from=yq /usr/bin/yq /usr/bin/yq
 COPY --from=git /repo/repo /usr/bin/repo
-RUN repo --version \
+RUN ln -s /usr/bin/python3 /usr/bin/python \
+    && repo --version \
     && yq --version
 
 FROM base AS ci
@@ -33,12 +35,6 @@ RUN set -ex \
         icecc \
         awscli \
     && rm -rf /var/lib/apt/lists
-# GitLab (and some other CI systems) override the entrypoint.
-# As a result, a non-privileged user needs to be added manually.
-RUN set -ex \
-    && adduser --gecos '' --uid=1000 --disabled-password builder
-ENTRYPOINT []
-VOLUME /var/lib/docker
 USER builder
 
 # This FROM statement will cause the build to either use the "base" or
