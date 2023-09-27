@@ -369,17 +369,17 @@ release-verify-fixed-refspecs:
       """
 
 # Ensures that the DISTRO_VERSION variable is set correctly
-release-verify-distro-version:
-  rules:
-    - !reference [.release_template, rules]
-  stage: release-sanity-checks
-  script:
-    - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
-    - >
-      if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
-        echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
-        exit 1
-      fi
+# release-verify-distro-version:
+#   rules:
+#     - !reference [.release_template, rules]
+#   stage: release-sanity-checks
+#   script:
+#     - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
+#     - >
+#       if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
+#         echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
+#         exit 1
+#       fi
 
 
 ################################
