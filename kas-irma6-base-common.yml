@@ -27,14 +27,14 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    commit: a49442d3598bdd68a919cefb2447842946ee623a
+    commit: "a49442d3598bdd68a919cefb2447842946ee623a"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    commit: f421d0d8fdb564ef427b1db3e4d52571271f1648
+    commit: "f421d0d8fdb564ef427b1db3e4d52571271f1648"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    commit: e1d31494bf689f1d73831947056fd07ab6417627
+    commit: "e51bf557f596c4da38789a948a3228ba11455e3c"
     layers:
       meta:
       meta-poky:
@@ -62,7 +62,7 @@ repos:
         path: "patches/0001-python3-manifest-add-ensurepip.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    commit: 8375092392d3d6ae6dd2683acc74b87e8b953f6c
+    commit: "a88cb922f91fda95e8a584cee3092083d5ad3e98"
     layers:
       meta-oe:
       meta-python:
@@ -102,13 +102,13 @@ repos:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: 74e5041966f4df2749b72871372c471292e6ac3b
+    commit: "7a85c71f40c4bf445f041fa7aad70733c9cbc0ba"
     patches:
       0001-Mongoose-Fix-request-handling:
         path: "patches/0001-APC-7142-Fix-request-handling-of-malformed-data.patch"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    commit: 1ff325d4707d1e55b16d966413cc3fe592a70c31
+    commit: "20d409a5e75758a8df7bb07e086a36377fbe16d9"
     patches:
       0001-APC-5918-Remove-bbappend-for-cryptsetup:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
@@ -116,12 +116,12 @@ repos:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-virtualization:
     url: "https://git.yoctoproject.org/meta-virtualization"
-    commit: 2d8b3cba8ff27c9ec2187a52b6a551fe1dcfaa07
+    commit: "2d8b3cba8ff27c9ec2187a52b6a551fe1dcfaa07"
 
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    commit: 0e8e95ec162b92d6ed2afd4fbdad8d15d70c6c5d
+    commit: "ad2203c11723b07727589a8eebe33f3129cc236a"
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
@@ -132,13 +132,13 @@ repos:
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    commit: 587356988ba8e04211c259d95272698b2c2effa0
+    commit: "3e9ef23d98aa842cf84251a27c9b8dde8925ea61"
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    commit: 1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f
+    commit: "1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    commit: d5bbb487b2816dfc74984a78b67f7361ce404253
+    commit: "d5bbb487b2816dfc74984a78b67f7361ce404253"
