@@ -992,7 +992,7 @@ publish-release:
   variables:
     IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz
     SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
-  image: registry.gitlab.com/gitlab-org/release-cli:v0.15.0
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.16.0
   before_script: []
   script:
     - echo "Publishing release $CI_COMMIT_TAG"
