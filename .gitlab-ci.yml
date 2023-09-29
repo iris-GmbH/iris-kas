@@ -309,27 +309,6 @@ release-build-maintenance-distros:
     - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
-release-build-qemu:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
-        IMAGES: irma6-test
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    ARTIFACT_SUFFIX: "-qemu"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-    - !reference [.common_template, script, create-artifact]
-  artifacts: !reference [.release_template, artifacts, release-qemu-artifacts]
-
 release-build-sdk:
   rules:
     - !reference [.release_template, rules]
@@ -402,24 +381,6 @@ release-build-deploy-distros:
     - !reference [.common_template, after_script, remove-symbolic-image-links]
     - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
-
-release-test-qemu:
-  stage: test
-  tags:
-    - kas
-  rules:
-    - !reference [.release_template, rules]
-  needs:
-    - job: "container-get-tag"
-      optional: true
-    - "release-build-qemu"
-  variables:
-    # we only want to use kas-irma6-base.yml here, since qemu-helper-native is
-    # present in openembedded-core and this can speed up the parsing
-    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-populate-release-caches.yml"
-  parallel: !reference [.test_qemu_template, parallel]
-  script: !reference [.test_qemu_template, script]
-  artifacts: !reference [.test_qemu_template, artifacts]
 
 release-sync-sstate-cache:
   stage: release
