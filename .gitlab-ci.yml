@@ -31,12 +31,6 @@ variables:
   SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
   GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
   GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
-  IMX8MP_IRMA6R2_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy
-  IMX8MP_IRMA6R2_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy-customer
-  IMX8MP_IRMA6R2_DEV_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
-  IMX8MP_IRMA6R2_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance-distros
-  IMX8MP_IRMA6R2_SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
-  IMX8MP_IRMA6R2_BASESOURCES: imx8mp-irma6r2-base-sources
   SC573_GEN6_DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
   SC573_GEN6_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy-customer
   SC573_GEN6_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
@@ -258,7 +252,7 @@ release-base-build:
     - "iris-kas-release-s3-upload"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-base"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
@@ -292,7 +286,7 @@ release-build-maintenance-distros:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-maintenance irma6-dev"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
@@ -318,7 +312,7 @@ release-build-sdk:
     ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
@@ -328,30 +322,6 @@ release-build-sdk:
     - !reference [.release_template, script, populate-dl-dir]
     - !reference [.release_template, script, build]
   after_script:
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
-
-# Build the deploy image with dev keys
-release-build-dev-deploy-distros:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [imx8mp-irma6r2]
-        IMAGES: "irma6-deploy"
-  variables:
-    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-    ARTIFACT_SUFFIX: "-dev-deploy"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
     - !reference [.release_template, after_script, move-artifacts-to-toplevel]
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
@@ -365,7 +335,7 @@ release-build-deploy-distros:
     - iris-kas-release
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-deploy"
   variables:
     MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
@@ -410,7 +380,7 @@ release-upload-artifacts:
       done
     # separate packages only containing customer cleared files
     - >
-      for FOLDER in ${IMX8MP_IRMA6R2_DEPLOY} ${SC573_GEN6_DEPLOY}; do
+      for FOLDER in ${SC573_GEN6_DEPLOY}; do
         sudo tar 2>&1 --ignore-failed-read -czvf ${FOLDER}-customer.tar.gz ${FOLDER}/licenses $(find ${FOLDER} -type d -name 'update_files') $(find ${FOLDER} -type f -name '*.swu')
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${FOLDER}-customer.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${FOLDER}-customer.tar.gz"
       done
@@ -422,7 +392,6 @@ publish-release:
   rules:
     - !reference [.release_template, rules]
   variables:
-    IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz
     SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
   image: registry.gitlab.com/gitlab-org/release-cli:v0.14.0
   before_script: []
@@ -433,15 +402,6 @@ publish-release:
     tag_name: "$CI_COMMIT_TAG"
     description: |
       # Assets
-      ## IMX8MP-IRMA6R2 (IRMA6 HW Release 2)
-      | Asset Name | Description | Clearance |
-      | ---------- | ----------- | --------- |
-      | ${IMX8MP_IRMA6R2_DEPLOY} | Production Firmware package - all artifacts. | Internal |
-      | ${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER} | Production Firmware - update file only. | Customer |
-      | ${IMX8MP_IRMA6R2_DEV_DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
-      | ${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
-      | ${IMX8MP_IRMA6R2_SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${IMX8MP_IRMA6R2_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
 
       ## SC573-GEN6 (IRMA6 HW Release 1)
       | Asset Name | Description | Clearance |
@@ -453,18 +413,6 @@ publish-release:
       | ${SC573_GEN6_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
     assets:
       links:
-        - name: "${IMX8MP_IRMA6R2_DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_DEV_DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV_DEPLOY}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_SDK}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
-          url: "${IMX8MP_IRMA6R2_BASESOURCES_URL}"
         - name: "${SC573_GEN6_DEPLOY}"
           url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEPLOY}.tar.gz"
         - name: "${SC573_GEN6_DEPLOY_CUSTOMER}"
@@ -485,7 +433,7 @@ develop-build-maintenance-distro-targets:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6]
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
         IMAGES: "irma6-maintenance irma6-dev"
   variables:
@@ -510,7 +458,7 @@ develop-build-deploy-distro-targets:
   stage: build
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-deploy"
   variables:
     ARTIFACT_SUFFIX: "-deploy"
@@ -560,7 +508,7 @@ develop-build-sdk:
     ARTIFACT_SUFFIX: "-sdk"
   parallel:
     matrix:
-      - MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+      - MULTI_CONF: [sc573-gen6]
         IMAGES: "irma6-maintenance"
         MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   services:
