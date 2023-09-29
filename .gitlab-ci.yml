@@ -267,7 +267,7 @@ develop-get-next-firmware-version:
       - gitversion.json
 
 set-release-multi-confs:
-  stage: release
+  stage: setup
   tags:
     - gp-tiny
   rules:

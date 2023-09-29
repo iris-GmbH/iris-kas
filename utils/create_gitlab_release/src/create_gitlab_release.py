@@ -157,11 +157,11 @@ def create_artifact_archive(artifact_path: str, tmpdir: tempfile.TemporaryDirect
   return tar_path
 
 
-def upload_artifacts_to_registry(gl: Gitlab, release_multi_confs: list, artifacts: dict, gitlab_project: Project, release_version: str, dry_run: bool, logging: logging.Logger):
+def upload_artifacts_to_registry(gl: Gitlab, release_multi_confs: list, artifacts: dict, gitlab_project: Project, project_name: str, release_version: str, dry_run: bool, logging: logging.Logger):
   """
   Uploads release artifacts to the Gitlab generic package registry. Ensures an appropriate release tag exists.
   """
-  logging.info(f'Uploading artifacts as package {gitlab_project.name} in version {release_version} to GitLab project {gitlab_project.name_with_namespace}')
+  logging.info(f'Uploading artifacts as package {project_name} in version {release_version} to GitLab project {project_name} (ID {gitlab_project.id})')
   for artifact_type in artifacts:
     for conf in release_multi_confs:
       path = artifacts[artifact_type][conf]['path']
@@ -171,13 +171,13 @@ def upload_artifacts_to_registry(gl: Gitlab, release_multi_confs: list, artifact
         gitlab_project.tags.get(release_version)
         logging.debug(f'Uploading artifact_type {artifact_type} for conf {conf} at path {path} to registy')
         gitlab_project.generic_packages.upload(
-          package_name = gitlab_project.path,
+          package_name = project_name,
           package_version = release_version,
           file_name = file_name,
           path = path
         )
       else:
-        logging.info(f'Dry-run: Would upload {path} as file {file_name} in package {gitlab_project.path} in version {release_version} to GitLab project {gitlab_project.name_with_namespace}')
+        logging.info(f'Dry-run: Would upload {path} as file {file_name} in package {project_name} in version {release_version} to GitLab project {project_name} (ID {gitlab_project.id})')
 
 
 def generate_release_description(release_multi_confs: list, artifacts: dict, logging: logging.Logger) -> str:
@@ -197,7 +197,7 @@ def generate_release_description(release_multi_confs: list, artifacts: dict, log
   return release_description
 
 
-def create_gitlab_release(release_multi_confs: list, artifacts: dict, gl: Gitlab, gitlab_project: Project, release_version: str, dry_run: bool, logging: logging.Logger):
+def create_gitlab_release(release_multi_confs: list, artifacts: dict, gl: Gitlab, gitlab_project: Project, project_name: str, release_version: str, dry_run: bool, logging: logging.Logger):
   """
   Creates a Gitlab Release, including a generated release description and links to the release artifacts.
   """
@@ -205,18 +205,18 @@ def create_gitlab_release(release_multi_confs: list, artifacts: dict, gl: Gitlab
   release_configs = ' and '.join([conf for conf in release_multi_confs])
   release_name = f'Release {release_version} for {release_configs}'
   if dry_run is False:
-    logging.info(f'Creating GitLab release {release_name} for tag {release_version} within GitLab project {gitlab_project.name_with_namespace}')
+    logging.info(f'Creating GitLab release "{release_name}" for tag {release_version} within GitLab project {project_name} (ID {gitlab_project.id})')
     release = gitlab_project.releases.create({
         'name': release_name,
         'tag_name': release_version,
         'description': release_description,
     })
   else:
-    logging.info(f'Dry-run: Would create GitLab release {release_name} for tag {release_version} within GitLab project {gitlab_project.name_with_namespace}')
+    logging.info(f'Dry-run: Would create GitLab release "{release_name}" for tag {release_version} within GitLab project {project_name} (ID {gitlab_project.id})')
   for conf in release_multi_confs:
     for artifact_type in artifacts:
       artifact_name = os.path.basename(artifacts[artifact_type][conf]['path'])
-      artifact_url = f'{gl.api_url}/projects/{gitlab_project.id}/packages/generic/{gitlab_project.path}/{release_version}/{artifact_name}'
+      artifact_url = f'{gl.api_url}/projects/{gitlab_project.id}/packages/generic/{project_name}/{release_version}/{artifact_name}'
       if dry_run is False:
         release.links.create({
             'name': artifact_name,
@@ -233,14 +233,15 @@ def auth(gitlab_server_url: str, gitlab_access_token: str) -> Gitlab:
   return Gitlab(gitlab_server_url, gitlab_access_token)
 
 
-def run(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release_multi_confs: list, kas_artifact_prefix: str, project_dir: str, gitlab_project_id: int, release_version: str, logging: logging.Logger):
+def run(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release_multi_confs: list, kas_artifact_prefix: str, project_dir: str, gitlab_project_id: int, release_name: str, release_version: str, logging: logging.Logger):
   gl = auth(gitlab_server_url, gitlab_access_token)
-  gitlab_project = gl.projects.get(gitlab_project_id)
+  # lazy=True to avoid actual server request via projects API, which is not covered by the CI_JOB_TOKEN permissions
+  gitlab_project = gl.projects.get(gitlab_project_id, lazy=True)
   logging.debug(f'Gitlab Project object is {gitlab_project}')
   with tempfile.TemporaryDirectory() as tmpdir:
     artifacts = prepare_release_artifacts(release_multi_confs, project_dir, tmpdir, kas_artifact_prefix, logging)
-    upload_artifacts_to_registry(gl, release_multi_confs, artifacts, gitlab_project, release_version, dry_run, logging)
-  create_gitlab_release(release_multi_confs, artifacts, gl, gitlab_project, release_version, dry_run, logging)
+    upload_artifacts_to_registry(gl, release_multi_confs, artifacts, gitlab_project, release_name, release_version, dry_run, logging)
+  create_gitlab_release(release_multi_confs, artifacts, gl, gitlab_project, release_name, release_version, dry_run, logging)
 
 
 @click.command()
@@ -251,15 +252,16 @@ def run(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release
 @click.option('--release-multi-confs', envvar='RELEASE_MULTI_CONFS', type=str, multiple=True, default=['sc573-gen6', 'imx8mp-irma6r2'], required=True, help='A list of the multi configs this release should contain')
 @click.option('--kas-artifact-prefix', envvar='KAS_ARTIFACT_PREFIX', type=str, required=True, help='The filename prefix used when creating customer artifact files')
 @click.option('--project-dir', envvar='CI_PROJECT_DIR', type=str, required=True, help='The absolute path to the folder where the raw build artifacts have been stored beforehand')
+@click.option('--project-name', envvar='CI_PROJECT_NAME', type=str, required=True, help='The release name')
 @click.option('--release-version', envvar='CI_COMMIT_TAG', type=str, required=True, help='The release version')
 @click.option('--debug', type=bool, default=False, help='Whether to enable debug output')
-def cli(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release_multi_confs: list, kas_artifact_prefix: str, project_dir: str, gitlab_project_id: int, release_version: str, debug: bool):
+def cli(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release_multi_confs: list, kas_artifact_prefix: str, project_dir: str, gitlab_project_id: int, project_name: str, release_version: str, debug: bool):
 
   if debug is True:
     logging.basicConfig(level=logging.DEBUG)
   else:
     logging.basicConfig(level=logging.WARNING)
-  run(gitlab_server_url, gitlab_access_token, dry_run, release_multi_confs, kas_artifact_prefix, project_dir, gitlab_project_id, release_version, logging)
+  run(gitlab_server_url, gitlab_access_token, dry_run, release_multi_confs, kas_artifact_prefix, project_dir, gitlab_project_id, project_name, release_version, logging)
 
 if __name__ == '__main__':
   cli()

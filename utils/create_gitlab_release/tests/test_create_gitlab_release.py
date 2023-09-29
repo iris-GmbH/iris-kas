@@ -81,7 +81,7 @@ def test_without_artifact_files(authed_gitlab: Gitlab, group: Group, tmpdir):
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   project.tags.create
   with pytest.raises(FileNotFoundError):
-    run(gitlab_url, gitlab_token, False, confs, 'irma6-', project_dir, project.id, release_tag, logging)
+    run(gitlab_url, gitlab_token, False, confs, 'irma6-', project_dir, project.id, project.path, release_tag, logging)
   assert len(project.packages.list()) == 0
   assert len(project.releases.list()) == 0
 
@@ -92,7 +92,7 @@ def test_without_release_tag(authed_gitlab: Gitlab, group: Group, tmpdir):
   create_test_artifact_files(project_dir, confs[0], logging)
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   with pytest.raises(GitlabGetError, match='404: 404 Tag Not Found'):
-    run(gitlab_url, gitlab_token, False, confs, 'irma6-', project_dir, project.id, release_tag, logging)
+    run(gitlab_url, gitlab_token, False, confs, 'irma6-', project_dir, project.id, project.path, release_tag, logging)
   assert len(project.packages.list()) == 0
   assert len(project.releases.list()) == 0
 
@@ -103,7 +103,7 @@ def test_create_gitlab_single_release(authed_gitlab: Gitlab, group: Group, tmpdi
   create_test_artifact_files(project_dir, confs[0], logging)
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   project.tags.create({'tag_name': release_tag, 'ref': default_branch})
-  run(gitlab_url, gitlab_token, False, confs, 'irma6-', str(project_dir), project.id, release_tag, logging)
+  run(gitlab_url, gitlab_token, False, confs, 'irma6-', str(project_dir), project.id, project.path, release_tag, logging)
   package = project.packages.list()[0]
   assert len(package.package_files.list()) == len(required_artifacts) * len(confs)
   assert len(project.releases.list()) == 1
@@ -116,7 +116,7 @@ def test_create_gitlab_multi_release(authed_gitlab: Gitlab, group: Group, tmpdir
     create_test_artifact_files(project_dir, conf, logging)
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   project.tags.create({'tag_name': release_tag, 'ref': default_branch})
-  run(gitlab_url, gitlab_token, False, confs, 'irma6-', str(project_dir), project.id, release_tag, logging)
+  run(gitlab_url, gitlab_token, False, confs, 'irma6-', str(project_dir), project.id, project.path, release_tag, logging)
   package = project.packages.list()[0]
   assert len(package.package_files.list()) == len(required_artifacts) * len(confs)
   assert len(project.releases.list()) == 1
@@ -128,6 +128,6 @@ def test_dry_run(authed_gitlab: Gitlab, group: Group, tmpdir):
   create_test_artifact_files(project_dir, confs[0], logging)
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   project.tags.create({'tag_name': release_tag, 'ref': default_branch})
-  run(gitlab_url, gitlab_token, True, confs, 'irma6-', str(project_dir), project.id, release_tag, logging)
+  run(gitlab_url, gitlab_token, True, confs, 'irma6-', str(project_dir), project.id, project.path, release_tag, logging)
   assert len(project.packages.list()) == 0
   assert len(project.releases.list()) == 0
