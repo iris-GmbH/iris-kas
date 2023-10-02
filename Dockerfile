@@ -3,7 +3,7 @@
 
 # type can be set to ci. Override with "--build-arg type=ci" during build
 ARG type=base
-ARG REPO_REV=v2.17.2
+ARG REPO_REV=v2.37
 
 FROM mikefarah/yq:4.30.6 AS yq
 
