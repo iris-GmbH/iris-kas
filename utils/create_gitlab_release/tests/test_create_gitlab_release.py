@@ -64,7 +64,12 @@ def create_test_artifact_files(project_dir: str, conf: str, logging: logging.Log
     if artifact_type == 'deploy':
       deploy_dir = os.path.join(artifact_path, 'deploy')
       os.makedirs(deploy_dir)
-      os.makedirs(os.path.join(deploy_dir, 'licenses'))
+      os.makedirs(os.path.join(deploy_dir, 'licenses/foo'))
+      # Inaccessable symlinks should not cause an error during copy operation
+      pathlib.Path(os.path.join(deploy_dir, 'licenses/foo/bar.txt')).touch()
+      pathlib.Path(os.path.join(deploy_dir, 'licenses/foo/bar-symlink')).symlink_to(os.path.join(os.path.join(deploy_dir, 'licenses/foo/bar.txt')))
+      os.rename(os.path.join(deploy_dir, 'licenses/foo/bar.txt'), os.path.join(deploy_dir, 'licenses/foo/baz.txt'))
+
       subdir = os.path.join(deploy_dir, artifact_type)
       os.makedirs(subdir)
       if conf == 'sc573-gen6':
@@ -72,6 +77,7 @@ def create_test_artifact_files(project_dir: str, conf: str, logging: logging.Log
         pathlib.Path(os.path.join(subdir, 'bootloader-foo.zip')).touch()
       else:
         pathlib.Path(os.path.join(subdir, 'foo.swu')).touch()
+        pathlib.Path(os.path.join(subdir, 'foo-symlink.swu')).symlink_to(os.path.join(subdir, 'foo.swu'))
 
 
 def test_without_artifact_files(authed_gitlab: Gitlab, group: Group, tmpdir):

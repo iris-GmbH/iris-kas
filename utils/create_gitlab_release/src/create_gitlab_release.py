@@ -83,7 +83,7 @@ def get_artifact_path(conf: str, project_dir: str, artifact_type: str, logging: 
   try:
     artifact_path = os.path.join(project_dir, os.environ[f'{conf_var_name}_{artifact_type}'])
   except KeyError as e:
-    raise KeyError(f'Missing environment variable {conf_var_name}_{artifact_type} defining the artifact path relative to {project_dir}')
+    raise KeyError(f'Missing environment variable {conf_var_name}_{artifact_type} defining the artifact path')
   logging.debug(f'Environment variable {conf_var_name}_{artifact_type} is set to {artifact_path}')
   if not os.path.exists(artifact_path):
     raise FileNotFoundError(f'Required release artifact {conf_var_name}_{artifact_type} not found at {artifact_path}')
@@ -107,9 +107,13 @@ def create_deploy_customer_artifact_files(conf: str, project_dir: str, tmpdir: t
     firmware_glob = 'firmware-*.zip'
     bootloader_glob = 'bootloader-*.zip'
     for path in Path(deploydir).rglob(bootloader_glob):
+      if os.path.islink(path):
+        continue
       logging.info(f'Found sc573-gen6 bootloader at path {path}')
       artifact_paths.append(path)
     for path in Path(deploydir).rglob(firmware_glob):
+      if os.path.islink(path):
+        continue
       logging.info(f'Found sc573-gen6 firmware at path {path}')
       artifact_paths.append(path)
     logging.debug(f'sc573-gen6 artifact_paths is {artifact_paths}')
@@ -120,6 +124,8 @@ def create_deploy_customer_artifact_files(conf: str, project_dir: str, tmpdir: t
   else:
     swu_glob = "*.swu"
     for path in Path(deploydir).rglob(swu_glob):
+      if os.path.islink(path):
+        continue
       logging.info(f'Found swu file at path {path}')
       artifact_paths.append(path)
       logging.debug(f'artifact_paths is {artifact_paths}')
@@ -137,9 +143,9 @@ def create_deploy_customer_artifact_files(conf: str, project_dir: str, tmpdir: t
   license_src_dir = os.path.join(deploydir, 'deploy/licenses')
   license_dest_dir = os.path.join(dirname, 'licenses')
   logging.debug(f'Copying {license_src_dir} to {license_dest_dir}')
-  shutil.copytree(license_src_dir, license_dest_dir)
+  shutil.copytree(license_src_dir, license_dest_dir, symlinks=False, ignore_dangling_symlinks=True)
   # export newly created deploy_customer artifacts as environment variable
-  deploy_customer_env_var = f'{kas_artifact_prefix}{get_conf_var_name(conf)}_deploy_customer'
+  deploy_customer_env_var = f'{get_conf_var_name(conf)}_deploy_customer'
   logging.info(f'Setting environment variable {deploy_customer_env_var} to {dirname}')
   os.environ[deploy_customer_env_var] = dirname
 
@@ -167,9 +173,7 @@ def upload_artifacts_to_registry(gl: Gitlab, release_multi_confs: list, artifact
       path = artifacts[artifact_type][conf]['path']
       file_name = os.path.basename(path)
       if dry_run is False:
-        # verify release exists
-        gitlab_project.tags.get(release_version)
-        logging.debug(f'Uploading artifact_type {artifact_type} for conf {conf} at path {path} to registy')
+        logging.debug(f'Uploading artifact_type {artifact_type} for conf {conf} at path {path} to registry')
         gitlab_project.generic_packages.upload(
           package_name = project_name,
           package_version = release_version,
@@ -237,6 +241,8 @@ def run(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release
   gl = auth(gitlab_server_url, gitlab_access_token)
   # lazy=True to avoid actual server request via projects API, which is not covered by the CI_JOB_TOKEN permissions
   gitlab_project = gl.projects.get(gitlab_project_id, lazy=True)
+  # verify release exists
+  gitlab_project.tags.get(release_version)
   logging.debug(f'Gitlab Project object is {gitlab_project}')
   with tempfile.TemporaryDirectory() as tmpdir:
     artifacts = prepare_release_artifacts(release_multi_confs, project_dir, tmpdir, kas_artifact_prefix, logging)
@@ -246,7 +252,7 @@ def run(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release
 
 @click.command()
 @click.option('--gitlab-server-url', envvar='CI_SERVER_URL', type=str, required=True, help='The base URL of the GitLab instance, including protocol and port. For example https://gitlab.example.com:8080')
-@click.option('--gitlab-access-token', envvar='CI_JOB_TOKEN', type=str, required=True, help='The GitLab access token to use for API requests. Should have write access to API and registry')
+@click.option('--gitlab-access-token', type=str, required=True, help='The GitLab access token to use for API requests. Should have write access to API and registry')
 @click.option('--gitlab-project-id', envvar='CI_PROJECT_ID', type=str, required=True, help='The ID of the GitLab project in which packages and releases shall be created')
 @click.option('--dry-run', type=bool, default=False, help='Set to true to skip the actual uploading and releasing of artifacts')
 @click.option('--release-multi-confs', envvar='RELEASE_MULTI_CONFS', type=str, multiple=True, default=['sc573-gen6', 'imx8mp-irma6r2'], required=True, help='A list of the multi configs this release should contain')
@@ -260,7 +266,7 @@ def cli(gitlab_server_url: str, gitlab_access_token: str, dry_run: bool, release
   if debug is True:
     logging.basicConfig(level=logging.DEBUG)
   else:
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
   run(gitlab_server_url, gitlab_access_token, dry_run, release_multi_confs, kas_artifact_prefix, project_dir, gitlab_project_id, project_name, release_version, logging)
 
 if __name__ == '__main__':
