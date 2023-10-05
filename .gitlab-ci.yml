@@ -18,8 +18,9 @@ include:
 variables:
   RELEASE_BRANCH: "master"
   BUILD_VERSION_TAG: "latest"
-  BUILD_IMAGE: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
+  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
+  SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
     ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
@@ -31,8 +32,10 @@ variables:
   ICECREAM_NETNAME: "ICECREAM"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
+  # define KAS environment variables
+  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
   COUNTER_MINIMAL_RECIPE_PATH:
-    value: "${BUILDDIR}/../meta-iris/recipes-platform/counter/counter-minimal.bb"
+    value: "${KAS_WORK_DIR}/meta-iris/recipes-platform/counter/counter-minimal.bb"
     expand: false
   I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
   FAILURE_LOG_DIR: "failure-log"
@@ -68,9 +71,6 @@ variables:
   RENOVATE_EXTRA_FLAGS: ""
   FORCE_RENOVATE_RUN: "false"
   RENOVATE_DRY_RUN: "false"
-  SKIP_SDK_BUILD:
-    value: "true"
-    description: 'Set to "false" to run the SDK build.'
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named branches in iris meta layers and i6pa during the build'
@@ -81,11 +81,17 @@ variables:
     value: "false"
     description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
   SKIP_MAINTENANCE_OCI_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the irma6-maintenance OCI build for running a containerized virtual sensor on your host.'
+    value: "true"
+    description: 'Set to "false" to build the irma6-maintenance OCI for running a containerized virtual sensor on your host.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
+  SKIP_SDK_BUILD:
+    value: "true"
+    description: 'Set to "false" to run the SDK build.'
+  UPLOAD_SDK_TO_REGISTRIES:
+    value: "false"
+    description : 'Will upload the built SDK when set to "true" and combined with SKIP_SDK_BUILD="false"'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -144,7 +150,9 @@ workflow:
 ########################
 
 default:
-  image: "${BUILD_IMAGE}"
+  image:
+    name: "${BUILD_IMAGE_IRIS_KAS}"
+    pull_policy: [always]
   before_script:
     # Ensure correct ownership of mounted EFS volumes
     - sudo chown builder:builder ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} ${DOWNLOAD_MIRROR}
@@ -166,7 +174,7 @@ stages:
   - release-sanity-checks
   - wipe-sstate-caches
   - build
-  - push-oci-images
+  - push-test-images
   - test
   - reliability-test
   - upload-artifacts
@@ -176,7 +184,7 @@ renovate-dry-run:
   stage: renovate
   rules:
     - if: $RENOVATE_DRY_RUN == "true"
-  image: renovate/renovate:35.32.2
+  image: renovate/renovate:36.81.0-full
   tags:
     - gp
   before_script: []
@@ -189,7 +197,7 @@ renovate:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:35.32.2
+  image: renovate/renovate:36.81.0-full
   tags:
     - gp
   before_script: []
@@ -211,7 +219,7 @@ skip-non-default-branch-merge-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
   stage: setup
   tags:
-    - gp
+    - gp-tiny
   before_script: []
   script:
     - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
@@ -221,9 +229,9 @@ build-container-get-tag:
     - !reference [.common_template, rules, build_container_rules]
   stage: setup
   tags:
-    - gp
+    - gp-tiny
   image:
-    name: alpine:3.18
+    name: busybox:1.36.1-uclibc
   before_script: []
   script:
     # Default branch = latest tag
@@ -247,12 +255,12 @@ oci-get-tag:
   rules:
     - !reference [.release_template, rules]
     # skip if OCI related jobs are skipped and not release
-    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true"'
+    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && ($SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false")'
       when: never
     - !reference [.develop_template, rules]
   stage: setup
   tags:
-    - gp
+    - gp-tiny
   image: busybox:1.36.1-uclibc
   before_script: []
   script:
@@ -295,8 +303,8 @@ build-iris-kas-container:
     - >-
       /kaniko/executor
       --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${BUILD_IMAGE}-${ARCH}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile_iris_kas"
+      --destination "${BUILD_IMAGE_IRIS_KAS}-${ARCH}"
 
 
 ###################################
@@ -306,7 +314,7 @@ build-iris-kas-container:
 merge-container-manifests:
   stage: merge-build-container
   tags:
-    - gp
+    - gp-tiny
   rules:
     - !reference [.common_template, rules, build_container_rules]
   image:
@@ -319,8 +327,8 @@ merge-container-manifests:
       --password=${CI_REGISTRY_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
-      --template ${BUILD_IMAGE}-ARCH
-      --target ${BUILD_IMAGE}
+      --template ${BUILD_IMAGE_IRIS_KAS}-ARCH
+      --target ${BUILD_IMAGE_IRIS_KAS}
 
 
 #########################
@@ -346,32 +354,32 @@ download-mirror-maintenance:
 
 # Ensures that fixed refspecs are set for all meta-layers.
 # This is vital for build reproducibility.
-#release-verify-fixed-refspecs:
-#  rules:
-#    - !reference [.release_template, rules]
-#  stage: release-sanity-checks
-#  script:
-#    - echo "Ensuring that fixed refspecs are set on meta layers..."
-#    - >
-#      kas for-all-repos --update ${MAIN_KAS_FILES} """
-#      if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
-#        git checkout \${KAS_REPO_REFSPEC} \
-#        && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
-#        || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
-#      """
+# release-verify-fixed-refspecs:
+#   rules:
+#     - !reference [.release_template, rules]
+#   stage: release-sanity-checks
+#   script:
+#     - echo "Ensuring that fixed refspecs are set on meta layers..."
+#     - >
+#       kas for-all-repos --update ${MAIN_KAS_FILES} """
+#       if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
+#         git checkout \${KAS_REPO_REFSPEC} \
+#         && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
+#         || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
+#       """
 
 # Ensures that the DISTRO_VERSION variable is set correctly
-release-verify-distro-version:
-  rules:
-    - !reference [.release_template, rules]
-  stage: release-sanity-checks
-  script:
-    - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
-    - >
-      if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
-        echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
-        exit 1
-      fi
+# release-verify-distro-version:
+#   rules:
+#     - !reference [.release_template, rules]
+#   stage: release-sanity-checks
+#   script:
+#     - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
+#     - >
+#       if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
+#         echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
+#         exit 1
+#       fi
 
 
 ################################
@@ -706,9 +714,9 @@ release-build-deploy-distros:
   artifacts: !reference [.release_template, artifacts, release-artifacts]
 
 
-#############################
-### PUSH OCI IMAGES STAGE ###
-#############################
+##############################
+### PUSH TEST IMAGES STAGE ###
+##############################
 
 develop-push-test-oci:
   rules:
@@ -716,14 +724,14 @@ develop-push-test-oci:
     - if: '$SKIP_OCI_TESTS == "true"'
       when: never
     - !reference [.develop_template, rules]
-  stage: push-oci-images
+  stage: push-test-images
   parallel:
     matrix:
       - <<: *oci_multi_confs
   variables:
     ARTIFACT_SUFFIX: "-test.rootfs-oci"
   tags:
-    - gp
+    - gp-tiny
   image: quay.io/skopeo/stable:v1.13.2
   before_script: []
   script:
@@ -736,7 +744,7 @@ develop-push-test-oci:
 release-push-test-oci:
   rules:
     - !reference [.release_template, rules]
-  stage: push-oci-images
+  stage: push-test-images
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -752,29 +760,6 @@ release-push-test-oci:
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-
-push-maintenance-oci:
-  rules:
-    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
-    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: push-oci-images
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
-  tags:
-    - gp
-  image: quay.io/skopeo/stable:v1.13.2
-  before_script: []
-  script:
-    - >-
-      /usr/bin/skopeo copy
-      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
-      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
 
 
 ##################
@@ -796,7 +781,7 @@ test-oci:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.18.0
+  image: alpine:3.18.3
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -894,6 +879,77 @@ systemtest_reliability:
 ### UPLOAD ARTIFACTS STAGE ###
 ##############################
 
+push-maintenance-oci:
+  rules:
+    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
+    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: upload-artifacts
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+  tags:
+    - gp-tiny
+  image: quay.io/skopeo/stable:v1.13.2
+  before_script: []
+  script:
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
+
+develop-create-sdk-container-images:
+  rules:
+    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
+    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
+      when: never
+    - !reference [.develop_template, rules]
+  stage: upload-artifacts
+  tags:
+    - gp
+  parallel:
+    matrix:
+      - <<: *all_multi_confs
+  image:
+    name: gcr.io/kaniko-project/executor:v1.9.2-debug
+    entrypoint: [""]
+  before_script:
+    - SDK_SOURCE=$(find "${CI_PROJECT_DIR}" -type d -name "*${MULTI_CONF}-sdk" | sed "s%${CI_PROJECT_DIR}/%%")
+  script:
+    - >-
+      /kaniko/executor
+      --build-arg "SDK_SOURCE=${SDK_SOURCE}"
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
+      --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
+
+# upload the development SDKs to the gitlab package registry for later consumption
+develop-upload-sdks:
+  stage: upload-artifacts
+  rules:
+    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
+    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
+      when: never
+    - !reference [.develop_template, rules]
+  tags:
+    - gp
+  before_script: []
+  script:
+    - >
+      for ARTIFACT in irma6-*-sdk; do
+        # remove the commit sha from the artifact file name, so that we can make use of GitLabs package registry cleanup for identical named packages
+        ARTIFACT_NO_SHA=$(echo ${ARTIFACT} | sed "s/-${CI_COMMIT_SHORT_SHA}//g")
+        sudo mv ${ARTIFACT} ${ARTIFACT_NO_SHA}
+        # SDK is already heavily compressed, thus no gzip
+        sudo tar 2>&1 -cvf ${ARTIFACT_NO_SHA}.tar ${ARTIFACT_NO_SHA}
+        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT_NO_SHA}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT_NO_SHA}.tar"
+      done
+
+
 release-upload-artifacts:
   stage: upload-artifacts
   rules:
@@ -919,23 +975,18 @@ release-upload-artifacts:
 ### RELEASE STAGE ###
 #####################
 
-release-sync-sstate-cache:
+release-clean-sstate-cache:
   stage: release
   rules:
     - !reference [.release_template, rules]
   script:
-    # don't overwrite develop sstate_cache during support release and RC tags
-    - >
-      if echo "${CI_COMMIT_TAG}" | grep -qviE '\d+\.\d+\.\d+-.*'; then
-        rsync -avh --delete ${SSTATE_CACHE_RELEASE} ${SSTATE_CACHE};
-      fi
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
 publish-release:
   stage: release
   tags:
-    - gp
+    - gp-tiny
   rules:
     - !reference [.release_template, rules]
   variables:

@@ -7,10 +7,10 @@
       # build on merge requests with changes to dockerfile targeting default branch
       - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
         changes:
-          - Dockerfile
-      - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+          - Dockerfile_iris_kas
+      - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
         changes:
-          - Dockerfile
+          - Dockerfile_iris_kas
       # build on releases
       - if: '$CI_COMMIT_TAG'
       - if: '$FORCE_IRIS_KAS_CONTAINER_BUILD == "true"'
@@ -53,6 +53,6 @@
 
   services:
     icecc-daemon:
-      - name: $BUILD_IMAGE
+      - name: $BUILD_IMAGE_IRIS_KAS
         entrypoint: ["/bin/sh"]
         command: ["-c", "sudo /usr/sbin/iceccd -vvv -s iris-devops-icecc-scheduler-headless -n $ICECREAM_NETNAME -l /dev/stdout"]
