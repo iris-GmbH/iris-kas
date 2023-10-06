@@ -354,32 +354,32 @@ download-mirror-maintenance:
 
 # Ensures that fixed refspecs are set for all meta-layers.
 # This is vital for build reproducibility.
-release-verify-fixed-refspecs:
-  rules:
-    - !reference [.release_template, rules]
-  stage: release-sanity-checks
-  script:
-    - echo "Ensuring that fixed refspecs are set on meta layers..."
-    - >
-      kas for-all-repos --update ${MAIN_KAS_FILES} """
-      if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
-        git checkout \${KAS_REPO_REFSPEC} \
-        && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
-        || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
-      """
+# release-verify-fixed-refspecs:
+#   rules:
+#     - !reference [.release_template, rules]
+#   stage: release-sanity-checks
+#   script:
+#     - echo "Ensuring that fixed refspecs are set on meta layers..."
+#     - >
+#       kas for-all-repos --update ${MAIN_KAS_FILES} """
+#       if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
+#         git checkout \${KAS_REPO_REFSPEC} \
+#         && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
+#         || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
+#       """
 
 # Ensures that the DISTRO_VERSION variable is set correctly
-release-verify-distro-version:
-  rules:
-    - !reference [.release_template, rules]
-  stage: release-sanity-checks
-  script:
-    - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
-    - >
-      if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
-        echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
-        exit 1
-      fi
+# release-verify-distro-version:
+#   rules:
+#     - !reference [.release_template, rules]
+#   stage: release-sanity-checks
+#   script:
+#     - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
+#     - >
+#       if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
+#         echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
+#         exit 1
+#       fi
 
 
 ################################

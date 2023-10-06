@@ -1,0 +1,29 @@
+From df78efa8d1df52f16c958443309202a2d9fe8a8e Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Mon, 11 Sep 2023 15:34:06 +0200
+Subject: [PATCH] Replace tinycompress src_uri
+
+Replace tinycompress src_uri with github mirror, due to unreliable
+fetching.
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ recipes-multimedia/tinycompress/tinycompress_1.1.6.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recipes-multimedia/tinycompress/tinycompress_1.1.6.bb b/recipes-multimedia/tinycompress/tinycompress_1.1.6.bb
+index 803c38df..bd7736f9 100644
+--- a/recipes-multimedia/tinycompress/tinycompress_1.1.6.bb
++++ b/recipes-multimedia/tinycompress/tinycompress_1.1.6.bb
+@@ -3,7 +3,7 @@ LICENSE = "LGPL-2.1-only | BSD-3-Clause"
+ LIC_FILES_CHKSUM = "file://COPYING;md5=cf9105c1a2d4405cbe04bbe3367373a0"
+ DEPENDS = "alsa-lib"
+ 
+-SRC_URI = "git://git.alsa-project.org/tinycompress.git;protocol=git;branch=master \
++SRC_URI = "git://github.com/alsa-project/tinycompress.git;protocol=https;branch=master \
+            file://0001-tinycompress-Add-id3-decoding.patch \
+            file://0002-cplay-Support-wave-file.patch \
+            file://0003-cplay-Add-pause-feature.patch \
+-- 
+2.42.0
+
