@@ -13,7 +13,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.2-dev"
+    IRMA6_DISTRO_VERSION = "3.0.3-dev"
 
 defaults:
   repos:
