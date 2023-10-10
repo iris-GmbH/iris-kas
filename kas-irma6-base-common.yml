@@ -13,7 +13,7 @@ header:
 local_conf_header:
   distro_version: |
     # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.2-dev"
+    IRMA6_DISTRO_VERSION = "3.0.3-dev"
 
 defaults:
   repos:
@@ -136,6 +136,8 @@ repos:
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
+      0001-Replace-tinycompress-src_uri:
+        path: "patches/0001-Replace-tinycompress-src_uri.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
     branch: "kirkstone"
