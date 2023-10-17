@@ -10,21 +10,15 @@ workflow:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 variables:
-  SKIP_SDK_BUILD:
-    value: "true"
-    description: 'Set to "false" to run the SDK build.'
-  SKIP_DEPLOY_TARGET_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the deploy firmware build for the sensor targets.'
-  SKIP_MAINTENANCE_TARGET_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
-  SKIP_MAINTENANCE_OCI_BUILD:
-    value: "true"
-    description: 'Set to "false" to build the irma6-maintenance OCI for running a containerized virtual sensor on your host.'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
+  SKIP_MAINTENANCE_IMAGE_BUILD:
+    value: "false"
+    description: 'Set to "true" to skip the maintenance image build'
+  FORCE_IRIS_KAS_CONTAINER_BUILD:
+    value: "false"
+    description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
   SKIP_SYSTEMTEST_SMOKE:
     value: "true"
     description: 'Set to "false" to add execution of systemtest_smoke job. Skipping system smoke test will also skip any additional Systemtests.'
@@ -79,11 +73,10 @@ trigger-kas-pipeline:
     BRANCH_NAME: $CI_COMMIT_BRANCH
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "true"
-    SKIP_SDK_BUILD: $SKIP_SDK_BUILD
-    SKIP_DEPLOY_TARGET_BUILD: $SKIP_DEPLOY_TARGET_BUILD
-    SKIP_MAINTENANCE_TARGET_BUILD: $SKIP_MAINTENANCE_TARGET_BUILD
-    SKIP_MAINTENANCE_OCI_BUILD: $SKIP_MAINTENANCE_OCI_BUILD
     SKIP_OCI_TESTS: $SKIP_OCI_TESTS
+    SKIP_DEPLOY_IMAGE_BUILD: $SKIP_DEPLOY_IMAGE_BUILD
+    SKIP_MAINTENANCE_IMAGE_BUILD: $SKIP_MAINTENANCE_IMAGE_BUILD
+    FORCE_IRIS_KAS_CONTAINER_BUILD: $FORCE_IRIS_KAS_CONTAINER_BUILD
     SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
     SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
     BUILD_FROM_SCRATCH: $BUILD_FROM_SCRATCH
