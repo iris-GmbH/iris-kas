@@ -378,7 +378,7 @@ develop-ci-build-setup:
     - >
       if [ -n "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" ]; then
           export BRANCH_NAME="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
-      elif [ -n "${CI_COMMIT_BRANCH}" ]; then
+      elif [ -n "${CI_COMMIT_BRANCH}" ] && [ -z "${UPSTREAM_PROJECT_NAME}" ]; then
           export BRANCH_NAME="$CI_COMMIT_BRANCH"
       fi
     - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
