@@ -195,10 +195,6 @@ kas-checkout-branch-in-iris-layers:
 
 prepare-release: kas-force-update kas-checkout-branch-in-iris-layers kas-dump-lockfile
 
-patch-thirdparty-hostbuild-r1:
-	@echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
-	${KAS_SHELL} -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
-
-patch-thirdparty-hostbuild-r2:
+patch-thirdparty-hostbuild:
 	@echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
 	${KAS_SHELL} -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
