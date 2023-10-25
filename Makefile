@@ -171,7 +171,7 @@ kas-force-update:
 	${KAS_COMMAND} checkout --update --force-checkout ${KASFILE}
 
 run-qemu:
-	${KAS_SHELL} -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
+	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
 
 kas-dump-lockfile:
 	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}
@@ -197,4 +197,4 @@ prepare-release: kas-force-update kas-checkout-branch-in-iris-layers kas-dump-lo
 
 patch-thirdparty-hostbuild:
 	@echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
-	${KAS_SHELL} -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
+	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
