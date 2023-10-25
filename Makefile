@@ -57,7 +57,8 @@ export IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH}
 
 export KAS_CONTAINER_TAG ?= latest
 export KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:${KAS_CONTAINER_TAG}
-export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent
+# TODO: Use --ssh-agent instead of --ssh-dir. Adjust SELinux rules and resolve remote host validation failure.
+export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR}
 export IRIS_KAS_CONTAINER_PULL ?= always
 export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
