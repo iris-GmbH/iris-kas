@@ -7,7 +7,6 @@ workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 variables:
   SKIP_OCI_TESTS:
@@ -86,7 +85,6 @@ trigger-kas-pipeline:
 # can only be triggered by maintainers on trunk branch, will update yocto sstate cache
 trunk-trigger-kas-pipeline:
   rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
