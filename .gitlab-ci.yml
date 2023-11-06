@@ -371,9 +371,9 @@ develop-ci-build-setup:
         OCI_TAG="${CI_COMMIT_REF_SLUG}"
       fi
     - echo "OCI_TAG set to ${OCI_TAG}."
-    - echo "OCI_TAG=${OCI_TAG}" >> build.env;
+    - echo "OCI_TAG=${OCI_TAG}" >> build.env
     # add commit hash to artifact name
-    - echo "KAS_ARTIFACT_PREFIX=${KAS_ARTIFACT_PREFIX}${CI_COMMIT_SHORT_SHA}-"
+    - echo "KAS_ARTIFACT_PREFIX=${KAS_ARTIFACT_PREFIX}${CI_COMMIT_SHORT_SHA}-" >> build.env
     # identify branch name for identifying identical named branches in all iris meta layers
     # depending on pipeline source, the name of the current branch (or upstream branch) is saved as different variables. Unify into a single variable.
     # if called from an upstream project, the BRANCH_NAME variable is already defined.
