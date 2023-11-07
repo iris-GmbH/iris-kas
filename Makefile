@@ -57,7 +57,8 @@ export IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH}
 
 export KAS_CONTAINER_TAG ?= latest
 export KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas:${KAS_CONTAINER_TAG}
-export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR} --ssh-agent
+# TODO: Use --ssh-agent instead of --ssh-dir. Adjust SELinux rules and resolve remote host validation failure.
+export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR}
 export IRIS_KAS_CONTAINER_PULL ?= always
 export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
@@ -171,7 +172,7 @@ kas-force-update:
 	${KAS_COMMAND} checkout --update --force-checkout ${KASFILE}
 
 run-qemu:
-	${KAS_SHELL} -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
+	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
 
 kas-dump-lockfile:
 	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}
@@ -197,4 +198,4 @@ prepare-release: kas-force-update kas-checkout-branch-in-iris-layers kas-dump-lo
 
 patch-thirdparty-hostbuild:
 	@echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
-	${KAS_SHELL} -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
+	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
