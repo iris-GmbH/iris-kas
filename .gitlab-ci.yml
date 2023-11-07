@@ -688,7 +688,7 @@ push-test-oci:
     - gp-tiny
   image: quay.io/skopeo/stable:v1.13.3
   script:
-    - OCI_IMAGE=$(find ${KAS_ARTIFACT_FOLDER} -name "*.rootfs-oci")
+    - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
@@ -852,7 +852,7 @@ develop-push-maintenance-oci:
     - gp-tiny
   image: quay.io/skopeo/stable:v1.13.3
   script:
-    - OCI_IMAGE=$(find ${KAS_ARTIFACT_FOLDER} -name "*.rootfs-oci")
+    - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
@@ -882,7 +882,7 @@ develop-create-sdk-container-images:
     KAS_ARTIFACT_SUFFIX: "-sdk"
   image: gcr.io/kaniko-project/executor:v1.9.2-debug
   before_script:
-    - SDK_SOURCE=$(find "${KAS_ARTIFACT_FOLDER}" -type d -name "sdk")
+    - SDK_SOURCE=$(find "${KAS_ARTIFACT_FOLDER}" -type d -regex ".*/deploy/sdk")
   script:
     - >-
       /kaniko/executor
