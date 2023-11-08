@@ -674,7 +674,10 @@ push-test-oci:
       optional: true
     - job: release-ci-build-setup
       optional: true
-    - job: build-test-oci
+    - job: develop-build-test-oci
+      optional: true
+    - job: release-build-test-oci
+      optional: true
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -704,7 +707,10 @@ test-oci:
       optional: true
     - job: release-ci-build-setup
       optional: true
-    - job: build-test-oci
+    - job: develop-build-test-oci
+      optional: true
+    - job: release-build-test-oci
+      optional: true
     - job: push-test-oci
   rules:
     - !reference [.release_template, rules]
@@ -831,7 +837,10 @@ develop-push-maintenance-oci:
   stage: upload-artifacts
   needs:
     - job: develop-ci-build-setup
-    - job: build-maintenance-oci
+    - job: develop-build-maintenance-oci
+      optional: true
+    - job: release-build-maintenance-oci
+      optional: true
     - job: test-oci
   parallel:
     matrix:
@@ -859,7 +868,10 @@ develop-create-sdk-container-images:
   stage: upload-artifacts
   needs:
     - job: develop-ci-build-setup
-    - job: build-sdk
+    - job: develop-build-sdk
+      optional: true
+    - job: release-build-sdk
+      optional: true
     - job: test-oci
   tags:
     - gp
@@ -892,7 +904,10 @@ develop-upload-sdks:
     KAS_ARTIFACT_SUFFIX: "-sdk"
   needs:
     - job: develop-ci-build-setup
-    - job: build-sdk
+    - job: develop-build-sdk
+      optional: true
+    - job: release-build-sdk
+      optional: true
     - job: test-oci
   tags:
     - gp
