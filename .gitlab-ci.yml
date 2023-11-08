@@ -451,78 +451,91 @@ wipe-sstate-caches:
 ### BUILD STAGE ###
 ###################
 
-build-maintenance-image:
-  rules:
-    - !reference [.release_template, rules]
-    - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
-      when: manual
-      allow_failure: true
-    - !reference [.develop_template, rules]
+.build-kas:
   stage: build
   parallel:
     matrix:
       - <<: *target_multi_confs
+  script:
+    - make kas-build
+  after_script:
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
+
+
+.build-maintenance-image:
+  extends: .build-kas
   variables:
     KAS_TARGET_RECIPE: "irma6-maintenance-bundle"
     KAS_ARTIFACT_SUFFIX: "-maintenance"
-  script:
-    - make kas-build
-  after_script:
-    - !reference [.common_template, after_script, create-kas-artifact-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-build-dev-image:
+release-build-maintenance-image:
+  extends: .build-maintenance-image
   rules:
     - !reference [.release_template, rules]
-    - !reference [.develop_template, schedule_rules]
-    - if: '$SKIP_DEV_IMAGE_BUILD == "false"'
-    - when: manual
+  tags:
+    - kas # TODO integrate release runner
+
+develop-build-maintenance-image:
+  extends: .build-maintenance-image
+  rules:
+    - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
+      when: manual
       allow_failure: true
-  stage: build
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
+    - !reference [.develop_template, rules]    
+
+
+.build-dev-image:
+  extends: .build-kas
   variables:
     KAS_TARGET_RECIPE: "irma6-dev-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev"
-  script:
-    - make kas-build
-  after_script:
-    - !reference [.common_template, after_script, create-kas-artifact-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-build-maintenance-oci:
+release-build-dev-image:
+  extends: .build-dev-image
   rules:
     - !reference [.release_template, rules]
+  tags:
+    - kas # TODO integrate release runner
+
+develop-build-dev-image:
+  extends: .build-dev-image
+  rules:
     - !reference [.develop_template, schedule_rules]
+    - if: '$SKIP_DEV_IMAGE_BUILD == "false"'
     - when: manual
-      allow_failure: true
-  stage: build
+      allow_failure: true  
+
+
+.build-maintenance-oci:
+  extends: .build-kas
   parallel:
     matrix:
       - <<: *oci_multi_confs
   variables:
     KAS_TARGET_RECIPE: "irma6-maintenance-oci"
     KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
-  script:
-    - make kas-build
-  after_script:
-    - !reference [.common_template, after_script, create-kas-artifact-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
+  
+release-build-maintenance-oci:
+  extends: .build-maintenance-oci
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - kas # TODO integrate release runner
+
+develop-build-maintenance-oci:
+  extends: .build-maintenance-oci
+  rules:
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
+      allow_failure: true    
+
 
 # build deploy image with dev keys.
 # this will also be used to create source archives for license compliance
 # during release builds to avoid accidental production key leakage
-build-dev-deploy-image:
-  rules:
-    - !reference [.release_template, rules]
-    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "false"'
-    - when: manual
-      allow_failure: true
-  stage: build
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
+.build-dev-deploy-image:
+  extends: .build-kas
   variables:
     KAS_TARGET_RECIPE: "irma6-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
@@ -532,50 +545,72 @@ build-dev-deploy-image:
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml"
       fi
     - make kas-build
-  after_script:
-    - !reference [.common_template, after_script, create-kas-artifact-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-build-test-oci:
+release-build-dev-deploy-image:
+  extends: .build-dev-deploy-image
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS are set to true
-    - if: '$SKIP_OCI_TESTS == "true"'
-      when: manual
+  tags:
+    - kas # TODO integrate release runner
+
+develop-build-dev-deploy-image:
+  extends: .build-dev-deploy-image
+  rules:
+    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "false"'
+    - when: manual
       allow_failure: true
-    - !reference [.develop_template, rules]
-  stage: build
+
+
+.build-test-oci:
+  extends: .build-kas
   parallel:
     matrix:
       - <<: *oci_multi_confs
   variables:
     KAS_TARGET_RECIPE: "irma6-test"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
-  script:
-    - make kas-build
-  after_script:
-    - !reference [.common_template, after_script, create-kas-artifact-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-build-sdk:
+release-build-test-oci:
+  extends: .build-test-oci
   rules:
     - !reference [.release_template, rules]
-    - !reference [.develop_template, schedule_rules]
-    - when: manual
+  tags:
+    - kas # TODO integrate release runner
+
+develop-build-test-oci:
+  extends: .build-test-oci
+  rules:
+    # skip if SKIP_OCI_TESTS are set to true
+    - if: '$SKIP_OCI_TESTS == "true"'
+      when: manual
       allow_failure: true
-  stage: build
+    - !reference [.develop_template, rules]
+
+
+.build-sdk:
+  extends: .build-kas
+  parallel:
+    matrix:
+      - <<: *all_multi_confs
   variables:
     KAS_TASK: "populate_sdk"
     KAS_TARGET_RECIPE: "irma6-maintenance"
     KAS_ARTIFACT_SUFFIX: "-sdk"
-  parallel:
-    matrix:
-      - <<: *all_multi_confs
-  script:
-    - make kas-build
-  after_script:
-    - !reference [.common_template, after_script, create-kas-artifact-folder]
-  artifacts: !reference [.common_template, artifacts, kas-artifacts]
+
+release-build-sdk:
+  extends: .build-sdk
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - kas # TODO integrate release runner
+
+develop-build-sdk:
+  extends: .build-sdk
+  rules:
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
+      allow_failure: true
+
 
 # We archive the build environment for license compliance
 # as *GPL* requires configuration and build scripts to be released
@@ -584,7 +619,7 @@ release-archive-kas-build-environment:
     - !reference [.release_template, rules]
   stage: build
   tags:
-    - kas
+    - kas # TODO integrate release runner
   parallel:
     matrix:
       - <<: *target_multi_confs
