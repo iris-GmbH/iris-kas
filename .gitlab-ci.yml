@@ -482,7 +482,7 @@ develop-build-maintenance-image:
     - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
       when: manual
       allow_failure: true
-    - !reference [.develop_template, rules]    
+    - !reference [.develop_template, rules]
 
 
 .build-dev-image:
@@ -504,7 +504,7 @@ develop-build-dev-image:
     - !reference [.develop_template, schedule_rules]
     - if: '$SKIP_DEV_IMAGE_BUILD == "false"'
     - when: manual
-      allow_failure: true  
+      allow_failure: true
 
 
 .build-maintenance-oci:
@@ -515,7 +515,7 @@ develop-build-dev-image:
   variables:
     KAS_TARGET_RECIPE: "irma6-maintenance-oci"
     KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
-  
+
 release-build-maintenance-oci:
   extends: .build-maintenance-oci
   rules:
@@ -528,7 +528,7 @@ develop-build-maintenance-oci:
   rules:
     - !reference [.develop_template, schedule_rules]
     - when: manual
-      allow_failure: true    
+      allow_failure: true
 
 
 # build deploy image with dev keys.
@@ -608,6 +608,7 @@ develop-build-sdk:
   extends: .build-sdk
   rules:
     - !reference [.develop_template, schedule_rules]
+    - if: '$SKIP_SDK_IMAGE_BUILD == "false"'
     - when: manual
       allow_failure: true
 
