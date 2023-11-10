@@ -4,7 +4,6 @@
 
 # TODO: implement needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
 # TODO: use GitLab CI variables for defining parallism, once supported: https://gitlab.com/gitlab-org/gitlab/-/issues/11549
-# TODO: move renovate configuration into renovate.json
 
 #####################
 ### INCLUDE FILES ###
@@ -474,7 +473,7 @@ release-build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas # TODO integrate release runner
+    - kas-perf
 
 develop-build-maintenance-image:
   extends: .build-maintenance-image
@@ -496,7 +495,7 @@ release-build-dev-image:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas # TODO integrate release runner
+    - kas-perf
 
 develop-build-dev-image:
   extends: .build-dev-image
@@ -521,7 +520,7 @@ release-build-maintenance-oci:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas # TODO integrate release runner
+    - kas-perf
 
 develop-build-maintenance-oci:
   extends: .build-maintenance-oci
@@ -551,7 +550,7 @@ release-build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas # TODO integrate release runner
+    - kas-perf
 
 develop-build-dev-deploy-image:
   extends: .build-dev-deploy-image
@@ -575,7 +574,7 @@ release-build-test-oci:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas # TODO integrate release runner
+    - kas-perf
 
 develop-build-test-oci:
   extends: .build-test-oci
@@ -602,7 +601,7 @@ release-build-sdk:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas # TODO integrate release runner
+    - kas-perf
 
 develop-build-sdk:
   extends: .build-sdk
@@ -620,7 +619,7 @@ release-archive-kas-build-environment:
     - !reference [.release_template, rules]
   stage: build
   tags:
-    - kas # TODO integrate release runner
+    - kas-perf
   parallel:
     matrix:
       - <<: *target_multi_confs
