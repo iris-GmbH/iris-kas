@@ -478,10 +478,10 @@ release-build-maintenance-image:
 develop-build-maintenance-image:
   extends: .build-maintenance-image
   rules:
+    - !reference [.develop_template, rules]
     - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "true"'
       when: manual
       allow_failure: true
-    - !reference [.develop_template, rules]
 
 
 .build-dev-image:
@@ -579,11 +579,11 @@ release-build-test-oci:
 develop-build-test-oci:
   extends: .build-test-oci
   rules:
+    - !reference [.develop_template, rules]
     # skip if SKIP_OCI_TESTS are set to true
     - if: '$SKIP_OCI_TESTS == "true"'
       when: manual
       allow_failure: true
-    - !reference [.develop_template, rules]
 
 
 .build-sdk:
