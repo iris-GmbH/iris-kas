@@ -1,0 +1,39 @@
+From 92983dba651cffe5c11973d90aad00c581a79c93 Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Mon, 21 Aug 2023 14:02:30 +0200
+Subject: [PATCH] cve_check: Fix cpe_id generation
+
+Use "*" (wildcard) instead of "a" (application)in cpe_id generation,
+as the product is not necessarily of type application, e.g.
+linux_kernel, which is of type "o" (operating system).
+
+(From OE-Core rev: cae9528b002c06143bf048b991b9d7e93968cb6b)
+
+(From OE-Core rev: e7c1def3c3c3a72249802ef6fb64292277a7a53e)
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+Signed-off-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+
+Upstream-Status: Accepted [https://git.yoctoproject.org/poky/commit/meta/lib/oe/cve_check.py?id=92983dba651cffe5c11973d90aad00c581a79c93]
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ meta/lib/oe/cve_check.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta/lib/oe/cve_check.py b/meta/lib/oe/cve_check.py
+index 5bf3caac47..3979d521d1 100644
+--- a/meta/lib/oe/cve_check.py
++++ b/meta/lib/oe/cve_check.py
+@@ -156,7 +156,7 @@ def get_cpe_ids(cve_product, version):
+         else:
+             vendor = "*"
+
+-        cpe_id = 'cpe:2.3:a:{}:{}:{}:*:*:*:*:*:*:*'.format(vendor, product, version)
++        cpe_id = 'cpe:2.3:*:{}:{}:{}:*:*:*:*:*:*:*'.format(vendor, product, version)
+         cpe_ids.append(cpe_id)
+
+     return cpe_ids
+--
+2.42.0
+

@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 13
+
+env:
+  # set to 'None' for environment passthrough
+  DEPENDENCYTRACK_API_KEY: None
+  DEPENDENCYTRACK_PROJECT: None
+  DEPENDENCYTRACK_API_URL: None
+
+local_conf_header:
+  dependencytrack: |
+    INHERIT += "dependency-track"
+    BB_ENV_PASSTHROUGH_ADDITIONS += " \
+                                     DEPENDENCYTRACK_API_KEY \
+                                     DEPENDENCYTRACK_PROJECT \
+                                     DEPENDENCYTRACK_API_URL"
