@@ -9,7 +9,6 @@
     # Do not run merge request pipelines on merges to master branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
       when: never
-    - when: on_success
 
   schedule_rules:
     # Do not run develop jobs on tagged commits
