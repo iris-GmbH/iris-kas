@@ -24,6 +24,8 @@ local_conf_header:
     DL_DIR ?= "${TOPDIR}/dl_dir"
   sstate_dir: |
     SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
+  hashservice: |
+    BB_HASHSERVE ?= "auto"
   build_history: |
     INHERIT += "buildhistory"
     BUILDHISTORY_COMMIT ?= "1"
