@@ -210,7 +210,7 @@ renovate:
   rules:
     - !reference [.develop_template, schedule_rules]
     - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:37.68.3-full
+  image: renovate/renovate:37.78.0-full
   tags:
     - gp
   script:
