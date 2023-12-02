@@ -1,4 +1,4 @@
-FROM gitlab/gitlab-ee:16.6.0-ee.0
+FROM gitlab/gitlab-ee:16.6.1-ee.0
 
 ADD ./omnibus_config.rb /omnibus_config.rb
 ADD ./entrypoint.sh /entrypoint.sh
