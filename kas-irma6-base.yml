@@ -168,6 +168,8 @@ repos:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
       0001-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
+      0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
+        path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
     branch: "kirkstone"
