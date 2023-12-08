@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
-# release(/support) 
+# release(/support)
 .release_template:
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+      when: never
     - if: '$CI_COMMIT_TAG'
       variables:
         RELEASE: "true"
@@ -11,7 +13,7 @@
   script:
     resolve-download-mirror-softlinks:
       # replace softlinks to download-mirror with hard copies
-      - > 
+      - >
         for f in $(find "${DL_DIR}" -type l); do
           # only check for absolute path links
           if $(readlink "$f" | grep -qP "^/.*$"); then
