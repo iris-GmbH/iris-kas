@@ -14,6 +14,7 @@
       # build on releases
       - if: '$CI_COMMIT_TAG'
       - if: '$FORCE_IRIS_KAS_CONTAINER_BUILD == "true"'
+
   before_script:
     prepare-systemtest:
       - docker login ${CI_REGISTRY} -u ${SYSTEMTEST_DOCKER_REG_USER} -p ${SYSTEMTEST_DOCKER_REG_TOKEN}
@@ -25,34 +26,44 @@
       - git checkout $SYSTEMTEST_BASE
 
   script:
-    create-artifact:
-      # create a tar.gz for archiving the yocto "deploy" folder. Useful, when linux permissions need to be preserved.
+    # creates an archive ${ARTIFACT_NAME}.tar.gz from the folder ${ARTIFACT_FOLDER}
+    create-archive-from-folder: # required vars: ARTIFACT_NAME, ARTIFACT_FOLDER
+      # ensure all write operations are finished (might lead to deferred deletion otherwise)
       - sync
-      - tar -I "gzip --best" -C build/tmp -cf ${MULTI_CONF}-deploy.tar.gz deploy
-
-    # Generates bitbake build targets.
-    # required vars: MULTI_CONF, IMAGES
-    # returned vars: BUILD_TARGETS
-    generate-build-targets-target:
-      # If rel2 target build, build uuu files as well
-      - >
-        if [ "${MULTI_CONF}" = "imx8mp-evk" ] || [ "${MULTI_CONF}" = "imx8mp-irma6r2" ]; then
-          export BUILD_TARGETS="$(for i in ${IMAGES}; do \
-            echo -n "mc:${MULTI_CONF}:${i}-uuu mc:${MULTI_CONF}:${i}-swuimage "; \
-          done)"
-        else
-          export BUILD_TARGETS="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
-        fi
-    generate-build-targets-other:
-        export BUILD_TARGETS="$(for i in ${IMAGES}; do echo -n "mc:${MULTI_CONF}:${i} "; done)"
+      - touch ${ARTIFACT_NAME}.tar.gz
+      - tar -I "gzip --best" --exclude=${ARTIFACT_NAME}.tar.gz -cf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_FOLDER}
+      - echo "${ARTIFACT_NAME}.tar.gz is $(echo -n $(ls -lh ${ARTIFACT_NAME}.tar.gz | awk '{print $5}')) in size."
 
   after_script:
-    # remove symbolic shortlinks to image build artifacts, as these do not work on Windows machines and just cause confusion
-    remove-symbolic-image-links:
-      - find build/tmp/deploy/images -type l -exec rm -f {} \;
+    create-kas-artifact-folder:
+      - >
+        if test -z "${KAS_ARTIFACT_SUFFIX}"; then
+          echo "Error: Please specify variable KAS_ARTIFACT_SUFFIX for artifact identification."
+          exit 1
+        fi
+      - mkdir ${KAS_ARTIFACT_FOLDER}
+      - mv ${KAS_TMPDIR}/deploy ${KAS_ARTIFACT_FOLDER}
+      - mv ${KAS_BUILD_DIR}/buildhistory ${KAS_ARTIFACT_FOLDER}
+      # create variable for identifying artifact folder
+      - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${KAS_ARTIFACT_FOLDER}" >> build.env
 
-  services:
-    icecc-daemon:
-      - name: $BUILD_IMAGE_IRIS_KAS
-        entrypoint: ["/bin/sh"]
-        command: ["-c", "sudo /usr/sbin/iceccd -vvv -s iris-devops-icecc-scheduler-headless -n $ICECREAM_NETNAME -l /dev/stdout"]
+  artifacts:
+    kas-artifacts: # required vars: ARTIFACT_FOLDER
+      name: "${CI_JOB_NAME}"
+      # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
+      when: always
+      paths:
+        - "${KAS_ARTIFACT_FOLDER}"
+        - "${KAS_TMPDIR}/work/**/log.do_*"
+        - "${KAS_TMPDIR}/work/**/log.task_order"
+      expire_in: 7 days
+      reports:
+        dotenv: build.env
+
+    archive-folder-artifacts: # required vars: ARTIFACT_NAME
+      name: "${CI_JOB_NAME}"
+      paths:
+        - "${ARTIFACT_NAME}.tar.gz"
+      expire_in: 7 days
+      reports:
+        dotenv: build.env

@@ -9,86 +9,21 @@
     # Do not run merge request pipelines on merges to master branch
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
       when: never
-    - when: on_success
 
-  script:
-    build-configuration:
-      # depending on pipeline source, the name of the current branch is saved as different variables. Unify into a single variable
-      - >
-        if [ -n "${BRANCH_NAME}" ]; then
-          # if the variable BRANCH_NAME is already defined, this pipeline is called by an upstream project. Try to check out the branch accordingly.
-          if [ "${BRANCH_NAME}" != "${CI_DEFAULT_BRANCH}" ] && [ "${BRANCH_NAME}" != "${RELEASE_BRANCH}" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
-            echo "Trying to checkout ${BRANCH_NAME} in iris-kas";
-            git checkout ${BRANCH_NAME} 2>/dev/null \
-            && echo "Branch ${BRANCH_NAME} has been checked out in iris-kas" \
-            || echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas.";
-          fi
-        elif [ -n "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" ]; then
-          export BRANCH_NAME="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
-        elif [ -n "${CI_COMMIT_BRANCH}" ]; then
-          export BRANCH_NAME="${CI_COMMIT_BRANCH}"
-        fi
-      - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
-      # if the current branch is the default branch, we populate the sstate cache and hashservice database
-      - >
-        if [ "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" ] || [ "${FORCE_POPULATE_CACHES}" = "true" ]; then
-          echo "Populating caches..."
-          export POPULATE_CACHES=":include/ci/kas-ci-populate-caches.yml"
-        fi
-      # try to checkout the current branch name (feature/bugfix/...) in all iris meta layers and platform application. This makes working with multiple repositories easier for the developers
-      - >
-        if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ] && [ "${BRANCH_NAME}" != "${CI_DEFAULT_BRANCH}" ] && [ "${BRANCH_NAME}" != "${RELEASE_BRANCH}" ] && $(echo "${GIT_BRANCH}" | grep -vqE '^release/.*'); then
-          echo "{\"header\": {\"version\": 9}, \"env\": {\"BRANCH_NAME\": \"$BRANCH_NAME\"}}" | yq > env.yml
-          kas for-all-repos --update ${MAIN_KAS_FILES}:env.yml """
-            test \"\$KAS_REPO_NAME\" = \"this\" || bash ../utils/set_layer_branchname.sh
-          """
-          # temporary disable exit code pipeline failures
-          set +e
-          # check if i6pa repo contains the current branch ref
-          git ls-remote --heads --exit-code https://token:${I6PA_READ_TOKEN}@${I6PA_REPO_REMOTE} ${BRANCH_NAME}
-          exitcode=$?
-          set -e
-          if test $exitcode -eq 0; then
-            echo "Setting I6PA branch ref to ${BRANCH_NAME}..."
-            I6PA_BRANCH=true
-          elif test $exitcode -eq 2; then
-            echo "Branch ${BRANCH_NAME} does not exist in I6PA repo. Sticking to develop..."
-          else
-            echo "Error while trying to check for branch ${BRANCH_NAME} in I6PA repo"
-            exit 1
-          fi
-        fi
-      - >
-        if [ "${BUILD_FROM_SCRATCH}" = "true" ]; then
-          echo "This build will be done from scratch...";
-          export NO_SETSCENE="--no-setscene"
-        fi
-      - >
-        if [ -n "${I6PA_BRANCH}" ] || [ "${UPSTREAM_PROJECT_NAME}" = "i6pa" ]; then
-          echo "Using I6PA branch refspec ${BRANCH_NAME} for build..."
-          kas shell -c "recipetool setvar ${COUNTER_MINIMAL_RECIPE_PATH} VERSION branch=${BRANCH_NAME}" ${MAIN_KAS_FILES}
-        fi
-    build:
-      - echo "Building ${BUILD_TARGETS}..."
-      # build target images
-      - >
-        if ! kas shell -c "bitbake ${NO_SETSCENE} ${BITBAKE_TASK} ${BUILD_TARGETS}" ${MAIN_KAS_FILES}:include/kas-irma6-${MULTI_CONF}.yml:include/ci/kas-ci-develop.yml${POPULATE_CACHES}; then
-          echo "Error during build. Creating log artifact..."
-          mkdir ${FAILURE_LOG_DIR}
-          find build/tmp/work -type f '(' -name "log.do_*" -o -name "log.task_order" ')' -exec rsync -R {} "${FAILURE_LOG_DIR}" \;
-          exit 1
-        fi
-  after_script:
-    # move artifacts to toplevel, see: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1057
-    move-artifacts-to-toplevel:
-      - mv ${JOB_ARTIFACT} irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}
-  artifacts:
-    develop-artifacts:
-      name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-      # currently no support for seperate "on-failure" and "on-success" artifact sections: https://gitlab.com/gitlab-org/gitlab/-/issues/18744
-      when: always
-      paths:
-        - "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}"
-        - "${FAILURE_LOG_DIR}"
-      untracked: false
-      expire_in: 7 days
+  schedule_rules:
+    # Do not run develop jobs on tagged commits
+    - if: $CI_COMMIT_TAG
+      when: never
+    # Do not run merge request pipelines on merges to master branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+  trunk_mr_rules:
+    # Do not run develop jobs on tagged commits
+    - if: $CI_COMMIT_TAG
+      when: never
+    # Do not run merge request pipelines on merges to master branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'

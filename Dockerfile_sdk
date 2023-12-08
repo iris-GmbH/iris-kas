@@ -1,8 +1,8 @@
-FROM python:3.11.5-bullseye as build
+FROM python:3.12.0-bullseye as build
 ARG SDK_SOURCE
 ADD ${SDK_SOURCE} /${SDK_SOURCE}
 RUN SCRIPT=$(find /${SDK_SOURCE} -type f -name "*.sh") \
-    && if test -z "${SCRIPT}"; then echo "No sh script found in ${SDK_SOURCE}"; fi \
+    && if test -z "${SCRIPT}"; then echo "No sh install script found in ${SDK_SOURCE}"; exit 1; fi \
     && /bin/sh ${SCRIPT} -d /sdk -y
 
 FROM debian:bullseye-slim

@@ -3,9 +3,8 @@
 
 # this config adds the necessary layers for building the propriatary platform-application
 header:
-  version: 9
-
+  version: 14
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    commit: "b334582ea4ddd1612ec3153c089d3b9ec81bc4b0"
+    branch: "master"

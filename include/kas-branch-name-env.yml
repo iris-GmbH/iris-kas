@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2023 iris-GmbH infrared & intelligent sensors
+
+# Add BRANCH_NAME environment variable to BB_ENV_PASSTHROUGH_ADDITIONS, used by 'checkout-branch-in-iris-layers' task defined in Makefile.
+
+header:
+  version: 14
+
+env:
+  BRANCH_NAME: None

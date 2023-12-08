@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+# Copyright (C) 2022-2023 iris-GmbH infrared & intelligent sensors
 
+
+# TODO: implement needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
+# TODO: use GitLab CI variables for defining parallism, once supported: https://gitlab.com/gitlab-org/gitlab/-/issues/11549
 
 #####################
 ### INCLUDE FILES ###
@@ -16,30 +19,31 @@ include:
 ###############################
 
 variables:
+  GET_SOURCES_ATTEMPTS: 3
   RELEASE_BRANCH: "master"
-  BUILD_VERSION_TAG: "latest"
-  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_VERSION_TAG}"
+  BUILD_IMAGE_TAG: "latest"
+  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_IMAGE_TAG}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
   SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
+  SSTATE_CACHE: "/mnt/yocto-sstate-cache"
+  SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
+  DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
+  # set makefile relevant variables
+  KAS_EXE: "kas"
+  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
+  KAS_BUILD_DIR: "${CI_PROJECT_DIR}/build"
+  KAS_TMPDIR: "${KAS_BUILD_DIR}/tmp"
+  KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
+  DL_DIR: "${DOWNLOAD_MIRROR}"
+  SSTATE_DIR: "${KAS_BUILD_DIR}/sstate_dir"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
   KAS_PREMIRRORS: |
     ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
     ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
-  MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  SSTATE_CACHE: "/mnt/yocto-sstate-cache"
-  SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
-  DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
-  ICECREAM_NETNAME: "ICECREAM"
+  KAS_ARTIFACT_PREFIX: "irma6-"
+  KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
-  # define KAS environment variables
-  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
-  COUNTER_MINIMAL_RECIPE_PATH:
-    value: "${KAS_WORK_DIR}/meta-iris/recipes-platform/counter/counter-minimal.bb"
-    expand: false
-  I6PA_REPO_REMOTE: "gitlab.devops.defra01.iris-sensing.net/rd-s/components/i6pa.git"
-  FAILURE_LOG_DIR: "failure-log"
-  JOB_ARTIFACT: "build/tmp/deploy"
   # Refspec of the systemtest_base repo to use
   SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
   # Set the name of the firmware to be programmed with systemtest_smoke job
@@ -50,17 +54,8 @@ variables:
   SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
   GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
   GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
-  IMX8MP_IRMA6R2_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy
   IMX8MP_IRMA6R2_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-deploy-customer
-  IMX8MP_IRMA6R2_DEV_DEPLOY: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-dev-deploy
-  IMX8MP_IRMA6R2_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-maintenance-distros
-  IMX8MP_IRMA6R2_SDK: irma6-${CI_COMMIT_TAG}-imx8mp-irma6r2-sdk
-  IMX8MP_IRMA6R2_BASESOURCES: imx8mp-irma6r2-base-sources
-  SC573_GEN6_DEPLOY: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy
   SC573_GEN6_DEPLOY_CUSTOMER: irma6-${CI_COMMIT_TAG}-sc573-gen6-deploy-customer
-  SC573_GEN6_MAINTENANCE_DISTROS: irma6-${CI_COMMIT_TAG}-sc573-gen6-maintenance-distros
-  SC573_GEN6_SDK: irma6-${CI_COMMIT_TAG}-sc573-gen6-sdk
-  SC573_GEN6_BASESOURCES: sc573-gen6-base-sources
   RENOVATE_PLATFORM: "gitlab"
   RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
   RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
@@ -71,27 +66,25 @@ variables:
   RENOVATE_EXTRA_FLAGS: ""
   FORCE_RENOVATE_RUN: "false"
   RENOVATE_DRY_RUN: "false"
+
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
-    description: 'Set to "true" to use identical named branches in iris meta layers and i6pa during the build'
-  SKIP_DEPLOY_TARGET_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the deploy firmware build for the sensor targets.'
-  SKIP_MAINTENANCE_TARGET_BUILD:
-    value: "false"
-    description: 'Set to "true" to skip the maintenance firmware build for the sensor targets.'
-  SKIP_MAINTENANCE_OCI_BUILD:
-    value: "true"
-    description: 'Set to "false" to build the irma6-maintenance OCI for running a containerized virtual sensor on your host.'
+    description: 'Set to "true" to use identical named branches in iris meta layers during build'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
-  SKIP_SDK_BUILD:
-    value: "true"
-    description: 'Set to "false" to run the SDK build.'
-  UPLOAD_SDK_TO_REGISTRIES:
+  SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
-    description : 'Will upload the built SDK when set to "true" and combined with SKIP_SDK_BUILD="false"'
+    description: 'Set to "true" to skip the maintenance image build'
+  SKIP_DEPLOY_IMAGE_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the deploy image'
+  SKIP_DEV_IMAGE_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the dev image'
+  SKIP_SDK_IMAGE_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the Yocto SDK'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
@@ -111,14 +104,21 @@ variables:
 ####################
 
 .target_multi_confs: &target_multi_confs
-  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2]
+  MULTI_CONF:
+    - sc573-gen6
+    - imx8mp-irma6r2
 
 .oci_multi_confs: &oci_multi_confs
-  MULTI_CONF: [qemux86-64-r1, qemux86-64-r2]
+  MULTI_CONF:
+    - qemux86-64-r1
+    - qemux86-64-r2
 
 .all_multi_confs: &all_multi_confs
-  MULTI_CONF: [sc573-gen6, imx8mp-irma6r2, qemux86-64-r1, qemux86-64-r2]
-
+  MULTI_CONF:
+    - sc573-gen6
+    - imx8mp-irma6r2
+    - qemux86-64-r1
+    - qemux86-64-r2
 
 ################
 ### WORKFLOW ###
@@ -129,8 +129,6 @@ workflow:
     # Do not run merge pipeline on draft MRs
     - if: '$CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
       when: never
-    # Automatic build on default branch
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     # Allow scheduled builds
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     # Allow manually triggering a build from the webinterface
@@ -143,6 +141,10 @@ workflow:
     # examples for valid tags:
     # 1.0.1, 1.0.1-RC1, 1.0.1-support-release
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^\d+\.\d+\.\d+(-.+)?/'
+    # allow building the latest iris-kas container image if required
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - Dockerfile_iris_kas
 
 
 ########################
@@ -150,15 +152,31 @@ workflow:
 ########################
 
 default:
-  image:
-    name: "${BUILD_IMAGE_IRIS_KAS}"
-    pull_policy: [always]
-  before_script:
-    # Ensure correct ownership of mounted EFS volumes
-    - sudo chown builder:builder ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} ${DOWNLOAD_MIRROR}
   tags:
     # run on gitlab runners designed for kas builds
     - kas
+  image:
+    name: "${BUILD_IMAGE_IRIS_KAS}"
+    pull_policy:
+      - always
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - api_failure
+  before_script:
+    # configure git safe directory
+    - if command -v git >/dev/null 2>&1; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
+    # if called from upstream pipeline, attempt to checkout identical named branch in iris-kas
+    - |
+      if [ -n "${UPSTREAM_PROJECT_NAME}" ] && [ "${RELEASE}" != "true" ] && command -v git >/dev/null 2>&1; then
+        echo "Trying to checkout ${BRANCH_NAME} in iris-kas"
+        if git checkout ${BRANCH_NAME} 2>/dev/null; then
+          echo "Branch ${BRANCH_NAME} has been checked out in iris-kas"
+        else
+          echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas."
+        fi
+      fi
 
 
 ##############
@@ -166,12 +184,9 @@ default:
 ##############
 
 stages:
-  - renovate
   - setup
-  - build-build-container
-  - merge-build-container
+  - build-container
   - yocto-setup
-  - release-sanity-checks
   - wipe-sstate-caches
   - build
   - push-test-images
@@ -180,34 +195,22 @@ stages:
   - upload-artifacts
   - release
 
-renovate-dry-run:
-  stage: renovate
-  rules:
-    - if: $RENOVATE_DRY_RUN == "true"
-  image: renovate/renovate:36.81.0-full
-  tags:
-    - gp
-  before_script: []
-  script:
-    - renovate --dry-run=full ${RENOVATE_EXTRA_FLAGS}
-  allow_failure: true
-
-renovate:
-  stage: renovate
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:36.81.0-full
-  tags:
-    - gp
-  before_script: []
-  script:
-    - renovate ${RENOVATE_EXTRA_FLAGS}
-
 
 ###################
 ### SETUP STAGE ###
 ###################
+
+renovate:
+  stage: setup
+  rules:
+    - !reference [.develop_template, schedule_rules]
+    - if: $FORCE_RENOVATE_RUN == "true"
+  image: renovate/renovate:37.53.0-full
+  tags:
+    - gp
+  script:
+    - renovate ${RENOVATE_EXTRA_FLAGS}
+  allow_failure: true
 
 # We do not want to run a pipeline on merges to non-default branch.
 # During a release process (merge target branch master), we are interested in the release candidate builds, not the merge request
@@ -218,9 +221,10 @@ skip-non-default-branch-merge-pipeline:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
   stage: setup
+  variables:
+    GIT_STRATEGY: none
   tags:
     - gp-tiny
-  before_script: []
   script:
     - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
 
@@ -230,50 +234,53 @@ build-container-get-tag:
   stage: setup
   tags:
     - gp-tiny
-  image:
-    name: busybox:1.36.1-uclibc
-  before_script: []
+  image: busybox:1.36.1-uclibc
   script:
     # Default branch = latest tag
     # Release = release tag
     # All other branches are tagged with the currently built commit SHA hash
     - |
       if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        BUILD_VERSION_TAG="latest"
+        BUILD_IMAGE_TAG="latest"
       elif [[ -n "$CI_COMMIT_TAG" ]]; then
-        BUILD_VERSION_TAG="$CI_COMMIT_TAG"
+        BUILD_IMAGE_TAG="$CI_COMMIT_TAG"
       else
-        BUILD_VERSION_TAG="git-${CI_COMMIT_SHORT_SHA}"
+        BUILD_IMAGE_TAG="git-${CI_COMMIT_SHORT_SHA}"
       fi
-    - echo "BUILD_VERSION_TAG set to ${BUILD_VERSION_TAG}."
-    - echo "BUILD_VERSION_TAG=${BUILD_VERSION_TAG}" >> build.env
+    - echo "BUILD_IMAGE_TAG set to ${BUILD_IMAGE_TAG}."
+    - echo "BUILD_IMAGE_TAG=${BUILD_IMAGE_TAG}" >> build.env
   artifacts:
     reports:
       dotenv: build.env
 
-oci-get-tag:
+develop-get-next-firmware-version:
+  stage: setup
   rules:
-    - !reference [.release_template, rules]
-    # skip if OCI related jobs are skipped and not release
-    - if: '$SKIP_OCI_TESTS == "true" && $SKIP_MAINTENANCE_OCI_BUILD == "true" && ($SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false")'
-      when: never
     - !reference [.develop_template, rules]
+    - when: on_success
+  image: gittools/gitversion:6.0.0-alpine.3.17-7.0
+  variables:
+    # workaround for issues on detached head: https://github.com/GitTools/GitVersion/issues/1627
+    IGNORE_NORMALISATION_GIT_HEAD_MOVE: "1"
+  script:
+    - /tools/dotnet-gitversion ${CI_PROJECT_DIR} -output file -outputfile gitversion.json
+  artifacts:
+    paths:
+      - gitversion.json
+
+set-release-multi-confs:
   stage: setup
   tags:
     - gp-tiny
-  image: busybox:1.36.1-uclibc
-  before_script: []
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+      variables:
+        RELEASE: "true"
+        # override this if you want to release for a subset of targets.
+        RELEASE_MULTI_CONFS: "imx8mp-irma6r2 sc573-gen6"
   script:
-    # set correct tag on parent-child pipelines
-    - |
-      if test -n "${UPSTREAM_PROJECT_NAME}"; then
-        export OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
-      else
-        export OCI_TAG="${CI_COMMIT_REF_SLUG}"
-      fi
-    # export OCI_TAG to build.env for other jobs to consume
-    - |
-      echo "OCI_TAG=${OCI_TAG}" >> build.env
+    - echo "RELEASE_MULTI_CONFS=$RELEASE_MULTI_CONFS" >> build.env
   artifacts:
     reports:
       dotenv: build.env
@@ -284,7 +291,9 @@ oci-get-tag:
 ###################################
 
 build-iris-kas-container:
-  stage: build-build-container
+  stage: build-container
+  needs:
+    - job: build-container-get-tag
   rules:
     - !reference [.common_template, rules, build_container_rules]
   parallel:
@@ -295,10 +304,7 @@ build-iris-kas-container:
         ARCH: arm64
   tags:
     - ${TAG}
-  image:
-    name: gcr.io/kaniko-project/executor:v1.9.2-debug
-    entrypoint: [""]
-  before_script: []
+  image: gcr.io/kaniko-project/executor:v1.9.2-debug
   script:
     - >-
       /kaniko/executor
@@ -312,14 +318,17 @@ build-iris-kas-container:
 ###################################
 
 merge-container-manifests:
-  stage: merge-build-container
+  stage: build-container
+  needs:
+    - job: build-container-get-tag
+    - job: build-iris-kas-container
   tags:
     - gp-tiny
   rules:
     - !reference [.common_template, rules, build_container_rules]
-  image:
-    name: mplatform/manifest-tool:alpine-v2.0.6
-  before_script: []
+  variables:
+    GIT_STRATEGY: none
+  image: mplatform/manifest-tool:alpine-v2.0.6
   script:
     - >-
       manifest-tool
@@ -345,41 +354,83 @@ download-mirror-maintenance:
   script:
     - echo "Finding and deleting faulty mirror items..."
     - find "${DOWNLOAD_MIRROR}" -name '*bad-checksum*' -exec sh -c 'echo "Found faulty mirror item {}. Deleting..."; rm -f {} $(echo {} | sed -r "s/_bad-checksum.*/.done/g")' \;
-    - echo "Done"
 
+# This job will do the develop build setup
+develop-ci-build-setup:
+  stage: yocto-setup
+  rules:
+    - !reference [.develop_template, rules]
+    - when: on_success
+  script:
+    # set development distro version
+    - echo "IRMA6_DISTRO_VERSION=$(cat gitversion.json | jq -r '.MajorMinorPatch')-pipeline-${CI_PIPELINE_ID}-dev" >> build.env
+    # set OCI tag
+    - >
+      if test -n "${UPSTREAM_PROJECT_NAME}"; then
+        OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+      else
+        OCI_TAG="${CI_COMMIT_REF_SLUG}"
+      fi
+    - echo "OCI_TAG set to ${OCI_TAG}."
+    - echo "OCI_TAG=${OCI_TAG}" >> build.env
+    # add commit hash to artifact name
+    - echo "KAS_ARTIFACT_PREFIX=${KAS_ARTIFACT_PREFIX}${CI_COMMIT_SHORT_SHA}-" >> build.env
+    # identify branch name for identifying identical named branches in all iris meta layers
+    # depending on pipeline source, the name of the current branch (or upstream branch) is saved as different variables. Unify into a single variable.
+    # if called from an upstream project, the BRANCH_NAME variable is already defined.
+    - >
+      if [ -n "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" ]; then
+          export BRANCH_NAME="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+      elif [ -n "${CI_COMMIT_BRANCH}" ] && [ -z "${UPSTREAM_PROJECT_NAME}" ]; then
+          export BRANCH_NAME="$CI_COMMIT_BRANCH"
+      fi
+    - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
+    - echo "BRANCH_NAME=${BRANCH_NAME}" >> build.env;
+    # if USE_IDENTICAL_NAMED_BRANCHES is set to true, we attempt to checkout BRANCH_NAME in meta-iris(-base) layers.
+    # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
+    - >
+      if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ]; then
+        make kas-checkout-branch-in-iris-layers
+      fi
+    # we append develop specific KASFILE_EXTRA
+    - KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-develop.yml"
+    - >
+      if test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
+        KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-populate-caches.yml"
+        echo "SSTATE_DIR=${SSTATE_CACHE}" >> build.env
+      fi
+    - echo "KASFILE_EXTRA=${KASFILE_EXTRA}" >> build.env
+    # we finish by generating a kas lock file, which will be used by all following build jobs.
+    - make kas-dump-lockfile
+  artifacts:
+    paths:
+      - "*.lock.yml"
+    reports:
+      dotenv: build.env
 
-###################################
-### RELEASE SANITY CHECKS STAGE ###
-###################################
-
-# Ensures that fixed refspecs are set for all meta-layers.
-# This is vital for build reproducibility.
-# release-verify-fixed-refspecs:
-#   rules:
-#     - !reference [.release_template, rules]
-#   stage: release-sanity-checks
-#   script:
-#     - echo "Ensuring that fixed refspecs are set on meta layers..."
-#     - >
-#       kas for-all-repos --update ${MAIN_KAS_FILES} """
-#       if [ \"\${KAS_REPO_NAME}\" != \"this\" ]; then
-#         git checkout \${KAS_REPO_REFSPEC} \
-#         && git rev-parse --abbrev-ref HEAD | grep -qE \"^HEAD\\s*$\" \
-#         || { echo \"Error. Non-fixed refspec detected in repo \${KAS_REPO_NAME}. Please set to a git commit hash or tag for a release build\"; exit 1; }; fi
-#       """
-
-# Ensures that the DISTRO_VERSION variable is set correctly
-# release-verify-distro-version:
-#   rules:
-#     - !reference [.release_template, rules]
-#   stage: release-sanity-checks
-#   script:
-#     - export $(kas shell -c "bitbake -e" ${MAIN_KAS_FILES} | grep IRMA6_DISTRO_VERSION | tail -n 1)
-#     - >
-#       if test "${IRMA6_DISTRO_VERSION}" != "\"${CI_COMMIT_TAG}\""; then
-#         echo "Error. IRMA6_DISTRO_VERSION ${IRMA6_DISTRO_VERSION} defined in the kas config does not match the current git tag \"${CI_COMMIT_TAG}\"."
-#         exit 1
-#       fi
+release-ci-build-setup:
+  stage: yocto-setup
+  variables:
+  rules:
+    - !reference [.release_template, rules]
+  image: busybox:1.36.1-uclibc
+  tags:
+    - gp-tiny
+  script:
+    - echo "RELEASE=true" >> build.env
+    - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
+    - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
+    - echo "KAS_ARTIFACT_PREFIX=${KAS_ARTIFACT_PREFIX}${CI_COMMIT_TAG}-" >> build.env
+    - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
+    - echo "Ensuring that kas lockfile exists..."
+    - >
+      if ! ls *.lock.yml >/dev/null 2>&1; then
+        echo "Error: Could not find a KAS lockfile. Please read the README section on how to create a release."
+        exit 1
+      fi
+  artifacts:
+    reports:
+      dotenv: build.env
 
 
 ################################
@@ -388,306 +439,206 @@ download-mirror-maintenance:
 
 wipe-sstate-caches:
   stage: wipe-sstate-caches
+  variables:
+    GIT_STRATEGY: none
   rules:
     - if: '$WIPE_SSTATE_CACHE == "true"'
   script:
+    - echo "Ensure you also reset the yocto hashservice database!"
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} +
-
-# Ensures that the release sstate cache is empty before any build is started.
-# This ensures the release is built from scratch (build reproducibility).
-release-wipe-release-sstate-cache:
-  rules:
-    - !reference [.release_template, rules]
-  stage: wipe-sstate-caches
-  script:
-    - echo "Making sure that the release sstate cache is wiped in preparation for the release build"
-    - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
 
 
 ###################
 ### BUILD STAGE ###
 ###################
 
-develop-build-maintenance-distro-targets:
-  rules:
-    # skip if SKIP_MAINTENANCE_TARGET_BUILD is set to true
-    - if: '$SKIP_MAINTENANCE_TARGET_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
+.build-kas:
   stage: build
   parallel:
     matrix:
       - <<: *target_multi_confs
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-        IMAGES: "irma6-maintenance irma6-dev"
-  variables:
-    ARTIFACT_SUFFIX: "-maintenance-distros"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
   script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
+    - make kas-build
   after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
+
+
+.build-maintenance-image:
+  extends: .build-kas
+  variables:
+    KAS_TARGET_RECIPE: "irma6-maintenance-bundle"
+    KAS_ARTIFACT_SUFFIX: "-maintenance"
+
+release-build-maintenance-image:
+  extends: .build-maintenance-image
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - kas-perf
+
+develop-build-maintenance-image:
+  extends: .build-maintenance-image
+  rules:
+    - !reference [.develop_template, rules]
+    - if: '$SKIP_MAINTENANCE_IMAGE_BUILD == "false"'
+    - when: manual
+      allow_failure: true
+
+
+.build-dev-image:
+  extends: .build-kas
+  variables:
+    KAS_TARGET_RECIPE: "irma6-dev-bundle"
+    KAS_ARTIFACT_SUFFIX: "-dev"
+
+release-build-dev-image:
+  extends: .build-dev-image
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - kas-perf
+
+develop-build-dev-image:
+  extends: .build-dev-image
+  rules:
+    - !reference [.develop_template, schedule_rules]
+    - if: '$SKIP_DEV_IMAGE_BUILD == "false"'
+    - when: manual
+      allow_failure: true
+
+
+.build-maintenance-oci:
+  extends: .build-kas
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    KAS_TARGET_RECIPE: "irma6-maintenance-oci"
+    KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
+
+release-build-maintenance-oci:
+  extends: .build-maintenance-oci
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - kas-perf
 
 develop-build-maintenance-oci:
+  extends: .build-maintenance-oci
   rules:
-    # skip if SKIP_MAINTENANCE_OCI_BUILD is set to true
-    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
+    - !reference [.develop_template, schedule_rules]
+    - when: manual
+      allow_failure: true
+
+
+# build deploy image with dev keys.
+# this will also be used to create source archives for license compliance
+# during release builds to avoid accidental production key leakage
+.build-dev-deploy-image:
+  extends: .build-kas
+  variables:
+    KAS_TARGET_RECIPE: "irma6-deploy-bundle"
+    KAS_ARTIFACT_SUFFIX: "-dev-deploy"
+  script:
+    - >
+      if test "${RELEASE}" = "true"; then
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml"
+      fi
+    - make kas-build
+
+release-build-dev-deploy-image:
+  extends: .build-dev-deploy-image
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - kas-perf
+
+develop-build-dev-deploy-image:
+  extends: .build-dev-deploy-image
+  rules:
+    - !reference [.release_template, rules]
+    - if: '$SKIP_DEPLOY_IMAGE_BUILD == "false"'
+    - when: manual
+      allow_failure: true
+
+
+.build-test-oci:
+  extends: .build-kas
   parallel:
     matrix:
       - <<: *oci_multi_confs
-        IMAGES: irma6-maintenance-oci
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
   variables:
-    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    KAS_TARGET_RECIPE: "irma6-test"
+    KAS_ARTIFACT_SUFFIX: "-test-oci"
 
-develop-build-deploy-distro-targets:
+release-build-test-oci:
+  extends: .build-test-oci
   rules:
-    # skip if SKIP_DEPLOY_TARGET_BUILD is set to true
-    - if: '$SKIP_DEPLOY_TARGET_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
-        IMAGES: "irma6-deploy"
-  variables:
-    ARTIFACT_SUFFIX: "-deploy"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - !reference [.release_template, rules]
+  tags:
+    - kas-perf
 
 develop-build-test-oci:
+  extends: .build-test-oci
   rules:
-    # skip if SKIP_OCI_TESTS are set to true
-    - if: '$SKIP_OCI_TESTS == "true"'
-      when: never
     - !reference [.develop_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-        IMAGES: irma6-test
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+    - if: '$SKIP_OCI_TESTS == "false"'
+    - when: manual
+      allow_failure: true
 
-develop-build-sdk:
-  rules:
-    # skip if SKIP_SDK_BUILD is set to true
-    - if: '$SKIP_SDK_BUILD == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: build
-  variables:
-    BITBAKE_TASK: "-c populate_sdk"
-    ARTIFACT_SUFFIX: "-sdk"
+
+.build-sdk:
+  extends: .build-kas
   parallel:
     matrix:
       - <<: *all_multi_confs
-        IMAGES: "irma6-maintenance"
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.develop_template, script, build-configuration]
-    - !reference [.develop_template, script, build]
-  after_script:
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.develop_template, artifacts, develop-artifacts]
+  variables:
+    KAS_TASK: "populate_sdk"
+    KAS_TARGET_RECIPE: "irma6-maintenance"
+    KAS_ARTIFACT_SUFFIX: "-sdk"
 
-# We prepare an offline-build environment for building the irma6-base image.
-# This image contains the raw iris-poky-deploy distro without any proprietary software.
-# After a test build, this build environment is saved for license compliance.
-release-base-build:
+release-build-sdk:
+  extends: .build-sdk
+  rules:
+    - !reference [.release_template, rules]
+  tags:
+    - kas-perf
+
+develop-build-sdk:
+  extends: .build-sdk
+  rules:
+    - !reference [.develop_template, schedule_rules]
+    - if: '$SKIP_SDK_IMAGE_BUILD == "false"'
+    - when: manual
+      allow_failure: true
+
+
+# We archive the build environment for license compliance
+# as *GPL* requires configuration and build scripts to be released
+release-archive-kas-build-environment:
   rules:
     - !reference [.release_template, rules]
   stage: build
   tags:
-    - "iris-kas-release-s3-upload"
+    - kas-perf
   parallel:
     matrix:
       - <<: *target_multi_confs
-        IMAGES: "irma6-base"
   variables:
-    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:include/ci/kas-ci-common.yml"
-    S3_BUCKET_NAME: "iris-devops-opensource-iris-sensing-com"
-    S3_PATH_PREFIX: "sources/${CI_COMMIT_TAG}/"
-    S3_STORAGE_CLASS: "STANDARD_IA"
-    S3_ACL: "public-read"
-    ARTIFACT_SUFFIX: "-base-sources"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
+    INCLUDE_PROPRIETARY_LAYERS: "false"
+    KAS_ARTIFACT_SUFFIX: "-kas-environment"
+    ARTIFACT_NAME: "${KAS_ARTIFACT_FOLDER}"
+    ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
+    KAS_ARGS: "checkout"
   script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - ARTIFACT_NAME="${MULTI_CONF}-base-sources"
-    - !reference [.release_template, script, create-artifact-archive]
-    # verify reproducibility of offline build
-    - !reference [.release_template, script, offline-build]
-    # upload base sources to public s3 bucket
-    - !reference [.release_template, script, s3-upload-sources]
-    - echo "BASE_SOURCES_S3_BUCKET_NAME=$S3_BUCKET_NAME" >> build.env
-    - echo "BASE_SOURCES_S3_PATH_PREFIX=$S3_PATH_PREFIX" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
+    - make kas
+    - !reference [.common_template, script, create-archive-from-folder]
+    - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${ARTIFACT_NAME}.tar.gz" >> build.env
+  artifacts: !reference [.common_template, artifacts, archive-folder-artifacts]
 
-# Build the maintenance release artifacts
-release-build-maintenance-distros:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
-        IMAGES: "irma6-maintenance irma6-dev"
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    ARTIFACT_SUFFIX: "-maintenance-distros"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
-
-release-build-test-oci:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-        IMAGES: irma6-test
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
-
-release-build-maintenance-oci:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-        IMAGES: irma6-maintenance-oci
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  variables:
-    JOB_ARTIFACT: "build/tmp/deploy/images/*/*.rootfs-oci"
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.develop_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
-
-release-build-sdk:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  variables:
-    BITBAKE_TASK: "-c populate_sdk"
-    ARTIFACT_SUFFIX: "-sdk"
-  parallel:
-    matrix:
-      - <<: *target_multi_confs
-        IMAGES: "irma6-maintenance"
-        MAIN_KAS_FILES: "kas-irma6-base-maintenance.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-other]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
-
-# Build the deploy image with dev keys
-release-build-dev-deploy-distros:
-  rules:
-    - !reference [.release_template, rules]
-  stage: build
-  parallel:
-    matrix:
-      - MULTI_CONF: [imx8mp-irma6r2]
-        IMAGES: "irma6-deploy"
-  variables:
-    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml"
-    ARTIFACT_SUFFIX: "-dev-deploy"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
-  script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
-
-# Build the deploy image with production keys
-release-build-deploy-distros:
+# Build the deploy image with production keys during release
+release-build-deploy:
   rules:
     - !reference [.release_template, rules]
   stage: build
@@ -697,68 +648,52 @@ release-build-deploy-distros:
   parallel:
     matrix:
       - <<: *target_multi_confs
-        IMAGES: "irma6-deploy"
   variables:
-    MAIN_KAS_FILES: "kas-irma6-base-deploy.yml:kas-irma6-pa.yml:include/ci/kas-ci-common.yml:include/ci/kas-ci-deploy-signing.yml:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
-    ARTIFACT_SUFFIX: "-deploy"
-  services:
-    - !reference [.common_template, services, icecc-daemon]
+    KAS_TARGET_RECIPE: "irma6-deploy-bundle"
+    KAS_ARTIFACT_SUFFIX: "-deploy"
+    KASFILE_EXTRA: ":include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
   script:
-    - !reference [.common_template, script, generate-build-targets-target]
-    - !reference [.release_template, script, populate-dl-cache]
-    - !reference [.release_template, script, populate-dl-dir]
-    - !reference [.release_template, script, build]
-  after_script:
-    - !reference [.common_template, after_script, remove-symbolic-image-links]
-    - !reference [.release_template, after_script, move-artifacts-to-toplevel]
-  artifacts: !reference [.release_template, artifacts, release-artifacts]
+    - make kas-build
+    - !reference [.common_template, after_script, create-kas-artifact-folder]
+  artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
 
 ##############################
 ### PUSH TEST IMAGES STAGE ###
 ##############################
 
-develop-push-test-oci:
-  rules:
-    # skip if SKIP_OCI_TESTS are set to true
-    - if: '$SKIP_OCI_TESTS == "true"'
-      when: never
-    - !reference [.develop_template, rules]
-  stage: push-test-images
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
-  tags:
-    - gp-tiny
-  image: quay.io/skopeo/stable:v1.13.2
-  before_script: []
-  script:
-    - >-
-      /usr/bin/skopeo copy
-      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
-      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-
-release-push-test-oci:
+push-test-oci:
   rules:
     - !reference [.release_template, rules]
+    # skip if SKIP_OCI_TESTS are set to true
+    - if: '$SKIP_OCI_TESTS == "false"'
+    - when: manual
+      allow_failure: true
   stage: push-test-images
+  needs:
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+    - job: develop-build-test-oci
+      optional: true
+    - job: release-build-test-oci
+      optional: true
   parallel:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    ARTIFACT_SUFFIX: "-test.rootfs-oci"
+    GIT_STRATEGY: none
+    KAS_ARTIFACT_SUFFIX: "-test-oci"
   tags:
-    - gp
-  image: quay.io/skopeo/stable:v1.13.2
-  before_script: []
+    - gp-tiny
+  image: quay.io/skopeo/stable:v1.13.3
   script:
+    - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_TAG}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
 
 
@@ -768,11 +703,22 @@ release-push-test-oci:
 
 test-oci:
   stage: test
+  needs:
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+    - job: develop-build-test-oci
+      optional: true
+    - job: release-build-test-oci
+      optional: true
+    - job: push-test-oci
   rules:
     - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS is set to true and not release build
-    - if: '$SKIP_OCI_TESTS == "true"'
-      when: never
+    - if: '$SKIP_OCI_TESTS == "false"'
+    - when: manual
+      allow_failure: true
     - !reference [.develop_template, rules]
   tags:
     - gp
@@ -781,7 +727,9 @@ test-oci:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.18.3
+  image: alpine:3.18.4
+  variables:
+    GIT_STRATEGY: none
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -806,8 +754,8 @@ test-oci:
   after_script:
     - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
   artifacts:
+    name: "${CI_JOB_NAME}"
     when: always
-    name: "irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}-gtest-results"
     paths:
       - ${MULTI_CONF}-gtest_results.xml
     reports:
@@ -835,6 +783,7 @@ systemtest_smoke:
   after_script:
     - docker logout ${CI_REGISTRY}
   artifacts:
+    name: "${CI_JOB_NAME}"
     when: always
     paths:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/report.html
@@ -867,6 +816,7 @@ systemtest_reliability:
   after_script:
     - docker logout ${CI_REGISTRY}
   artifacts:
+    name: "${CI_JOB_NAME}"
     when: always
     paths:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/report_combined.html
@@ -879,46 +829,59 @@ systemtest_reliability:
 ### UPLOAD ARTIFACTS STAGE ###
 ##############################
 
-push-maintenance-oci:
+develop-push-maintenance-oci:
   rules:
-    # skip if SKIP_MAINTENANCE_OCI_BUILD are set to true and not release
-    - if: '$SKIP_MAINTENANCE_OCI_BUILD == "true"'
-      when: never
     - !reference [.develop_template, rules]
+    - when: manual
+      allow_failure: true
   stage: upload-artifacts
+  needs:
+    - job: develop-ci-build-setup
+    - job: develop-build-maintenance-oci
+      optional: true
+    - job: release-build-maintenance-oci
+      optional: true
+    - job: test-oci
   parallel:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    ARTIFACT_SUFFIX: "-maintenance.rootfs-oci"
+    GIT_STRATEGY: none
+    KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
   tags:
     - gp-tiny
-  image: quay.io/skopeo/stable:v1.13.2
-  before_script: []
+  image: quay.io/skopeo/stable:v1.13.3
   script:
+    - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
     - >-
       /usr/bin/skopeo copy
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:irma6-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${MULTI_CONF}${ARTIFACT_SUFFIX}:latest
+      oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
 
 develop-create-sdk-container-images:
   rules:
-    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
-    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
-      when: never
     - !reference [.develop_template, rules]
+    - when: manual
+      allow_failure: true
   stage: upload-artifacts
+  needs:
+    - job: develop-ci-build-setup
+    - job: develop-build-sdk
+      optional: true
+    - job: release-build-sdk
+      optional: true
+    - job: test-oci
   tags:
     - gp
   parallel:
     matrix:
       - <<: *all_multi_confs
-  image:
-    name: gcr.io/kaniko-project/executor:v1.9.2-debug
-    entrypoint: [""]
+  variables:
+    KAS_ARTIFACT_SUFFIX: "-sdk"
+  image: gcr.io/kaniko-project/executor:v1.9.2-debug
   before_script:
-    - SDK_SOURCE=$(find "${CI_PROJECT_DIR}" -type d -name "*${MULTI_CONF}-sdk" | sed "s%${CI_PROJECT_DIR}/%%")
+    - SDK_SOURCE=$(find "${KAS_ARTIFACT_FOLDER}" -type d -regex ".*/deploy/sdk")
   script:
     - >-
       /kaniko/executor
@@ -927,20 +890,28 @@ develop-create-sdk-container-images:
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
 
-# upload the development SDKs to the gitlab package registry for later consumption
+# upload the SDKs to the gitlab package registry for later consumption
 develop-upload-sdks:
   stage: upload-artifacts
   rules:
-    # skip if SKIP_SDK_BUILD is set to true or UPLOAD_SDK_TO_REGISTRIES is set to false
-    - if: '$SKIP_SDK_BUILD == "true" || $UPLOAD_SDK_TO_REGISTRIES == "false"'
-      when: never
     - !reference [.develop_template, rules]
+    - when: manual
+      allow_failure: true
+  variables:
+    GIT_STRATEGY: none
+    KAS_ARTIFACT_SUFFIX: "-sdk"
+  needs:
+    - job: develop-ci-build-setup
+    - job: develop-build-sdk
+      optional: true
+    - job: release-build-sdk
+      optional: true
+    - job: test-oci
   tags:
     - gp
-  before_script: []
   script:
     - >
-      for ARTIFACT in irma6-*-sdk; do
+      for ARTIFACT in ${KAS_ARTIFACT_PREFIX}*${KAS_ARTIFACT_SUFFIX}; do
         # remove the commit sha from the artifact file name, so that we can make use of GitLabs package registry cleanup for identical named packages
         ARTIFACT_NO_SHA=$(echo ${ARTIFACT} | sed "s/-${CI_COMMIT_SHORT_SHA}//g")
         sudo mv ${ARTIFACT} ${ARTIFACT_NO_SHA}
@@ -949,26 +920,24 @@ develop-upload-sdks:
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT_NO_SHA}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT_NO_SHA}.tar"
       done
 
-
-release-upload-artifacts:
+# this job will archive the artifacts necessary for reproducing a trunk branch build
+trunk-build-reproducibility:
   stage: upload-artifacts
   rules:
-    - !reference [.release_template, rules]
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none
   tags:
-    - gp
-  before_script: []
+    - gp-tiny
   script:
-    - >
-      for ARTIFACT in irma6-*; do
-        sudo tar 2>&1 -czvf ${ARTIFACT}.tar.gz ${ARTIFACT}
-        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${ARTIFACT}.tar.gz"
-      done
-    # separate packages only containing customer cleared files
-    - >
-      for FOLDER in ${IMX8MP_IRMA6R2_DEPLOY} ${SC573_GEN6_DEPLOY}; do
-        sudo tar 2>&1 --ignore-failed-read -czvf ${FOLDER}-customer.tar.gz ${FOLDER}/licenses $(find ${FOLDER} -type d -name 'update_files') $(find ${FOLDER} -type f -name '*.swu')
-        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${FOLDER}-customer.tar.gz "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${FOLDER}-customer.tar.gz"
-      done
+    - echo "Archiving trunk branch build setup files for build reproducibility."
+  artifacts:
+    name: "$CI_JOB_NAME"
+    expire_in: "10 yrs"
+    paths:
+      - "*.lock.yml"
+      - "${KAS_ARTIFACT_PREFIX}*/**/buildhistory"
 
 
 #####################
@@ -977,8 +946,12 @@ release-upload-artifacts:
 
 release-clean-sstate-cache:
   stage: release
+  dependencies: []
   rules:
-    - !reference [.release_template, rules]
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+  variables:
+    GIT_STRATEGY: none
   script:
     # wipe release sstate cache
     - find ${SSTATE_CACHE_RELEASE} -mindepth 1 -delete
@@ -986,60 +959,8 @@ release-clean-sstate-cache:
 publish-release:
   stage: release
   tags:
-    - gp-tiny
+    - gp
   rules:
     - !reference [.release_template, rules]
-  variables:
-    IMX8MP_IRMA6R2_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${IMX8MP_IRMA6R2_BASESOURCES}.tar.gz
-    SC573_GEN6_BASESOURCES_URL: https://${BASE_SOURCES_S3_BUCKET_NAME}.s3.eu-central-1.amazonaws.com/${BASE_SOURCES_S3_PATH_PREFIX}${SC573_GEN6_BASESOURCES}.tar.gz
-  image: registry.gitlab.com/gitlab-org/release-cli:v0.15.0
-  before_script: []
   script:
-    - echo "Publishing release $CI_COMMIT_TAG"
-  release:
-    name: "Release $CI_COMMIT_TAG"
-    tag_name: "$CI_COMMIT_TAG"
-    description: |
-      # Assets
-      ## IMX8MP-IRMA6R2 (IRMA6 HW Release 2)
-      | Asset Name | Description | Clearance |
-      | ---------- | ----------- | --------- |
-      | ${IMX8MP_IRMA6R2_DEPLOY} | Production Firmware package - all artifacts. | Internal |
-      | ${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER} | Production Firmware - update file only. | Customer |
-      | ${IMX8MP_IRMA6R2_DEV_DEPLOY} | Firmware package identical to production firmware but with development keys, used for internal testing. | Internal |
-      | ${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
-      | ${IMX8MP_IRMA6R2_SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${IMX8MP_IRMA6R2_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
-
-      ## SC573-GEN6 (IRMA6 HW Release 1)
-      | Asset Name | Description | Clearance |
-      | ---------- | ----------- | --------- |
-      | ${SC573_GEN6_DEPLOY} | Firmware package containing the image for initial flashing as well as update files for the production firmware (deploy). | Internal |
-      | ${SC573_GEN6_DEPLOY_CUSTOMER} | Update package for the production firmware (deploy). | Customer |
-      | ${SC573_GEN6_MAINTENANCE_DISTROS} | Firmware package containing images for debugging. | Internal |
-      | ${SC573_GEN6_SDK} | Yocto SDK used for cross-compiling. | Internal |
-      | ${SC573_GEN6_BASESOURCES} | Environment containing all sources and preconfigured for building the irma6-base image, the open source custom operating system maintained by Iris. | Customer |
-    assets:
-      links:
-        - name: "${IMX8MP_IRMA6R2_DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEPLOY_CUSTOMER}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_DEV_DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_DEV_DEPLOY}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_MAINTENANCE_DISTROS}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_SDK}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${IMX8MP_IRMA6R2_SDK}.tar.gz"
-        - name: "${IMX8MP_IRMA6R2_BASESOURCES}"
-          url: "${IMX8MP_IRMA6R2_BASESOURCES_URL}"
-        - name: "${SC573_GEN6_DEPLOY}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEPLOY}.tar.gz"
-        - name: "${SC573_GEN6_DEPLOY_CUSTOMER}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_DEPLOY_CUSTOMER}.tar.gz"
-        - name: "${SC573_GEN6_MAINTENANCE_DISTROS}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_MAINTENANCE_DISTROS}.tar.gz"
-        - name: "${SC573_GEN6_SDK}"
-          url: "${PACKAGE_REGISTRY_URL}/${CI_COMMIT_TAG}/${SC573_GEN6_SDK}.tar.gz"
-        - name: "${SC573_GEN6_BASESOURCES}"
-          url: "${SC573_GEN6_BASESOURCES_URL}"
+    - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN}

@@ -1,0 +1,28 @@
+header:
+    version: 14
+overrides:
+    repos:
+        lnxdsp-adi-meta:
+            commit: ad2203c11723b07727589a8eebe33f3129cc236a
+        meta-freescale:
+            commit: dfd01d7bdf87b6bda254780a35659975d2b2c66e
+        meta-freescale-3rdparty:
+            commit: 1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f
+        meta-freescale-distro:
+            commit: d5bbb487b2816dfc74984a78b67f7361ce404253
+        meta-iris:
+            commit: d8b02275f0ceccfccd8dec1449ebcf3635d69057
+        meta-iris-base:
+            commit: b9a2d42d024a35f42fa6be1073d863a544aef2c9
+        meta-iris-thirdparty:
+            commit: f421d0d8fdb564ef427b1db3e4d52571271f1648
+        meta-openembedded:
+            commit: 7da6cb848bc42b3e6bd5d2b37b52ba75510a6ca0
+        meta-secure-imx:
+            commit: 20d409a5e75758a8df7bb07e086a36377fbe16d9
+        meta-swupdate:
+            commit: 670bbc3e3ddbd308be3c26ab63c5dbcd7b4f7d8b
+        meta-virtualization:
+            commit: 478a91800c4a95c7410dc8ef52e229a81be24b4e
+        poky:
+            commit: a171408008bfbb89446112f3dbc543f35f76b335

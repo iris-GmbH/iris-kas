@@ -1,25 +1,46 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
-#
-#
-# The KAS base configuration file for the irma6
+# Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
+
+# The KAS base configuration file for the irma6 firmware build
 
 header:
-  version: 9
+  version: 14
   includes:
-    - "include/kas-irma6-base-config.yml"
     - "include/kas-targets.yml"
-
+distro: "poky-iris-maintenance"
+env:
+  IRMA6_DISTRO_VERSION: "0.0.0-unknown"
+  KAS_WORK_DIR: None
+bblayers_conf_header:
+  standard: |
+    POKY_BBLAYERS_CONF_VERSION = "2"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+    ACCEPT_FSL_EULA = "1"
 local_conf_header:
-  distro_version: |
-    # adjust on release and reintegrate
-    IRMA6_DISTRO_VERSION = "3.0.2"
-
+  standard: |
+    CONF_VERSION = "2"
+  dl_dir: |
+    DL_DIR ?= "${TOPDIR}/dl_dir"
+  sstate_dir: |
+    SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
+  build_history: |
+    INHERIT += "buildhistory"
+    BUILDHISTORY_COMMIT ?= "1"
+  diskmon: |
+    BB_DISKMON_DIRS = "\
+      STOPTASKS,${TMPDIR},1G,100K \
+      STOPTASKS,${DL_DIR},1G,100K \
+      STOPTASKS,${SSTATE_DIR},1G,100K \
+      STOPTASKS,/tmp,100M,100K \
+      HALT,${TMPDIR},100M,1K \
+      HALT,${DL_DIR},100M,1K \
+      HALT,${SSTATE_DIR},100M,1K \
+      HALT,/tmp,10M,1K"
 defaults:
   repos:
     patches:
       repo: "this"
-
 repos:
   # the iris-kas repo
   this:
@@ -27,14 +48,14 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    commit: "a49442d3598bdd68a919cefb2447842946ee623a"
+    branch: "master"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    commit: "f421d0d8fdb564ef427b1db3e4d52571271f1648"
+    branch: "kirkstone"
   # general repos
   poky:
     url: "https://git.yoctoproject.org/git/poky"
-    commit: "e51bf557f596c4da38789a948a3228ba11455e3c"
+    branch: "kirkstone"
     layers:
       meta:
       meta-poky:
@@ -62,7 +83,7 @@ repos:
         path: "patches/0001-python3-manifest-add-ensurepip.patch"
   meta-openembedded:
     url: "https://git.openembedded.org/meta-openembedded"
-    commit: "a88cb922f91fda95e8a584cee3092083d5ad3e98"
+    branch: "kirkstone"
     layers:
       meta-oe:
       meta-python:
@@ -102,13 +123,13 @@ repos:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "7a85c71f40c4bf445f041fa7aad70733c9cbc0ba"
+    branch: "kirkstone"
     patches:
       0001-Mongoose-Fix-request-handling:
         path: "patches/0001-APC-7142-Fix-request-handling-of-malformed-data.patch"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    commit: "20d409a5e75758a8df7bb07e086a36377fbe16d9"
+    branch: "dunfell"
     patches:
       0001-APC-5918-Remove-bbappend-for-cryptsetup:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
@@ -116,23 +137,21 @@ repos:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-virtualization:
     url: "https://git.yoctoproject.org/meta-virtualization"
-    commit: "2d8b3cba8ff27c9ec2187a52b6a551fe1dcfaa07"
-
+    branch: "kirkstone"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    commit: "ad2203c11723b07727589a8eebe33f3129cc236a"
+    branch: "release/yocto-1.0.0"
     layers:
       meta-adi-adsp-sc5xx:
       meta-adi-external-toolchain:
     patches:
       0001-lnxdsp-adi-meta-Update-to-new-override-syntax:
         path: "patches/0001-lnxdsp-adi-meta-Update-to-new-override-syntax.patch"
-
   # irma6 HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
-    commit: "3e9ef23d98aa842cf84251a27c9b8dde8925ea61"
+    branch: "kirkstone"
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
@@ -140,7 +159,7 @@ repos:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    commit: "1a6ea560015ecda5fff8eccaf5b1327f1bb6c57f"
+    branch: "kirkstone"
   meta-freescale-distro:
     url: "https://github.com/Freescale/meta-freescale-distro"
-    commit: "d5bbb487b2816dfc74984a78b67f7361ce404253"
+    branch: "kirkstone"

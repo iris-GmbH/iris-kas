@@ -5,7 +5,7 @@
 # This shall only be used for developing purposes, never in production builds.
 
 header:
-  version: 9
+  version: 14
 
 local_conf_header:
   mongoose_commercial: |
