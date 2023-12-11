@@ -149,6 +149,8 @@ repos:
     patches:
       0001-Add-support-for-yocto-CVE-backports:
         path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
+      0002-Add-support-for-CVE_CHECK_IGNORE-variable:
+        path: "patches/0002-Add-support-for-CVE_CHECK_IGNORE-variable.patch"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
