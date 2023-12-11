@@ -611,7 +611,7 @@ release-build-dev-deploy-image:
 develop-build-dev-deploy-image:
   extends: .build-dev-deploy-image
   rules:
-    - !reference [.release_template, rules]
+    - !reference [.develop_template, schedule_rules]
     - if: '$SKIP_DEPLOY_IMAGE_BUILD == "false"'
     - when: manual
       allow_failure: true
