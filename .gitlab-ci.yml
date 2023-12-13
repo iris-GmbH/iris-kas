@@ -764,7 +764,7 @@ push-test-oci:
     KAS_ARTIFACT_SUFFIX: "-test-oci"
   tags:
     - gp-tiny
-  image: quay.io/skopeo/stable:v1.13.3
+  image: quay.io/skopeo/stable:v1.14.0
   script:
     - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
     - >-
@@ -927,7 +927,7 @@ develop-push-maintenance-oci:
     KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
   tags:
     - gp-tiny
-  image: quay.io/skopeo/stable:v1.13.3
+  image: quay.io/skopeo/stable:v1.14.0
   script:
     - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
     - >-
