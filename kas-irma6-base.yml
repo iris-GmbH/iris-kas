@@ -39,6 +39,8 @@ local_conf_header:
       HALT,${DL_DIR},100M,1K \
       HALT,${SSTATE_DIR},100M,1K \
       HALT,/tmp,10M,1K"
+  osselot: |
+    INHERIT += "osselot"
 defaults:
   repos:
     patches:
@@ -151,6 +153,9 @@ repos:
         path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
       0002-Add-support-for-CVE_CHECK_IGNORE-variable:
         path: "patches/0002-Add-support-for-CVE_CHECK_IGNORE-variable.patch"
+  meta-osselot:
+    url: "https://github.com/iris-GmbH/meta-osselot.git"
+    branch: "develop"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
