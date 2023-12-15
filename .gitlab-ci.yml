@@ -150,6 +150,8 @@ workflow:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - Dockerfile_iris_kas
+    # automatically start pipeline for CI branches (-ci / _ci suffix)
+    - if: '$CI_COMMIT_BRANCH =~ /^.*(_|-)ci$/'
 
 
 ########################
