@@ -47,8 +47,9 @@ stages:
 # workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
 update-non-protected-branch:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: never
+    - when: on_success
   stage: setup
   tags:
     - gp-tiny
@@ -68,7 +69,11 @@ update-non-protected-branch:
 # can be triggered by any developers on non-protected branches
 trigger-kas-pipeline:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: never
+    - when: on_success
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
     BRANCH_NAME: $CI_COMMIT_BRANCH
@@ -84,10 +89,12 @@ trigger-kas-pipeline:
   stage: !reference [.trigger-kas-pipeline_template, stage]
   trigger: !reference [.trigger-kas-pipeline_template, trigger]
 
-# can only be triggered by maintainers on trunk branch, will update yocto sstate cache
-trunk-trigger-kas-pipeline:
+# can only be triggered by maintainers on protected branches, will update yocto sstate cache
+trigger-protected-kas-pipeline:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
     BRANCH_NAME: $CI_COMMIT_BRANCH
