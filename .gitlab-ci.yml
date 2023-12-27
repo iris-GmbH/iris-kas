@@ -106,19 +106,15 @@ variables:
 .target_multi_confs: &target_multi_confs
   MULTI_CONF:
     - sc573-gen6
-    - imx8mp-irma6r2
 
 .oci_multi_confs: &oci_multi_confs
   MULTI_CONF:
     - qemux86-64-r1
-    - qemux86-64-r2
 
 .all_multi_confs: &all_multi_confs
   MULTI_CONF:
     - sc573-gen6
-    - imx8mp-irma6r2
     - qemux86-64-r1
-    - qemux86-64-r2
 
 ################
 ### WORKFLOW ###
@@ -278,7 +274,7 @@ set-release-multi-confs:
       variables:
         RELEASE: "true"
         # override this if you want to release for a subset of targets.
-        RELEASE_MULTI_CONFS: "imx8mp-irma6r2 sc573-gen6"
+        RELEASE_MULTI_CONFS: "sc573-gen6"
   script:
     - echo "RELEASE_MULTI_CONFS=$RELEASE_MULTI_CONFS" >> build.env
   artifacts:
