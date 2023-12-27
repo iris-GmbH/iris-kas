@@ -563,31 +563,6 @@ develop-build-dev-deploy-image:
       allow_failure: true
 
 
-.build-test-oci:
-  extends: .build-kas
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    KAS_TARGET_RECIPE: "irma6-test"
-    KAS_ARTIFACT_SUFFIX: "-test-oci"
-
-release-build-test-oci:
-  extends: .build-test-oci
-  rules:
-    - !reference [.release_template, rules]
-  tags:
-    - kas-perf
-
-develop-build-test-oci:
-  extends: .build-test-oci
-  rules:
-    - !reference [.develop_template, rules]
-    - if: '$SKIP_OCI_TESTS == "false"'
-    - when: manual
-      allow_failure: true
-
-
 .build-sdk:
   extends: .build-kas
   parallel:
@@ -661,105 +636,6 @@ release-build-deploy:
 ##############################
 ### PUSH TEST IMAGES STAGE ###
 ##############################
-
-push-test-oci:
-  rules:
-    - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS are set to true
-    - if: '$SKIP_OCI_TESTS == "false"'
-    - when: manual
-      allow_failure: true
-  stage: push-test-images
-  needs:
-    - job: develop-ci-build-setup
-      optional: true
-    - job: release-ci-build-setup
-      optional: true
-    - job: develop-build-test-oci
-      optional: true
-    - job: release-build-test-oci
-      optional: true
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    GIT_STRATEGY: none
-    KAS_ARTIFACT_SUFFIX: "-test-oci"
-  tags:
-    - gp-tiny
-  image: quay.io/skopeo/stable:v1.13.3
-  script:
-    - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
-    - >-
-      /usr/bin/skopeo copy
-      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:${OCI_IMAGE}:latest
-      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-
-
-##################
-### TEST STAGE ###
-##################
-
-test-oci:
-  stage: test
-  needs:
-    - job: develop-ci-build-setup
-      optional: true
-    - job: release-ci-build-setup
-      optional: true
-    - job: develop-build-test-oci
-      optional: true
-    - job: release-build-test-oci
-      optional: true
-    - job: push-test-oci
-  rules:
-    - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS is set to true and not release build
-    - if: '$SKIP_OCI_TESTS == "false"'
-    - when: manual
-      allow_failure: true
-    - !reference [.develop_template, rules]
-  tags:
-    - gp
-  services:
-    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}"
-      pull_policy: always
-      alias: oci-image
-      entrypoint: ["/sbin/init"]
-  image: alpine:3.18.4
-  variables:
-    GIT_STRATEGY: none
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  before_script:
-    - apk add --no-cache openssh
-  script:
-    - echo "Waiting for SSH to become available..."
-    - TIMEOUT=0
-    - |
-      while true; do
-        if ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "cat /dev/null"; then
-          break;
-        else
-          [ $TIMEOUT -le 600 ] || { echo Error: Timeout waiting for SSH server; exit 1; }
-          echo "SSH not available yet. Waiting 5 seconds..."
-          TIMEOUT=$((TIMEOUT+5));
-          sleep 5;
-        fi;
-      done
-    - echo "Starting tests..."
-    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "TEMPDIR=/mnt test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
-  after_script:
-    - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
-  artifacts:
-    name: "${CI_JOB_NAME}"
-    when: always
-    paths:
-      - ${MULTI_CONF}-gtest_results.xml
-    reports:
-      junit: ${MULTI_CONF}-gtest_results.xml
 
 systemtest_smoke:
   stage: test
@@ -841,7 +717,6 @@ develop-push-maintenance-oci:
       optional: true
     - job: release-build-maintenance-oci
       optional: true
-    - job: test-oci
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -871,7 +746,6 @@ develop-create-sdk-container-images:
       optional: true
     - job: release-build-sdk
       optional: true
-    - job: test-oci
   tags:
     - gp
   parallel:
@@ -906,7 +780,6 @@ develop-upload-sdks:
       optional: true
     - job: release-build-sdk
       optional: true
-    - job: test-oci
   tags:
     - gp
   script:
