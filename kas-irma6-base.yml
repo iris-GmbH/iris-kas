@@ -153,7 +153,7 @@ repos:
         path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
   meta-osselot:
     url: "https://github.com/iris-GmbH/meta-osselot.git"
-    branch: "develop"
+    branch: "kirkstone"
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
