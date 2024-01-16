@@ -151,8 +151,6 @@ repos:
     patches:
       0001-Add-support-for-yocto-CVE-backports:
         path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
-      0002-Add-support-for-CVE_CHECK_IGNORE-variable:
-        path: "patches/0002-Add-support-for-CVE_CHECK_IGNORE-variable.patch"
   meta-osselot:
     url: "https://github.com/iris-GmbH/meta-osselot.git"
     branch: "develop"
