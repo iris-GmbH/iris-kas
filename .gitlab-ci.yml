@@ -599,7 +599,7 @@ release-build-dev-deploy-image:
         -X PUT \
         -H "Content-Type: application/json" \
         -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
-        --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}\", \"classifier\": \"FIRMWARE\"}" \
+        --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}\", \"classifier\": \"FIRMWARE\"}" \
         ${DEPENDENCYTRACK_API_URL}/v1/project
         export DEPENDENCYTRACK_PROJECT="$(cat resp.json | jq -r ".uuid")"
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
