@@ -66,7 +66,7 @@ variables:
   RENOVATE_EXTRA_FLAGS: ""
   FORCE_RENOVATE_RUN: "false"
   RENOVATE_DRY_RUN: "false"
-  DEPENDENCYTRACK_API_URL: "https://dependencytrack.devops.defra01.iris-sensing.net/api"
+  DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
   DEPENDENCYTRACK_PROJECT: "c8bcea87-ba60-45cf-a45f-51d956681850"
 
   USE_IDENTICAL_NAMED_BRANCHES:
