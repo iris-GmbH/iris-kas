@@ -66,7 +66,7 @@ variables:
     description: 'Set to "true" to build from scratch.'
   BUILD_TARGETS:
     value: ""
-    description: 'Set to "irma6r2" or "irma6r1" to skip steps for other system. Leave empty if all available architectures should be processed.'
+    description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1. If left empty, all available products will be built.'
 
 
 ################
@@ -125,7 +125,7 @@ default:
         if git checkout ${BRANCH_NAME} 2>/dev/null; then
           echo "Branch ${BRANCH_NAME} has been checked out in iris-kas"
         else
-          echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas."
+          echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas"
         fi
       fi
 
@@ -184,7 +184,7 @@ skip-non-default-branch-merge-pipeline:
   image: mikefarah/yq:4.33.2
   artifacts:
     paths:
-      - .multiconf-ci.generated.yml
+      - .gitlab/build-ci-template.yml
 
 release-generate-pipeline:
   extends: .generate-pipeline
@@ -193,15 +193,19 @@ release-generate-pipeline:
   script:
     - >
       if [[ "${CI_COMMIT_TAG}" =~ ^irma6r1-.* ]]; then
-        yq '.".target_multi_confs".MULTI_CONF = ["sc573-gen6"] | .".oci_multi_confs".MULTI_CONF = ["qemux86-64-r1"] | .".all_multi_confs".MULTI_CONF = ["sc573-gen6", "qemux86-64-r1"]' .gitlab/build-ci-template.yml > .multiconf-ci.generated.yml
+          yq -i '.".target_multi_confs".MULTI_CONF = ["sc573-gen6"]' .gitlab/build-ci-template.yml
+          yq -i '.".oci_multi_confs".MULTI_CONF = ["qemux86-64-r1"]' .gitlab/build-ci-template.yml
+          yq -i '.".all_multi_confs".MULTI_CONF = ["sc573-gen6", "qemux86-64-r1"]' .gitlab/build-ci-template.yml
       elif [[ "${CI_COMMIT_TAG}" =~ ^irma6r2-.* ]]; then
-        yq '.".target_multi_confs".MULTI_CONF = ["imx8mp-irma6r2"] | .".oci_multi_confs".MULTI_CONF = ["qemux86-64-r2"] | .".all_multi_confs".MULTI_CONF = ["imx8mp-irma6r2", "qemux86-64-r2"]' .gitlab/build-ci-template.yml > .multiconf-ci.generated.yml
+          yq -i '.".target_multi_confs".MULTI_CONF = ["imx8mp-irma6r2"]' .gitlab/build-ci-template.yml
+          yq -i '.".oci_multi_confs".MULTI_CONF = ["qemux86-64-r2"]' .gitlab/build-ci-template.yml
+          yq -i '.".all_multi_confs".MULTI_CONF = ["imx8mp-irma6r2", "qemux86-64-r2"]' .gitlab/build-ci-template.yml
       else
         echo "No valid multi-conf tag prefix was given"
         exit 1
       fi
     - echo "Generated child pipeline:"
-    - cat .multiconf-ci.generated.yml
+    - cat .gitlab/build-ci-template.yml
 
 develop-generate-pipeline:
   extends: .generate-pipeline
@@ -209,16 +213,29 @@ develop-generate-pipeline:
     - !reference [.develop_template, rules]
     - when: on_success
   script:
+    # if BUILD_TARGETS is defined then don't use default multi_confs
     - >
-      if [[ "${BUILD_TARGETS}" = "irma6r1" ]]; then
-        yq '.".target_multi_confs".MULTI_CONF = ["sc573-gen6"] | .".oci_multi_confs".MULTI_CONF = ["qemux86-64-r1"] | .".all_multi_confs".MULTI_CONF = ["sc573-gen6", "qemux86-64-r1"]' .gitlab/build-ci-template.yml > .multiconf-ci.generated.yml
-      elif [[ "${BUILD_TARGETS}" = "irma6r2" ]]; then
-        yq '.".target_multi_confs".MULTI_CONF = ["imx8mp-irma6r2"] | .".oci_multi_confs".MULTI_CONF = ["qemux86-64-r2"] | .".all_multi_confs".MULTI_CONF = ["imx8mp-irma6r2", "qemux86-64-r2"]' .gitlab/build-ci-template.yml > .multiconf-ci.generated.yml
-      else
-        cp .gitlab/build-ci-template.yml .multiconf-ci.generated.yml
+      if test -n "${BUILD_TARGETS}"; then
+          yq -i '.".target_multi_confs".MULTI_CONF = []' .gitlab/build-ci-template.yml
+          yq -i '.".oci_multi_confs".MULTI_CONF = []' .gitlab/build-ci-template.yml
+          yq -i '.".all_multi_confs".MULTI_CONF = []' .gitlab/build-ci-template.yml
       fi
+    - >
+      case "${BUILD_TARGETS}" in
+        *irma6r1*)
+          yq -i '.".target_multi_confs".MULTI_CONF += ["sc573-gen6"]' .gitlab/build-ci-template.yml;
+          yq -i '.".oci_multi_confs".MULTI_CONF += ["qemux86-64-r1"]' .gitlab/build-ci-template.yml;
+          yq -i '.".all_multi_confs".MULTI_CONF += ["sc573-gen6", "qemux86-64-r1"]' .gitlab/build-ci-template.yml;
+      esac
+    - >
+      case "${BUILD_TARGETS}" in
+        *irma6r2*)
+          yq -i '.".target_multi_confs".MULTI_CONF += ["imx8mp-irma6r2"]' .gitlab/build-ci-template.yml;
+          yq -i '.".oci_multi_confs".MULTI_CONF += ["qemux86-64-r2"]' .gitlab/build-ci-template.yml;
+          yq -i '.".all_multi_confs".MULTI_CONF += ["imx8mp-irma6r2", "qemux86-64-r2"]' .gitlab/build-ci-template.yml;
+      esac
     - echo "Generated child pipeline:"
-    - cat .multiconf-ci.generated.yml
+    - cat .gitlab/build-ci-template.yml
 
 
 ########################################
@@ -229,9 +246,9 @@ develop-generate-pipeline:
   stage: trigger-generated-pipeline
   trigger:
     include:
-      - artifact: .multiconf-ci.generated.yml
+      - artifact: .gitlab/build-ci-template.yml
         job: release-generate-pipeline
-      - artifact: .multiconf-ci.generated.yml
+      - artifact: .gitlab/build-ci-template.yml
         job: develop-generate-pipeline
     strategy: depend
 
@@ -241,7 +258,7 @@ release-trigger-generated-pipeline:
     - !reference [.release_template, rules]
   trigger:
     include:
-      - artifact: .multiconf-ci.generated.yml
+      - artifact: .gitlab/build-ci-template.yml
         job: release-generate-pipeline
     strategy: depend
 
@@ -252,7 +269,7 @@ develop-trigger-generated-pipeline:
     - when: on_success
   trigger:
     include:
-      - artifact: .multiconf-ci.generated.yml
+      - artifact: .gitlab/build-ci-template.yml
         job: develop-generate-pipeline
     strategy: depend
     forward:

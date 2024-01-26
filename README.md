@@ -131,12 +131,12 @@ Note, that the interactive shell is always limited to the configured `MULTI_CONF
 
 > :information_source: Before creating a release in iris-kas, ensure you have appropriate releases in meta-iris(-base) layer repositories.
 
-> :information_source: A release always represents a single release target (e.g. IRMA6R1 OR IRMA6R2), which is determined by the commit prefix. Currently supported commit prefixes are: `irma6r1-`, `irma6r2-`. Thus, the <RELEASE_VERSION> placeholder must match the following REGEX: `^irma6r[1-2]-\d+\.\d+\.\d+(-\w+)?$`. Click [here](https://regex101.com/r/Sq45x0/1) to easily validate your <RELEASE_VERSION> string.
+> :information_source: A release always represents a single product release (e.g. IRMA6R1 OR IRMA6R2), which is determined by the commit prefix. Currently supported commit prefixes are: `irma6r1-`, `irma6r2-`. Thus, the <RELEASE_VERSION> placeholder must match [this](https://regex101.com/r/Sq45x0/1) regular expression.
 
 1. Ensure your `iris-kas` develop branch is up-to-date: `git checkout develop && git pull --ff-only`.
 2. Create a release or support branch, branching of the current develop (e.g. `release/irma6r1-3.0.0`, `support/irma6r2-3.0.0-support_suffix`): `git checkout -b release/<RELEASE_VERSION>`.
-3. Run `make prepare-release`, which will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-irma6-base.lock.yml`.
-4. Verify the content of the lock file. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in the lock file appropriately.
+3. The command `MULTI_CONF=<MULTI_CONF> make prepare-release` will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-<MULTI_CONF>.lock.yml`, where `MULTI_CONF` is a MULTI_CONF relevant to the release. **Repeat this step for all product relevant MULTI_CONFs!** (e.g. for irma6r1 with `imx8mp-irma6r2` and `qemux86-64-r2`)
+4. Verify the content of the lock files. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in **all** the lock files appropriately.
 5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`.
 6. create a commit tag: `git tag <RELEASE_VERSION>`.
 7. Push commit and commit tag to remote: `git push && git push origin <RELEASE_VERSION>`.
@@ -153,8 +153,6 @@ By default `make kas` behaves identical to `make kas-build`, however it allows f
 - `KAS_ARGS="checkout" make kas`
 
 #### Reproducible builds
-
-> :information_source: Currently it is only possible to reproduce builds locally, not in CI. Amongst others, this is blocked by https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas/-/merge_requests/309
 
 We try our best to keep our builds reproducible. However, due to the nature of a floating develop HEAD split over multiple repositories, this is not a simple feat.
 
@@ -178,26 +176,16 @@ For example, if you want to create a reproducible build of the current developme
 2. create and push a `fixed/...` branch from the trunk branch in meta-iris and in its respective recipe, adjust the repository version to the branch created in step #1.
 3. create and push a `fixed/...` branch from the trunk branch in iris-kas and adjust the branch config for the meta-iris repository in the appropriate KAS config file to reference the branch created in step #2.
 
-Continue to [Local build](#local-build) or [CI build](#ci-build) for starting the reproducible build.
+##### Run a reproducible pipeline build
 
-###### Local build
-
-> :information_source: The usefulness of a local build is mostly limited to reproducing a single build (that is the combination of **one** multi-conf and **one** target recipe), as the lock file will be specific to this build configuration. If you wish to reproduce multiple build types, use a CI build instead.
-
-1. Create a build as described in [Running a build (make kas-build)](#running-a-build-make-kas-build).
-2. Run `make kas-buildhistory-collect-srcrevs` which will generate a `*.lock.yml` file within the top-dir.
-3. Commit the `*.lock.yml` to your iris-kas branch, ensuring it's availability in the future.
-4. Local rebuild of the **same** build configuration will use the fixed srcrevs. **WARNING:** Using the `*.lock.yml` file for a different build configuration might not have the desired effect, due to diverging recipes.
-
-###### CI build
-
-1. Set the variable `REPRODUCIBLE_BUILD=true` when starting the CI build for your iris-kas branch. Also, remember to include **all** build configurations that you wish to be able to reproduce later on.
+1. Set the variable `REPRODUCIBLE_BUILD=true` when starting the CI build for your iris-kas branch.
 2. After the pipeline completed successfully, KAS `*.lock.yml` artifacts will be available as artifacts in the `develop-build-reproducibility` job. These artifacts are kept for 10 years within the pipeline.
-3. When reproducing a build, download the `*.lock.yml` file for the desired build configuration from the pipeline.
-4. Local rebuild of the **same** build target will use the fixed srcrevs. **WARNING:** Using the `*.lock.yml` file for a different build configuration might not have the desired effect, due to diverging recipes.
+3. When reproducing a build, download all the `*.lock.yml` files from the pipeline.
+4. Add the `*.lock.yml` files to the root folder of iris-kas, create a commit and push it to your `fixed/*` branch.
+5. Running a pipeline from this branch will now reproduce the exact outut of the previous pipeline build.
 
 ###### Working with the KAS lock file
 
-The KAS `*.lock.yml` file generated during the reproducible build setup steps contains the exact git hashes for both the meta-layers, as well as the recipe components that were used at the time of building. KAS will automatically include this file if it is present next to the original configuration file at the time of running the `kas` command.
+The KAS `*.lock.yml` files generated during the reproducible build setup steps contain the exact git hashes for both the meta-layers, as well as the recipe components that were used at the time of building. KAS will automatically include these files if they are present next to the original configuration files at the time of running the `kas` command.
 
-You can adjust the used source revision of one or more components simply by opening the lock file within an editor and updating the appropriate `SRCREV` value to a new valid commit. Keep in mind, that if you wish to keep the updated lock file reproducible, the same rules regarding commit availability applies to the new commits referenced by the updated commit SHAs.
+You can adjust the used source revision of one or more components simply by opening the lock files within an editor and updating the appropriate `SRCREV` value to a new valid commit. Keep in mind, that if you wish to keep the updated lock files reproducible, the same rules regarding commit availability applies to the new commits referenced by the updated commit SHAs.

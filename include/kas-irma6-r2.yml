@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+  includes:
+    - include/kas-base-repos.yml
+    - include/kas-meta-iris-base.yml
+
+bblayers_conf_header:
+  fsl_eula: |
+    ACCEPT_FSL_EULA = "1"
+
+repos:
+  # irma6 HWv2 repos
+  meta-freescale:
+    url: "https://github.com/Freescale/meta-freescale.git"
+    branch: "kirkstone"
+    patches:
+      0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
+        path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
+      0001-Replace-tinycompress-src_uri:
+        path: "patches/0001-Replace-tinycompress-src_uri.patch"
+      0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
+        path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
+  meta-freescale-3rdparty:
+    url: "https://github.com/Freescale/meta-freescale-3rdparty"
+    branch: "kirkstone"
+  meta-freescale-distro:
+    url: "https://github.com/Freescale/meta-freescale-distro"
+    branch: "kirkstone"
+  meta-swupdate:
+    url: "https://github.com/sbabic/meta-swupdate"
+    branch: "kirkstone"
+  meta-secure-imx:
+    url: "https://source.denx.de/denx/meta-secure-imx.git"
+    branch: "dunfell"
+    patches:
+      0001-APC-5918-Remove-bbappend-for-cryptsetup:
+        path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
+      0002-meta-secure-imx-Update-to-new-override-syntax:
+        path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
+  meta-dependencytrack:
+    url: "https://github.com/bgnetworks/meta-dependencytrack.git"
+    branch: "main"
+    patches:
+      0001-Add-support-for-yocto-CVE-backports:
+        path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"

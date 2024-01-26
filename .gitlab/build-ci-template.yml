@@ -119,8 +119,9 @@ include:
 stages:
   - setup
   - build-container
-  - yocto-setup
+  - ci-environment-setup
   - wipe-sstate-caches
+  - kas-lockfiles
   - build
   - push-test-images
   - test
@@ -241,7 +242,7 @@ merge-container-manifests:
 # Unfortunately, yocto does not automatically remove these
 # which in the worst case may lead to significant longer build times.
 download-mirror-maintenance:
-  stage: yocto-setup
+  stage: ci-environment-setup
   rules:
     - if: '$RUN_MAINTENANCE == "true"'
   script:
@@ -250,10 +251,12 @@ download-mirror-maintenance:
 
 # This job will do the develop build setup
 develop-ci-build-setup:
-  stage: yocto-setup
+  stage: ci-environment-setup
   rules:
     - !reference [.develop_template, rules]
     - when: on_success
+  tags:
+    - gp-tiny
   script:
     # set development distro version
     - echo "IRMA6_DISTRO_VERSION=$(cat gitversion.json | jq -r '.MajorMinorPatch')-pipeline-${CI_PIPELINE_ID}-dev" >> build.env
@@ -281,12 +284,6 @@ develop-ci-build-setup:
       fi
     - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
     - echo "BRANCH_NAME=${BRANCH_NAME}" >> build.env;
-    # if USE_IDENTICAL_NAMED_BRANCHES is set to true, we attempt to checkout BRANCH_NAME in meta-iris(-base) layers.
-    # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
-    - >
-      if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ]; then
-        make kas-checkout-branch-in-iris-layers
-      fi
     # we append develop specific KASFILE_EXTRA
     - KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-develop.yml"
     - >
@@ -297,21 +294,12 @@ develop-ci-build-setup:
         echo "SSTATE_DIR=${SSTATE_CACHE}" >> build.env
       fi
     - echo "KASFILE_EXTRA=${KASFILE_EXTRA}" >> build.env
-    # we finish by generating a kas lock file, which will be used by all following build jobs,
-    # unless there is already a lock file checked in.
-    - >
-      if ! ls *.lock.yml >/dev/null 2>&1; then
-        make kas-dump-lockfile
-      fi
-
   artifacts:
-    paths:
-      - "*.lock.yml"
     reports:
       dotenv: build.env
 
 release-ci-build-setup:
-  stage: yocto-setup
+  stage: ci-environment-setup
   rules:
     - !reference [.release_template, rules]
   image: busybox:1.36.1-uclibc
@@ -323,12 +311,6 @@ release-ci-build-setup:
     - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
     - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_TAG}-" >> build.env
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
-    - echo "Ensuring that kas lockfile exists..."
-    - >
-      if ! ls *.lock.yml >/dev/null 2>&1; then
-        echo "Error: Could not find a KAS lockfile. Please read the README section on how to create a release."
-        exit 1
-      fi
   artifacts:
     reports:
       dotenv: build.env
@@ -348,6 +330,50 @@ wipe-sstate-caches:
     - echo "Ensure you also reset the yocto hashservice database!"
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} +
 
+
+###########################
+### KAS LOCKFILES STAGE ###
+###########################
+
+release-ensure-lockfiles-exist:
+  rules:
+    - !reference [.release_template, rules]
+  image: busybox:1.36.1-uclibc
+  parallel:
+    matrix:
+      - <<: *all_multi_confs
+  script:
+    - echo "Ensuring that kas lockfile for MULTI_CONF ${MULTI_CONF} exists..."
+    - >
+      if ! test -e kas-${MULTI_CONF}.lock.yml; then
+        echo "Error: Could not find a KAS lockfile for MULTI_CONF ${MULTI_CONF}. Please read the README section on how to create a release."
+        exit 1
+      fi
+
+develop-create-kas-lockfiles:
+  rules:
+    - !reference [.develop_template, rules]
+    - when: on_success
+  stage: kas-lockfiles
+  parallel:
+    matrix:
+      - <<: *all_multi_confs
+  script:
+    # if USE_IDENTICAL_NAMED_BRANCHES is set to true, we attempt to checkout BRANCH_NAME in meta-iris(-base) layers.
+    # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
+    - >
+      if [ "${USE_IDENTICAL_NAMED_BRANCHES}" = "true" ]; then
+        make kas-checkout-branch-in-iris-layers
+      fi
+    # we generate a kas lock file, which will be used by all following build jobs for this release,
+    # unless there is already a lock file checked in for reproducible builds
+    - >
+      if ! test -e "kas-${MULTI_CONF}.lock.yml"; then
+        make kas-dump-lockfile
+      fi
+  artifacts:
+    paths:
+      - "kas-${MULTI_CONF}.lock.yml"
 
 ###################
 ### BUILD STAGE ###
