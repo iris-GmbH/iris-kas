@@ -26,6 +26,8 @@ local_conf_header:
     SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
   hashservice: |
     BB_HASHSERVE ?= "auto"
+  prservice: |
+    PRSERV_HOST ?= "localhost:0"
   build_history: |
     INHERIT += "buildhistory"
     BUILDHISTORY_COMMIT ?= "1"
