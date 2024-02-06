@@ -60,7 +60,7 @@ repos:
     branch: "kirkstone"
   # general repos
   poky:
-    url: "https://git.yoctoproject.org/git/poky"
+    url: "https://github.com/yoctoproject/poky.git"
     branch: "kirkstone"
     layers:
       meta:
@@ -91,7 +91,7 @@ repos:
       0001-cve_check-Fix-cpe_id-generation:
         path: "patches/0001-cve_check-Fix-cpe_id-generation.patch"
   meta-openembedded:
-    url: "https://git.openembedded.org/meta-openembedded"
+    url: "https://github.com/openembedded/meta-openembedded.git"
     branch: "kirkstone"
     layers:
       meta-oe:
