@@ -292,7 +292,7 @@ develop-ci-build-setup:
     - >
       if test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
         # trunk branch specific configs
-        KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-populate-caches.yml"
+        KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-trunk-branch.yml"
         echo "REPRODUCIBLE_BUILD=true" >> build.env
         echo "SSTATE_DIR=${SSTATE_CACHE}" >> build.env
       fi
@@ -468,7 +468,7 @@ release-build-dev-deploy-image:
     - kas-perf
   script:
     # archive copy-left sources for license compliance
-    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml"
+    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml:include/kas-osselot.yml"
     # create and populate a seperate DT project during release
     - >
       if test "${MULTI_CONF}" = "imx8mp-irma6r2"; then
@@ -501,6 +501,13 @@ develop-build-dev-deploy-image:
     - when: manual
       allow_failure: true
   script:
+    # include osselot tasks when default branch run
+    - >
+      if test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
+        echo "Including Osselot tasks..."
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-osselot.yml"
+      fi
+    # include dependencytrack tasks when R2 and default branch run
     - >
       if test "${MULTI_CONF}" = "imx8mp-irma6r2" && test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
         echo "Including DT tasks..."
@@ -614,8 +621,8 @@ release-build-deploy:
   variables:
     KAS_TARGET_RECIPE: "irma6-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-deploy"
-    KASFILE_EXTRA: ":include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml"
   script:
+    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml:include/kas-osselot.yml"
     - make kas-build
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
