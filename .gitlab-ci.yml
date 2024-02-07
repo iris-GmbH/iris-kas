@@ -255,3 +255,5 @@ develop-trigger-generated-pipeline:
       - artifact: .multiconf-ci.generated.yml
         job: develop-generate-pipeline
     strategy: depend
+    forward:
+      pipeline_variables: true
