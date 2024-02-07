@@ -398,13 +398,13 @@ develop-build-maintenance-image:
   variables:
     KAS_TARGET_RECIPE: "irma6-dev-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev"
+  tags:
+    - kas-perf
 
 release-build-dev-image:
   extends: .build-dev-image
   rules:
     - !reference [.release_template, rules]
-  tags:
-    - kas-perf
 
 develop-build-dev-image:
   extends: .build-dev-image
