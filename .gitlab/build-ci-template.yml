@@ -272,10 +272,12 @@ develop-ci-build-setup:
     # depending on pipeline source, the name of the current branch (or upstream branch) is saved as different variables. Unify into a single variable.
     # if called from an upstream project, the BRANCH_NAME variable is already defined.
     - >
-      if [ -n "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" ]; then
-          export BRANCH_NAME="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
-      elif [ -n "${CI_COMMIT_BRANCH}" ] && [ -z "${UPSTREAM_PROJECT_NAME}" ]; then
-          export BRANCH_NAME="$CI_COMMIT_BRANCH"
+      if [ -z "${BRANCH_NAME}" ]; then
+        if [ -n "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" ]; then
+            export BRANCH_NAME="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+        elif [ -n "${CI_COMMIT_BRANCH}" ] && [ -z "${UPSTREAM_PROJECT_NAME}" ]; then
+            export BRANCH_NAME="$CI_COMMIT_BRANCH"
+        fi
       fi
     - echo "BRANCH_NAME variable is set to ${BRANCH_NAME}"
     - echo "BRANCH_NAME=${BRANCH_NAME}" >> build.env;
