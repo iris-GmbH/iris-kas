@@ -15,7 +15,7 @@
     - [Running a build (make kas-build)](#running-a-build-make-kas-build)
     - [Updating layer repositories](#updating-layer-repositories)
     - [Running an interactive KAS shell (make kas-shell)](#running-an-interactive-kas-shell-make-kas-shell)
-    - [Creating a release](#creating-a-release)
+    - [Creating a Release](#creating-a-release)
     - [Advanced use-cases](#advanced-use-cases)
       - [Running arbitrary KAS commands (make kas)](#running-arbitrary-kas-commands-make-kas)
       - [Reproducible builds](#reproducible-builds)
@@ -127,20 +127,20 @@ You can start an interactive shell within the KAS/bitbake build environment by r
 
 Note, that the interactive shell is always limited to the configured `MULTI_CONF`. For example, if you intend to start an interactive shell for the IRMA6 R1 build environment, use the following command: `MULTI_CONF=sc573-gen6 make kas-shell`
 
-### Creating a release
+### Creating a Release
 
 > :information_source: Before creating a release in iris-kas, ensure you have appropriate releases in meta-iris(-base) layer repositories.
 
-1. Ensure your develop branch is up-to-date: `git checkout develop && git pull --ff-only`
-2. Create a release or support branch, branching of the current develop (e.g. `release/3.0.0`, `support/3.0.0-support-suffix`): `git checkout -b release/3.0.0`
+> :information_source: A release always represents a single release target (e.g. IRMA6R1 OR IRMA6R2), which is determined by the commit prefix. Currently supported commit prefixes are: `irma6r1-`, `irma6r2-`. Thus, the <RELEASE_VERSION> placeholder must match the following REGEX: `^irma6r[1-2]-\d+\.\d+\.\d+(-\w+)?$`. Click [here](https://regex101.com/r/Sq45x0/1) to easily validate your <RELEASE_VERSION> string.
+
+1. Ensure your `iris-kas` develop branch is up-to-date: `git checkout develop && git pull --ff-only`.
+2. Create a release or support branch, branching of the current develop (e.g. `release/irma6r1-3.0.0`, `support/irma6r2-3.0.0-support_suffix`): `git checkout -b release/<RELEASE_VERSION>`.
 3. Run `make prepare-release`, which will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-irma6-base.lock.yml`.
 4. Verify the content of the lock file. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in the lock file appropriately.
-5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`
-6. create a commit tag: `git tag <RELEASE_VERSION>`
-7. Push commit and commit tag to remote: `git push && git push origin <RELEASE_VERSION>`
-8. Wait for the automatically triggered GitLab release pipeline to reach the manually triggerable `set-release-multi-confs` job. The pipeline will now be in a "blocked" state, waiting for user input. If you plan to release for a single multi-conf (e.g. sc573-gen6), you may now override the variable `RELEASE_MULTI_CONFS` (by default this variable is set to `imx8mp-irma6r2 sc573-gen6`) and trigger the job. Note that due to a [limitation in GitLab
-   CI](https://gitlab.com/gitlab-org/gitlab/-/issues/11549), all releases will be currently built independently of the content of `RELEASE_MULTI_CONFS`. The latter will only affect the publication of build artifacts on GitLab packages and the GitLab release page.
-9. If the release build was successful run the manual `release-clean-sstate-cache` job to finalize the release pipeline.
+5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`.
+6. create a commit tag: `git tag <RELEASE_VERSION>`.
+7. Push commit and commit tag to remote: `git push && git push origin <RELEASE_VERSION>`.
+8. Wait for the automatically triggered pipeline to succeed.
 
 ### Advanced use-cases
 #### Running arbitrary KAS commands (make kas)
