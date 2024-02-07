@@ -17,6 +17,9 @@ variables:
   SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance image build'
+  SKIP_DEPLOY_IMAGE_BUILD:
+    value: "true"
+    description: 'Set to "false" to build the deploy image'
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
