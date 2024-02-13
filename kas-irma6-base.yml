@@ -39,8 +39,8 @@ local_conf_header:
       HALT,${DL_DIR},100M,1K \
       HALT,${SSTATE_DIR},100M,1K \
       HALT,/tmp,10M,1K"
-  osselot: |
-    INHERIT += "osselot"
+  #osselot: |
+  #  INHERIT += "osselot"
 defaults:
   repos:
     patches:
