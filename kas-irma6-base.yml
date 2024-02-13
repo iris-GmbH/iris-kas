@@ -41,6 +41,8 @@ local_conf_header:
       HALT,${DL_DIR},100M,1K \
       HALT,${SSTATE_DIR},100M,1K \
       HALT,/tmp,10M,1K"
+  #osselot: |
+  #  INHERIT += "osselot"
 defaults:
   repos:
     patches:
@@ -52,7 +54,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    branch: "develop"
+    commit: "dbc44e697fb19df16f63176450cd80793f1c2b91"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     branch: "kirkstone"
