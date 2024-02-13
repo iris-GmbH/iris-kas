@@ -7,4 +7,4 @@ header:
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    branch: "master"
+    commit: "63525644e4c60977aa55a6da1e1cc8c43c73c886"

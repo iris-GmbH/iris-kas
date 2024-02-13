@@ -66,6 +66,8 @@ export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-
 	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
+export KAS_BASE_CONFIG_FILE ?= kas-irma6-base.yml
+export KAS_BASE_CONFIG_LOCK_FILE = $(subst .yml,.lock.yml,${KAS_BASE_CONFIG_FILE})
 
 #####################################
 ### ADVANCED KAS COMMAND SETTINGS ###
@@ -130,7 +132,7 @@ export KAS_TARGET
 
 # finalize KASFILE into list
 $(foreach word,${KASFILE_EXTRA},$(eval KASFILE_EXTRA_LIST := ${KASFILE_EXTRA_LIST}$(word)))
-KASFILE_GENERATED := kas-irma6-base.yml${KASFILE_EXTRA_LIST}
+KASFILE_GENERATED := ${KAS_BASE_CONFIG_FILE}${KASFILE_EXTRA_LIST}
 
 ######################
 ### MAKEFILE TASKS ###
@@ -177,6 +179,20 @@ run-qemu:
 kas-dump-lockfile:
 	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}
 
+kas-buildhistory-collect-srcrevs:
+	@# only create a kas lockfile, if it does not yet exist
+	if ! ls ${MAKEFILE_DIR}/${KAS_BASE_CONFIG_LOCK_FILE} >/dev/null 2>&1; then \
+		echo "No previous lockfile detected, creating one..."; \
+		${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}; \
+	fi
+	@# collect srcrevs from the previous buildhistory (do some sed magic to escape double quotes in the resulting string) into the kas lock file
+	${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs -a | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
+
+develop-prepare-reproducible-build: kas-buildhistory-collect-srcrevs
+	@echo "Prepared a reproducible build for target mc:${MULTI_CONF}:${KAS_TARGET_RECIPE}."
+	@echo "Please commit the generated lock file to your feature branch within this project."
+	@echo "CAUTION: We can only guarantee reproducibility for changes commited to protected branches within yocto layer and component repositories!"
+
 kas-checkout-branch-in-iris-layers:
 	${KAS_COMMAND} for-all-repos ${KASFILE}:include/kas-branch-name-env.yml ' \
 		if echo "$${KAS_REPO_NAME}" | grep -qvE "^meta-iris(-base)?$$"; then \
@@ -188,7 +204,7 @@ kas-checkout-branch-in-iris-layers:
 			if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
 				KASFILE_FILE="kas-irma6-pa.yml"; \
 			else \
-				KASFILE_FILE="kas-irma6-base.yml"; \
+				KASFILE_FILE="${KAS_BASE_CONFIG_FILE}"; \
 			fi; \
 			yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KASFILE_FILE}; \
 		fi; \
