@@ -79,3 +79,6 @@ repos:
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     branch: "kirkstone"
+  meta-osselot:
+    url: "https://github.com/iris-GmbH/meta-osselot.git"
+    branch: "kirkstone"
