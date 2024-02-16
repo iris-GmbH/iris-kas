@@ -66,7 +66,7 @@ export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-
 	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
-export KAS_BASE_CONFIG_FILE ?= kas-irma6-base.yml
+export KAS_BASE_CONFIG_FILE ?= kas-${MULTI_CONF}.yml
 export KAS_BASE_CONFIG_LOCK_FILE = $(subst .yml,.lock.yml,${KAS_BASE_CONFIG_FILE})
 
 #####################################
@@ -106,15 +106,8 @@ ifeq (${RELEASE}, true)
 KASFILE_EXTRA += :include/kas-release.yml
 endif
 
-ifneq (, ${MULTI_CONF})
-# check if multiconf target override exists to speed up recipe parse time
-ifneq (,$(wildcard ${MAKEFILE_DIR}include/kas-irma6-${MULTI_CONF}.yml))
-KASFILE_EXTRA += :include/kas-irma6-${MULTI_CONF}.yml
-endif
-endif
-
 ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
-KASFILE_EXTRA += :kas-irma6-pa.yml
+KASFILE_EXTRA += :include/kas-irma6-pa.yml
 export KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
 endif
 
@@ -147,6 +140,9 @@ kas:
 
 kas-shell:
 	${KAS_COMMAND} shell ${KASOPTIONS} ${KASFILE}
+
+kas-for-all-repos:
+	${KAS_COMMAND} for-all-repos ${KASOPTIONS} ${KASFILE} ${KAS_FOR_ALL_REPOS_COMMAND}
 
 # Updates the README table of contents
 update-toc:
@@ -202,9 +198,9 @@ kas-checkout-branch-in-iris-layers:
 		if git checkout "$${BRANCH_NAME}" 2>/dev/null; then \
 			echo "Branch $${BRANCH_NAME} has been checked out in $${KAS_REPO_NAME}"; \
 			if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
-				KASFILE_FILE="kas-irma6-pa.yml"; \
+				KASFILE_FILE="include/kas-irma6-pa.yml"; \
 			else \
-				KASFILE_FILE="${KAS_BASE_CONFIG_FILE}"; \
+				KASFILE_FILE="include/kas-meta-iris-base.yml"; \
 			fi; \
 			yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KASFILE_FILE}; \
 		fi; \
