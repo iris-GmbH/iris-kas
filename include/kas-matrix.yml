@@ -1,0 +1,107 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+  includes:
+    - include/kas-meta-iris-base.yml
+    - include/kas-iris-product.yml
+
+env:
+  IRIS_PRODUCT: matrix
+
+bblayers_conf_header:
+  fsl_eula: |
+    ACCEPT_FSL_EULA = "1"
+
+repos:
+  # general repos
+  poky:
+    url: "https://github.com/yoctoproject/poky.git"
+    commit: "a57506c46d92bf0767060102d2139be06d46f575"
+    layers:
+      meta:
+      meta-poky:
+    patches:
+      # backports for making hatchling python build backend work
+      0001-python3-manifest-add-ensurepip:
+        path: "patches/0001-python3-manifest-add-ensurepip.patch"
+      # Fix CPE generation for SBOM generation used in dependencytrack
+      0001-cve_check-Fix-cpe_id-generation:
+        path: "patches/0001-cve_check-Fix-cpe_id-generation.patch"
+  meta-openembedded:
+    url: "https://github.com/openembedded/meta-openembedded.git"
+    commit: "922f41b39f364e5b6be596b4b51e0fb37ffe1971"
+    layers:
+      meta-oe:
+      meta-python:
+      meta-networking:
+      meta-webserver:
+      meta-filesystems:
+    patches:
+      # Backport and fix python3-platformdirs, dependency for python3-virtualenv,
+      # in turn dependency for python3-tox
+      0001-Backport-python3-platformdirs-to-kirkstone:
+        path: "patches/0001-Backport-python3-platformdirs-to-kirkstone.patch"
+      0001-Backport-python3-pytest-mock-to-kirkstone:
+        path: "patches/0001-Backport-python3-pytest-mock-to-kirkstone.patch"
+      0001-python3-pytest-cov-Add-initial-recipe-4.1.0:
+        path: "patches/0001-python3-pytest-cov-Add-initial-recipe-4.1.0.patch"
+      0002-python3-covdefaults-Add-initial-recipe-2.3.0:
+        path: "patches/0002-python3-covdefaults-Add-initial-recipe-2.3.0.patch"
+      0003-python3-platformdirs-Fix-recipe-version-3.6.0:
+        path: "patches/0003-python3-platformdirs-Fix-recipe-version-3.6.0.patch"
+      # Add python3-distlib, dependency for python3-virtualenv
+      0001-python3-distlib-Add-initial-recipe-0.3.6:
+        path: "patches/0001-python3-distlib-Add-initial-recipe-0.3.6.patch"
+      # Add python3-filelock, dependency for python3-virtualenv and python3-tox
+      0002-python3-filelock-Add-initial-recipe-3.12.0:
+        path: "patches/0002-python3-filelock-Add-initial-recipe-3.12.0.patch"
+      # Add python3-virtualenv, dependency for python3-tox
+      0003-python3-virtualenv-Add-initial-recipe-20.23.0:
+        path: "patches/0003-python3-virtualenv-Add-initial-recipe-20.23.0.patch"
+      # Add python3-pyproject-api, dependency for python3-tox
+      0004-python3-pyproject-api-Add-initial-recipe-1.5.1:
+        path: "patches/0004-python3-pyproject-api-Add-initial-recipe-1.5.1.patch"
+      # Add python3-tox
+      0005-python3-tox-Add-initial-recipe-4.6.0:
+        path: "patches/0005-python3-tox-Add-initial-recipe-4.6.0.patch"
+      # Add patch for Json-schema.-validator
+      0001-json-schema-validator-Updrade-to-2.2.0.patch:
+        path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
+  meta-iris-thirdparty:
+    url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
+    branch: "mickledore"
+  meta-osselot:
+    url: "https://github.com/iris-GmbH/meta-osselot.git"
+    branch: "mickledore"
+  # irma6 HWv2 repos
+  meta-freescale:
+    url: "https://github.com/Freescale/meta-freescale.git"
+    commit: "7327e03c61823268a5a957fe090c4cc5e1735b34"
+    patches:
+      0001-Replace-tinycompress-src_uri:
+        path: "patches/0001-Replace-tinycompress-src_uri.patch"
+  meta-freescale-3rdparty:
+    url: "https://github.com/Freescale/meta-freescale-3rdparty"
+    commit: "bccd93f1ceece608e69799b6fc8f79e8a519f89e"
+  meta-freescale-distro:
+    url: "https://github.com/Freescale/meta-freescale-distro"
+    commit: "7956a0ab407a33c40fdc6eb4fabdcb7dc54fd359"
+  meta-swupdate:
+    url: "https://github.com/sbabic/meta-swupdate"
+    branch: "kirkstone"
+  meta-secure-imx:
+    url: "https://source.denx.de/denx/meta-secure-imx.git"
+    branch: "dunfell"
+    patches:
+      0001-APC-5918-Remove-bbappend-for-cryptsetup:
+        path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
+      0002-meta-secure-imx-Update-to-new-override-syntax:
+        path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
+  meta-dependencytrack:
+    url: "https://github.com/bgnetworks/meta-dependencytrack.git"
+    branch: "main"
+    patches:
+      0001-Add-support-for-yocto-CVE-backports:
+        path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"

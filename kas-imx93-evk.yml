@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+  includes:
+    - include/kas-irma6-base.yml
+    - include/kas-matrix.yml
+
+target:
+  - multiconfig:imx93-evk
+
+# workaround to avoid base qemu build
+machine: imx93-matrix-evk
