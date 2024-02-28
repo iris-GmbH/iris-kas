@@ -6,6 +6,7 @@ MAKEFILE_DIR := $(dir ${MAKEFILE_PATH})
 .DEFAULT_GOAL := kas-build
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
+DEFAULT_IRMA6_DISTRO_VERSION := 0.0-unknown
 
 .PHONY: kas-build kas
 
@@ -41,16 +42,6 @@ export KAS_TMPDIR ?= ${MAKEFILE_DIR}/build/tmp
 export DL_DIR ?= ${MAKEFILE_DIR}/build/dl_dir
 export SSTATE_DIR ?= ${MAKEFILE_DIR}/build/sstate_dir
 
-####################################
-### ADVANCED GITVERSION SETTINGS ###
-####################################
-
-export GITVERSION_REPO_PATH ?= /repo
-# TODO: add renovate regex rule
-export GITVERSION_CONTAINER_IMAGE ?= gittools/gitversion:6.0.0-alpine.3.17-7.0
-export GITVERSION_CMD ?= docker run --rm --user ${USER_ID}:${GROUP_ID} -v ${MAKEFILE_DIR}:${GITVERSION_REPO_PATH} ${GITVERSION_CONTAINER_IMAGE}
-export IRMA6_DISTRO_VERSION ?= $(shell ${GITVERSION_CMD} ${GITVERSION_REPO_PATH} | jq -r '.MajorMinorPatch')${IRMA6_DISTRO_VERSION_DEV_SUFFIX}
-
 #####################################
 ### ADVANCED KAS RUNTIME SETTINGS ###
 #####################################
@@ -60,6 +51,7 @@ export KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-pr
 # TODO: Use --ssh-agent instead of --ssh-dir. Adjust SELinux rules and resolve remote host validation failure.
 export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR}
 export IRIS_KAS_CONTAINER_PULL ?= always
+export IRMA6_DISTRO_VERSION ?= ${DEFAULT_IRMA6_DISTRO_VERSION}
 export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
 	--pull ${IRIS_KAS_CONTAINER_PULL} \
@@ -126,6 +118,19 @@ export KAS_TARGET
 # finalize KASFILE into list
 $(foreach word,${KASFILE_EXTRA},$(eval KASFILE_EXTRA_LIST := ${KASFILE_EXTRA_LIST}$(word)))
 KASFILE_GENERATED := ${KAS_BASE_CONFIG_FILE}${KASFILE_EXTRA_LIST}
+
+# Get iris product name from outside of the KAS environment
+# Due to a bug in kas (https://github.com/siemens/kas/issues/108), we add | head -n 1 to only output the echoed line.
+export IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' ${KASFILE} | head -n 1)
+# Re-assigning the variable with := prevents re-running the KAS command everytime the variable is referenced
+export IRIS_PRODUCT := ${IRIS_PRODUCT}
+# Use the IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
+ifeq (${DEFAULT_IRMA6_DISTRO_VERSION}, ${IRMA6_DISTRO_VERSION})
+ifneq (${CI_PIPELINE_ID},)
+GENERATE_NEXT_VERSION_PIPELINE_ARGS := -i ${CI_PIPELINE_ID}
+endif
+export IRMA6_DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
+endif
 
 ######################
 ### MAKEFILE TASKS ###
