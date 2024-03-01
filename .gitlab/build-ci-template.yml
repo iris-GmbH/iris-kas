@@ -159,21 +159,6 @@ build-container-get-tag:
     reports:
       dotenv: build.env
 
-develop-get-next-firmware-version:
-  stage: setup
-  rules:
-    - !reference [.develop_template, rules]
-    - when: on_success
-  image: gittools/gitversion:6.0.0-alpine.3.17-7.0
-  variables:
-    # workaround for issues on detached head: https://github.com/GitTools/GitVersion/issues/1627
-    IGNORE_NORMALISATION_GIT_HEAD_MOVE: "1"
-  script:
-    - /tools/dotnet-gitversion ${CI_PROJECT_DIR} -output file -outputfile gitversion.json
-  artifacts:
-    paths:
-      - gitversion.json
-
 ###################################
 ### BUILD BUILD CONTAINER STAGE ###
 ###################################
@@ -258,8 +243,6 @@ develop-ci-build-setup:
   tags:
     - gp-tiny
   script:
-    # set development distro version
-    - echo "IRMA6_DISTRO_VERSION=$(cat gitversion.json | jq -r '.MajorMinorPatch')-pipeline-${CI_PIPELINE_ID}-dev" >> build.env
     # set OCI tag
     - >
       if test -n "${UPSTREAM_PROJECT_NAME}"; then
