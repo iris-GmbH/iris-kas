@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
 
+.RECIPEPREFIX := >
 MAKEFILE_PATH := $(abspath $(lastword ${MAKEFILE_LIST}))
 MAKEFILE_DIR := $(dir ${MAKEFILE_PATH})
 .DEFAULT_GOAL := kas-build
@@ -91,25 +92,25 @@ export BRANCH_NAME ?= master
 ######################
 
 ifeq (${RELEASE}, false)
-IRMA6_DISTRO_VERSION_DEV_SUFFIX := -dev
+	IRMA6_DISTRO_VERSION_DEV_SUFFIX := -dev
 endif
 
 ifeq (${RELEASE}, true)
-KASFILE_EXTRA += :include/kas-release.yml
+	KASFILE_EXTRA += :include/kas-release.yml
 endif
 
 ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
-KASFILE_EXTRA += :include/kas-irma6-pa.yml
-export KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
+	KASFILE_EXTRA += :include/kas-irma6-pa.yml
+	export KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
 endif
 
 ifeq (${BUILD_FROM_SCRATCH}, true)
-KAS_EXTRA_BITBAKE_ARGS += --no-setscene
+	KAS_EXTRA_BITBAKE_ARGS += --no-setscene
 endif
 
 # if KAS_TARGET_RECIPE contains "irma6-deploy", set distro accordingly
 ifeq (irma6-deploy, $(findstring irma6-deploy, ${KAS_TARGET_RECIPE}))
-export KAS_DISTRO ?= poky-iris-deploy
+	export KAS_DISTRO ?= poky-iris-deploy
 endif
 
 $(foreach word, ${KAS_TARGET_RECIPE},$(eval KAS_TARGET ?= ${KAS_TARGET} mc:${MULTI_CONF}:$(word)))
@@ -126,10 +127,10 @@ export IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' $
 export IRIS_PRODUCT := ${IRIS_PRODUCT}
 # Use the IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
 ifeq (${DEFAULT_IRMA6_DISTRO_VERSION}, ${IRMA6_DISTRO_VERSION})
-ifneq (${CI_PIPELINE_ID},)
-GENERATE_NEXT_VERSION_PIPELINE_ARGS := -i ${CI_PIPELINE_ID}
-endif
-export IRMA6_DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
+	ifneq (${CI_PIPELINE_ID},)
+		GENERATE_NEXT_VERSION_PIPELINE_ARGS := -i ${CI_PIPELINE_ID}
+	endif
+	export IRMA6_DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
 endif
 
 ######################
@@ -138,81 +139,81 @@ endif
 
 # default task: run kas build
 kas-build:
-	${KAS_COMMAND} build ${KASOPTIONS} ${KASFILE} -- ${KAS_EXTRA_BITBAKE_ARGS}
+> ${KAS_COMMAND} build ${KASOPTIONS} ${KASFILE} -- ${KAS_EXTRA_BITBAKE_ARGS}
 
 kas:
-	${KAS_COMMAND} ${KAS_ARGS} ${KASOPTIONS} ${KASFILE}
+> ${KAS_COMMAND} ${KAS_ARGS} ${KASOPTIONS} ${KASFILE}
 
 kas-shell:
-	${KAS_COMMAND} shell ${KASOPTIONS} ${KASFILE}
+> ${KAS_COMMAND} shell ${KASOPTIONS} ${KASFILE}
 
 kas-for-all-repos:
-	${KAS_COMMAND} for-all-repos ${KASOPTIONS} ${KASFILE} ${KAS_FOR_ALL_REPOS_COMMAND}
+> ${KAS_COMMAND} for-all-repos ${KASOPTIONS} ${KASFILE} ${KAS_FOR_ALL_REPOS_COMMAND}
 
 # Updates the README table of contents
 update-toc:
-	doctoc --github --title "**Table of Contents**" README.md
+> doctoc --github --title "**Table of Contents**" README.md
 
 build-iris-kas-container:
-	docker build -t ${KAS_CONTAINER_IMAGE} -f ${MAKEFILE_DIR}Dockerfile_iris_kas ${MAKEFILE_DIR}
+> docker build -t ${KAS_CONTAINER_IMAGE} -f ${MAKEFILE_DIR}Dockerfile_iris_kas ${MAKEFILE_DIR}
 
 clean-tmp-dir:
-	rm -rf ${KAS_TMPDIR}
+> rm -rf ${KAS_TMPDIR}
 
 clean-dl-dir:
-	rm -rf ${DL_DIR}
+> rm -rf ${DL_DIR}
 
 clean-sstate-dir:
-	rm -rf ${SSTATE_DIR}
+> rm -rf ${SSTATE_DIR}
 
 clean-builddir:
-	rm -rf ${KAS_BUILD_DIR}
+> rm -rf ${KAS_BUILD_DIR}
 
 kas-update:
-	${KAS_COMMAND} checkout --update ${KASFILE}
+> ${KAS_COMMAND} checkout --update ${KASFILE}
 
 kas-force-update:
-	${KAS_COMMAND} checkout --update --force-checkout ${KASFILE}
+> ${KAS_COMMAND} checkout --update --force-checkout ${KASFILE}
 
 run-qemu:
-	${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
+> ${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
 
 kas-dump-lockfile:
-	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}
+> ${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}
 
 kas-buildhistory-collect-srcrevs:
-	@# only create a kas lockfile, if it does not yet exist
-	if ! ls ${MAKEFILE_DIR}/${KAS_BASE_CONFIG_LOCK_FILE} >/dev/null 2>&1; then \
-		echo "No previous lockfile detected, creating one..."; \
-		${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}; \
-	fi
-	@# collect srcrevs from the previous buildhistory (do some sed magic to escape double quotes in the resulting string) into the kas lock file
-	${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs -a | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
+> @# only create a kas lockfile, if it does not yet exist
+> if ! ls ${MAKEFILE_DIR}/${KAS_BASE_CONFIG_LOCK_FILE} >/dev/null 2>&1; then \
+>	echo "No previous lockfile detected, creating one..."; \
+>	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}; \
+> fi
+> @# collect srcrevs from the previous buildhistory (do some sed magic to escape double quotes in the resulting string) into the kas lock file
+> ${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs -a | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
 
 develop-prepare-reproducible-build: kas-buildhistory-collect-srcrevs
-	@echo "Prepared a reproducible build for target mc:${MULTI_CONF}:${KAS_TARGET_RECIPE}."
-	@echo "Please commit the generated lock file to your feature branch within this project."
-	@echo "CAUTION: We can only guarantee reproducibility for changes commited to protected branches within yocto layer and component repositories!"
+> @echo "Prepared a reproducible build for target mc:${MULTI_CONF}:${KAS_TARGET_RECIPE}."
+> @echo "Please commit the generated lock file to your feature branch within this project."
+> @echo "CAUTION: We can only guarantee reproducibility for changes commited to protected branches within yocto layer and component repositories!"
 
 kas-checkout-branch-in-iris-layers:
-	${KAS_COMMAND} for-all-repos ${KASFILE}:include/kas-branch-name-env.yml ' \
-		if echo "$${KAS_REPO_NAME}" | grep -qvE "^meta-iris(-base)?$$"; then \
-			exit 0; \
-		fi; \
-		echo "Trying to checkout $${BRANCH_NAME} in $${KAS_REPO_NAME}"; \
-		if git checkout "$${BRANCH_NAME}" 2>/dev/null; then \
-			echo "Branch $${BRANCH_NAME} has been checked out in $${KAS_REPO_NAME}"; \
-			if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
-				KASFILE_FILE="include/kas-irma6-pa.yml"; \
-			else \
-				KASFILE_FILE="include/kas-meta-iris-base.yml"; \
-			fi; \
-			yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KASFILE_FILE}; \
-		fi; \
-		'
+> ${KAS_COMMAND} for-all-repos ${KASFILE}:include/kas-branch-name-env.yml ' \
+> 	if echo "$${KAS_REPO_NAME}" | grep -qvE "^meta-iris(-base)?$$"; then \
+> 		exit 0; \
+> 	fi; \
+> 	echo "Trying to checkout $${BRANCH_NAME} in $${KAS_REPO_NAME}"; \
+> 	if git checkout "$${BRANCH_NAME}" 2>/dev/null; then \
+> 		echo "Branch $${BRANCH_NAME} has been checked out in $${KAS_REPO_NAME}"; \
+> 		if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
+> 			KASFILE_FILE="include/kas-irma6-pa.yml"; \
+> 		else \
+>			KASFILE_FILE="include/kas-meta-iris-base.yml"; \
+>		fi; \
+>		yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KASFILE_FILE}; \
+>	fi; \
+>	'
 
 prepare-release: kas-force-update kas-checkout-branch-in-iris-layers kas-dump-lockfile
 
 patch-thirdparty-hostbuild:
-	@echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
-	${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
+> @echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."
+> ${KAS_COMMAND} shell -c "bitbake ${THIRDPARTY} ${KAS_EXTRA_BITBAKE_ARGS} -c do_patch" ${KASFILE}
