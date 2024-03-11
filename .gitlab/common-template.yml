@@ -44,7 +44,8 @@
       - mkdir ${KAS_ARTIFACT_FOLDER}
       - mv ${KAS_TMPDIR}/deploy ${KAS_ARTIFACT_FOLDER}
       - mv ${KAS_BUILD_DIR}/buildhistory ${KAS_ARTIFACT_FOLDER}
-      - mv *.lock.yml ${KAS_ARTIFACT_FOLDER}
+      # include the lock file of the current base kas config as artifact (required for reproducible builds)
+      - mv kas-${MULTI_CONF}.lock.yml ${KAS_ARTIFACT_FOLDER}
       # create variable for identifying artifact folder
       - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${KAS_ARTIFACT_FOLDER}" >> build.env
 
