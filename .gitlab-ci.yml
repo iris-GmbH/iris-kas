@@ -147,7 +147,8 @@ stages:
 renovate:
   stage: setup
   rules:
-    - !reference [.develop_template, schedule_rules]
+    - !reference [.develop_template, rules]
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: $FORCE_RENOVATE_RUN == "true"
   image: renovate/renovate:37.235.1-full
   tags:

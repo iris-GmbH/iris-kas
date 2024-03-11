@@ -418,7 +418,7 @@ release-build-dev-image:
 develop-build-dev-image:
   extends: .build-dev-image
   rules:
-    - !reference [.develop_template, schedule_rules]
+    - !reference [.develop_template, rules]
     - if: '$SKIP_DEV_IMAGE_BUILD == "false"'
     - when: manual
       allow_failure: true
@@ -449,7 +449,7 @@ release-build-maintenance-oci:
 develop-build-maintenance-oci:
   extends: .build-maintenance-oci
   rules:
-    - !reference [.develop_template, schedule_rules]
+    - !reference [.develop_template, rules]
     - when: manual
       allow_failure: true
   script:
@@ -587,7 +587,7 @@ release-build-sdk:
 develop-build-sdk:
   extends: .build-sdk
   rules:
-    - !reference [.develop_template, schedule_rules]
+    - !reference [.develop_template, rules]
     - if: '$SKIP_SDK_IMAGE_BUILD == "false"'
     - when: manual
       allow_failure: true
