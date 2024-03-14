@@ -266,6 +266,10 @@ develop-create-kas-lockfiles:
   artifacts:
     paths:
       - "kas-${MULTI_CONF}.lock.yml"
+      # since KAS 4.3.x the commit in the lock file must match the branch in the kas config
+      # thus we add the files modified by the checkout script to follow-up steps
+      - "include/kas-meta-iris-base.yml"
+      - "include/kas-irma6-pa.yml"
 
 ###################
 ### BUILD STAGE ###
