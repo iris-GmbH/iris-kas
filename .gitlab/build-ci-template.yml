@@ -337,10 +337,6 @@ develop-build-dev-image:
       allow_failure: true
   script:
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 
 .build-maintenance-oci:
@@ -367,10 +363,6 @@ develop-build-maintenance-oci:
       allow_failure: true
   script:
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 
 # build deploy image with dev keys.
@@ -410,10 +402,6 @@ release-build-dev-deploy-image:
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
       fi
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 develop-build-dev-deploy-image:
   extends: .build-dev-deploy-image
@@ -436,10 +424,6 @@ develop-build-dev-deploy-image:
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
       fi
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 
 .build-test-oci:
@@ -484,11 +468,6 @@ develop-build-test-oci:
     KAS_ARTIFACT_SUFFIX: "-sdk"
   script:
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
-
 
 release-build-sdk:
   extends: .build-sdk
@@ -504,6 +483,8 @@ develop-build-sdk:
     - if: '$SKIP_SDK_IMAGE_BUILD == "false"'
     - when: manual
       allow_failure: true
+  script:
+    - make kas-build
 
 
 # We archive the build environment for license compliance
