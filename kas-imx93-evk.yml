@@ -10,5 +10,8 @@ header:
 target:
   - multiconfig:imx93-evk
 
-# workaround to avoid base qemu build
-machine: imx93-matrix-evk
+local_conf_header:
+  bbmask: |
+    BBMASK  = "imx-atf_2.6"
+    BBMASK .= "|u-boot-adi|linux-adi"
+    BBMASK .= "|u-boot-imx-mfgtool|linux-imx-mfgtool"
