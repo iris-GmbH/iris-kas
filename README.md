@@ -131,10 +131,10 @@ Note, that the interactive shell is always limited to the configured `MULTI_CONF
 
 > :information_source: Before creating a release in iris-kas, ensure you have appropriate releases in meta-iris(-base) layer repositories.
 
-> :information_source: A release always represents a single product release (e.g. IRMA6R1 OR IRMA6R2), which is determined by the commit prefix. Currently supported commit prefixes are: `irma6r1-`, `irma6r2-`. Thus, the <RELEASE_VERSION> placeholder must match [this](https://regex101.com/r/Sq45x0/1) regular expression.
+> :information_source: A valid release version always consists of a product identifier, a major and minor version and a feature version. Optionally, a support release suffix can be appended. Thus a valid release tag (<RELEASE_VERSION> throughout this documentation) must match [this](https://regex101.com/r/Sq45x0/4) regular expression.
 
 1. Ensure your `iris-kas` develop branch is up-to-date: `git checkout develop && git pull --ff-only`.
-2. Create a release or support branch, branching of the current develop (e.g. `release/irma6r1-3.0.0`, `support/irma6r2-3.0.0-support_suffix`): `git checkout -b release/<RELEASE_VERSION>`.
+2. Create a release or support branch, branching of the current develop (e.g. `release/irma6r1-3.0-1`, `support/irma6r2-3.0.1-support_suffix`): `git checkout -b release/<RELEASE_VERSION>`.
 3. The command `MULTI_CONF=<MULTI_CONF> make prepare-release` will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-<MULTI_CONF>.lock.yml`, where `MULTI_CONF` is a MULTI_CONF relevant to the release. **Repeat this step for all product relevant MULTI_CONFs!** (e.g. for irma6r1 with `imx8mp-irma6r2` and `qemux86-64-r2`)
 4. Verify the content of the lock files. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in **all** the lock files appropriately.
 5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`.
