@@ -337,10 +337,6 @@ develop-build-dev-image:
       allow_failure: true
   script:
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 
 .build-maintenance-oci:
@@ -367,10 +363,6 @@ develop-build-maintenance-oci:
       allow_failure: true
   script:
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 
 # build deploy image with dev keys.
@@ -432,10 +424,6 @@ develop-build-dev-deploy-image:
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
       fi
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 
 .build-test-oci:
@@ -497,10 +485,6 @@ develop-build-sdk:
       allow_failure: true
   script:
     - make kas-build
-    - >
-      if test "${REPRODUCIBLE_BUILD}" = "true"; then
-        make develop-prepare-reproducible-build
-      fi
 
 
 # We archive the build environment for license compliance
