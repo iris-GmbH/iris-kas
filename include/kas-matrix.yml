@@ -75,7 +75,7 @@ repos:
   meta-osselot:
     url: "https://github.com/iris-GmbH/meta-osselot.git"
     branch: "mickledore"
-  # irma6 HWv2 repos
+  # irma HWv2 repos
   meta-freescale:
     url: "https://github.com/Freescale/meta-freescale.git"
     commit: "7327e03c61823268a5a957fe090c4cc5e1735b34"

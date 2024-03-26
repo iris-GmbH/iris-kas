@@ -15,3 +15,6 @@ target:
   - multiconfig:sc573-gen6
   - multiconfig:imx8mp-evk
   - multiconfig:imx8mp-irma6r2
+  - multiconfig:imx93-evk
+  - multiconfig:qemux86-64-matrix
+  - multiconfig:qemuarm64-matrix

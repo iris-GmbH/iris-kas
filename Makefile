@@ -7,7 +7,7 @@ MAKEFILE_DIR := $(dir ${MAKEFILE_PATH})
 .DEFAULT_GOAL := kas-build
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
-DEFAULT_IRMA6_DISTRO_VERSION := 0.0-unknown
+DEFAULT_DISTRO_VERSION := 0.0-unknown
 
 .PHONY: kas-build kas
 
@@ -16,7 +16,7 @@ DEFAULT_IRMA6_DISTRO_VERSION := 0.0-unknown
 ######################
 
 export MULTI_CONF ?= imx8mp-irma6r2
-export KAS_TARGET_RECIPE ?= irma6-maintenance-bundle
+export KAS_TARGET_RECIPE ?= irma-maintenance-bundle
 export KAS_TASK ?= build
 export SSH_DIR ?= ~/.ssh
 
@@ -52,11 +52,11 @@ export KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-pr
 # TODO: Use --ssh-agent instead of --ssh-dir. Adjust SELinux rules and resolve remote host validation failure.
 export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR}
 export IRIS_KAS_CONTAINER_PULL ?= always
-export IRMA6_DISTRO_VERSION ?= ${DEFAULT_IRMA6_DISTRO_VERSION}
+export DISTRO_VERSION ?= ${DEFAULT_DISTRO_VERSION}
 export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
 	--pull ${IRIS_KAS_CONTAINER_PULL} \
-	-e IRMA6_DISTRO_VERSION=${IRMA6_DISTRO_VERSION} \
+	-e DISTRO_VERSION=${DISTRO_VERSION} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
 export KAS_BASE_CONFIG_FILE ?= kas-${MULTI_CONF}.yml
@@ -92,7 +92,7 @@ export BRANCH_NAME ?= master
 ######################
 
 ifeq (${RELEASE}, false)
-	IRMA6_DISTRO_VERSION_DEV_SUFFIX := -dev
+	DISTRO_VERSION_DEV_SUFFIX := -dev
 endif
 
 ifeq (${RELEASE}, true)
@@ -100,7 +100,7 @@ ifeq (${RELEASE}, true)
 endif
 
 ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
-	KASFILE_EXTRA += :include/kas-irma6-pa.yml
+	KASFILE_EXTRA += :include/kas-meta-iris.yml
 	export KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
 endif
 
@@ -108,8 +108,8 @@ ifeq (${BUILD_FROM_SCRATCH}, true)
 	KAS_EXTRA_BITBAKE_ARGS += --no-setscene
 endif
 
-# if KAS_TARGET_RECIPE contains "irma6-deploy", set distro accordingly
-ifeq (irma6-deploy, $(findstring irma6-deploy, ${KAS_TARGET_RECIPE}))
+# if KAS_TARGET_RECIPE contains "irma-deploy", set distro accordingly
+ifeq (irma-deploy, $(findstring irma-deploy, ${KAS_TARGET_RECIPE}))
 	export KAS_DISTRO ?= poky-iris-deploy
 endif
 
@@ -126,11 +126,11 @@ export IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' $
 # Re-assigning the variable with := prevents re-running the KAS command everytime the variable is referenced
 export IRIS_PRODUCT := ${IRIS_PRODUCT}
 # Use the IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
-ifeq (${DEFAULT_IRMA6_DISTRO_VERSION}, ${IRMA6_DISTRO_VERSION})
+ifeq (${DEFAULT_DISTRO_VERSION}, ${DISTRO_VERSION})
 	ifneq (${CI_PIPELINE_ID},)
 		GENERATE_NEXT_VERSION_PIPELINE_ARGS := -i ${CI_PIPELINE_ID}
 	endif
-	export IRMA6_DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
+	export DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
 endif
 
 ######################
@@ -204,7 +204,7 @@ kas-checkout-branch-in-iris-layers:
 > 	if git checkout "$${BRANCH_NAME}" 2>/dev/null; then \
 > 		echo "Branch $${BRANCH_NAME} has been checked out in $${KAS_REPO_NAME}"; \
 > 		if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
-> 			KASFILE_FILE="include/kas-irma6-pa.yml"; \
+> 			KASFILE_FILE="include/kas-meta-iris.yml"; \
 > 		else \
 >			KASFILE_FILE="include/kas-meta-iris-base.yml"; \
 >		fi; \

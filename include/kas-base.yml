@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
 
-# The KAS base configuration file for the irma6 firmware build
+# The KAS base configuration file for the firmware build
 
 header:
   version: 14
 distro: "poky-iris-maintenance"
 env:
-  IRMA6_DISTRO_VERSION: "0.0.0-unknown"
+  DISTRO_VERSION: "0.0.0-unknown"
   KAS_WORK_DIR: None
 bblayers_conf_header:
   standard: |
