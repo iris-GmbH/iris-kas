@@ -168,7 +168,7 @@ By default, only CI builds from the trunk branch (develop) are kept reproducible
 
 Additionally, it is possible to force build-reproducibility on other branches, either for a local build or for a CI build, **however** it is up to the developer to ensure that commits on meta-layer and **all** component repositories stay available.
 
-This means that each referenced commit in all build relevant iris repositories that is **not** part of a trunk branch during the build **must** be part of a protected branch (i.e. delete and git history rewrite protected). These branches are identified by their name prefix `fixed/`, e.g.: `fixed/jaor/DEVOPS-777_reproducible_build`. Basically you need to ensure protected branches throughout the build hierarchy.
+This means that each referenced commit in all build relevant iris repositories that is **not** part of a trunk branch during the build **must** be part of a protected branch (i.e. delete and git history rewrite protected). These branches are identified by their name prefix `fixed/`, e.g.: `fixed/jaor/DEVOPS-777_reproducible_build`. Basically you need to ensure that you use protected branches throughout the build hierarchy.
 
 For example, if you want to create a reproducible build of the current development state with code modifications to a component referenced in a iris-specific recipe in meta-iris:
 
@@ -180,9 +180,9 @@ For example, if you want to create a reproducible build of the current developme
 
 1. Set the variable `REPRODUCIBLE_BUILD=true` when starting the CI build for your iris-kas branch.
 2. After the pipeline completed successfully, KAS `*.lock.yml` artifacts will be available as artifacts in the `develop-build-reproducibility` job. These artifacts are kept for 10 years within the pipeline.
-3. When reproducing a build, download all the `*.lock.yml` files from the pipeline.
-4. Add the `*.lock.yml` files to the root folder of iris-kas, create a commit and push it to your `fixed/*` branch.
-5. Running a pipeline from this branch will now reproduce the exact outut of the previous pipeline build.
+3. When reproducing a build, download the `develop-build-reproducibility` jobs artifact file.
+4. Move the folders contained in the artifacts.zip to the root folder of iris-kas. Ensure that the folder names do not change. Create a commit with the lock files in place and push it to your `fixed/*` branch.
+5. Re-running a pipeline from this branch will now reuse the component revisions used during the previous CI run.
 
 ###### Working with the KAS lock file
 

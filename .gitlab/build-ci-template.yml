@@ -32,6 +32,8 @@ variables:
       ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
       ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
     KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
+    KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
+    KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
     RUN_MAINTENANCE: "false"
     WIPE_SSTATE_CACHE: "false"
     # Refspec of the systemtest_base repo to use
@@ -78,7 +80,6 @@ default:
           echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas."
         fi
       fi
-
 
 #####################
 ### INCLUDE FILES ###
@@ -161,8 +162,7 @@ develop-ci-build-setup:
       fi
     - echo "OCI_TAG set to ${OCI_TAG}."
     - echo "OCI_TAG=${OCI_TAG}" >> build.env
-    # add commit hash to artifact name
-    - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_SHORT_SHA}-" >> build.env
+    - echo "KAS_ARTIFACT_PREFIX=develop-" >> build.env
     # identify branch name for identifying identical named branches in all iris meta layers
     # depending on pipeline source, the name of the current branch (or upstream branch) is saved as different variables. Unify into a single variable.
     # if called from an upstream project, the BRANCH_NAME variable is already defined.
@@ -238,7 +238,7 @@ release-ensure-lockfiles-exist:
   script:
     - echo "Ensuring that kas lockfile for MULTI_CONF ${MULTI_CONF} exists..."
     - >
-      if ! test -e kas-${MULTI_CONF}.lock.yml; then
+      if ! test -e ${KAS_LOCK_FILE_NAME}; then
         echo "Error: Could not find a KAS lockfile for MULTI_CONF ${MULTI_CONF}. Please read the README section on how to create a release."
         exit 1
       fi
@@ -261,12 +261,12 @@ develop-create-kas-lockfiles:
     # we generate a kas lock file, which will be used by all following build jobs for this release,
     # unless there is already a lock file checked in for reproducible builds
     - >
-      if ! test -e "kas-${MULTI_CONF}.lock.yml"; then
+      if ! test -e "${KAS_LOCK_FILE_NAME}"; then
         make kas-dump-lockfile
       fi
   artifacts:
     paths:
-      - "kas-${MULTI_CONF}.lock.yml"
+      - "${KAS_LOCK_FILE_NAME}"
       # since KAS 4.3.x the commit in the lock file must match the branch in the kas config
       # thus we add the files modified by the checkout script to follow-up steps
       - "include/kas-meta-iris-base.yml"
@@ -309,6 +309,7 @@ develop-build-maintenance-image:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
@@ -337,6 +338,7 @@ develop-build-dev-image:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
@@ -367,6 +369,7 @@ develop-build-maintenance-oci:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
@@ -420,6 +423,7 @@ develop-build-dev-deploy-image:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     # include osselot tasks when default branch run
     - >
       if test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
@@ -463,6 +467,7 @@ develop-build-test-oci:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
@@ -497,6 +502,7 @@ develop-build-sdk:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
