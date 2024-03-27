@@ -4,7 +4,7 @@
 header:
   version: 14
   includes:
-    - include/kas-irma6-base.yml
+    - include/kas-base.yml
     - include/kas-irma6-r1.yml
 
 target:

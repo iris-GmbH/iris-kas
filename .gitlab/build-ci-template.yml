@@ -199,7 +199,7 @@ release-ci-build-setup:
     - gp-tiny
   script:
     - echo "RELEASE=true" >> build.env
-    - echo "IRMA6_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
+    - echo "DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
     - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
     - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_TAG}-" >> build.env
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
@@ -269,7 +269,7 @@ develop-create-kas-lockfiles:
       # since KAS 4.3.x the commit in the lock file must match the branch in the kas config
       # thus we add the files modified by the checkout script to follow-up steps
       - "include/kas-meta-iris-base.yml"
-      - "include/kas-irma6-pa.yml"
+      - "include/kas-meta-iris.yml"
 
 ###################
 ### BUILD STAGE ###
@@ -290,7 +290,7 @@ develop-create-kas-lockfiles:
 .build-maintenance-image:
   extends: .build-kas
   variables:
-    KAS_TARGET_RECIPE: "irma6-maintenance-bundle"
+    KAS_TARGET_RECIPE: "irma-maintenance-bundle"
     KAS_ARTIFACT_SUFFIX: "-maintenance"
 
 release-build-maintenance-image:
@@ -318,7 +318,7 @@ develop-build-maintenance-image:
 .build-dev-image:
   extends: .build-kas
   variables:
-    KAS_TARGET_RECIPE: "irma6-dev-bundle"
+    KAS_TARGET_RECIPE: "irma-dev-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev"
   tags:
     - kas-perf
@@ -345,7 +345,7 @@ develop-build-dev-image:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    KAS_TARGET_RECIPE: "irma6-maintenance-oci"
+    KAS_TARGET_RECIPE: "irma-maintenance-oci"
     KAS_ARTIFACT_SUFFIX: "-maintenance-oci"
 
 release-build-maintenance-oci:
@@ -371,7 +371,7 @@ develop-build-maintenance-oci:
 .build-dev-deploy-image:
   extends: .build-kas
   variables:
-    KAS_TARGET_RECIPE: "irma6-deploy-bundle"
+    KAS_TARGET_RECIPE: "irma-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
 
 release-build-dev-deploy-image:
@@ -432,7 +432,7 @@ develop-build-dev-deploy-image:
     matrix:
       - <<: *oci_multi_confs
   variables:
-    KAS_TARGET_RECIPE: "irma6-test"
+    KAS_TARGET_RECIPE: "irma-test"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
 
 release-build-test-oci:
@@ -464,7 +464,7 @@ develop-build-test-oci:
       - <<: *all_multi_confs
   variables:
     KAS_TASK: "populate_sdk"
-    KAS_TARGET_RECIPE: "irma6-maintenance"
+    KAS_TARGET_RECIPE: "irma-maintenance"
     KAS_ARTIFACT_SUFFIX: "-sdk"
   script:
     - make kas-build
@@ -522,7 +522,7 @@ release-build-deploy:
     matrix:
       - <<: *target_multi_confs
   variables:
-    KAS_TARGET_RECIPE: "irma6-deploy-bundle"
+    KAS_TARGET_RECIPE: "irma-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-deploy"
   script:
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml:include/kas-osselot.yml"

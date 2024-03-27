@@ -23,7 +23,7 @@ required_artifacts = ['deploy','dev_deploy','maintenance','dev','sdk','deploy_cu
 gitlab_url = 'http://localhost:8000'
 gitlab_token = 'devtoken'
 default_branch = 'main'
-release_tag = 'irma6r1-1.0.0'
+release_tag = 'irma6r1-1.0-1'
 
 @pytest.fixture(scope='module')
 def authed_gitlab() -> Gitlab:
@@ -87,7 +87,7 @@ def test_without_artifact_files(authed_gitlab: Gitlab, group: Group, tmpdir):
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   project.tags.create({'tag_name': release_tag, 'ref': default_branch})
   with pytest.raises(FileNotFoundError):
-    run(gitlab_url, gitlab_token, False, conf, 'irma6-', project_dir, project.id, project.path, release_tag, logging)
+    run(gitlab_url, gitlab_token, False, conf, 'irma-', project_dir, project.id, project.path, release_tag, logging)
   assert len(project.packages.list()) == 0
   assert len(project.releases.list()) == 0
 
@@ -98,7 +98,7 @@ def test_without_release_tag(authed_gitlab: Gitlab, group: Group, tmpdir):
   create_test_artifact_files(project_dir, conf, logging)
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   with pytest.raises(GitlabGetError, match='404: 404 Tag Not Found'):
-    run(gitlab_url, gitlab_token, False, conf, 'irma6-', project_dir, project.id, project.path, release_tag, logging)
+    run(gitlab_url, gitlab_token, False, conf, 'irma-', project_dir, project.id, project.path, release_tag, logging)
   assert len(project.packages.list()) == 0
   assert len(project.releases.list()) == 0
 
@@ -109,7 +109,7 @@ def test_create_gitlab_release(authed_gitlab: Gitlab, group: Group, tmpdir):
   create_test_artifact_files(project_dir, conf, logging)
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   project.tags.create({'tag_name': release_tag, 'ref': default_branch})
-  run(gitlab_url, gitlab_token, False, conf, 'irma6-', str(project_dir), project.id, project.path, release_tag, logging)
+  run(gitlab_url, gitlab_token, False, conf, 'irma-', str(project_dir), project.id, project.path, release_tag, logging)
   package = project.packages.list()[0]
   assert len(package.package_files.list()) == len(required_artifacts)
   assert len(project.releases.list()) == 1
@@ -121,6 +121,6 @@ def test_dry_run(authed_gitlab: Gitlab, group: Group, tmpdir):
   create_test_artifact_files(project_dir, conf, logging)
   project = create_project_in_group(authed_gitlab, group, 'test-project')
   project.tags.create({'tag_name': release_tag, 'ref': default_branch})
-  run(gitlab_url, gitlab_token, True, conf, 'irma6-', str(project_dir), project.id, project.path, release_tag, logging)
+  run(gitlab_url, gitlab_token, True, conf, 'irma-', str(project_dir), project.id, project.path, release_tag, logging)
   assert len(project.packages.list()) == 0
   assert len(project.releases.list()) == 0

@@ -49,7 +49,7 @@ See the [KAS documentation](https://kas.readthedocs.io) for further details on t
 ## What does this repository contain?
 This repository contains:
 
-1. KAS configuration files used for defining our various workflows. Especially noteworthy is the `kas-irma6-base.yml` file, which is the main configuration file and provides the minimal steps for building our custom Linux distribution based on Yocto Poky. In addition, the `kas-irma6-pa.yml` can optionally be included for installing our proprietary components on top. Lastly, various additional KAS configuration files can be dynamically included from `include/` to provide additional configurations (mostly useful for specific CI or Makefile jobs).
+1. KAS configuration files used for defining our various workflows. Especially noteworthy is the `kas-base.yml` file, which is the main configuration file and provides the minimal steps for building our custom Linux distribution based on Yocto Poky. In addition, the `kas-meta-iris.yml` can optionally be included for installing our proprietary components on top. Lastly, various additional KAS configuration files can be dynamically included from `include/` to provide additional configurations (mostly useful for specific CI or Makefile jobs).
 2. Dockerfile `Dockerfile_iris_kas` defining the build container image, including the kas binary, as well as any other required tooling.
 3. Dockerfile `Dockerfile_sdk`, which is used by CI to build a containerized SDK runtime environment.
 4. Automation scripts and tooling, most noteworthy the GitLab CI configuration in `.gitlab-ci.yml`, as well as support tooling in the `utils` folder.
@@ -90,9 +90,9 @@ Afterwards you can run the `make` commands as described below.
 
 Clone this project into your local workspace and navigate to the top-level directory of this project.
 
-If you plan on building anything other than the latest developmental state, make sure to adjust the meta-layer repositories according to your needs. Usually this means adjusting the referenced branch name for the `meta-iris-base` (see `kas-irma6-base.yml`) or `meta-iris` (see `kas-irma6-pa.yml`) repositories according to your used branch names within these repositories.
+If you plan on building anything other than the latest developmental state, make sure to adjust the meta-layer repositories according to your needs. Usually this means adjusting the referenced branch name for the `meta-iris-base` (see `kas-base.yml`) or `meta-iris` (see `kas-meta-iris.yml`) repositories according to your used branch names within these repositories.
 
-For starting the build, we recommend using the provided Makefile for running KAS commands, at it does some of the heavy lifting regarding build configuration. Makefile tasks are controlled using environment variables, which are parsed to the make command, e.g. `KAS_TARGET_RECIPE=irma6-deploy-bundle make`.
+For starting the build, we recommend using the provided Makefile for running KAS commands, at it does some of the heavy lifting regarding build configuration. Makefile tasks are controlled using environment variables, which are parsed to the make command, e.g. `KAS_TARGET_RECIPE=irma-deploy-bundle make`.
 
 `kas-build` is the default action when calling make and corresponds to the [kas build plugin](https://kas.readthedocs.io/en/latest/userguide.html#module-kas.plugins.build). As the name implies, this plugins main usage is to build a target recipe, however by overriding the default `KAS_TASK`, the plugin can be used in a much more versatile way.
 
@@ -105,11 +105,11 @@ These are the basic settings for controlling kas-related make tasks and should c
 | VARIABLE   | DESCRIPTION | DEFAULT VALUE |
 |------------|-------------|---------------|
 | MULTI_CONF | Controls the used [multiconf](https://docs.yoctoproject.org/singleindex.html#building-images-for-multiple-targets-using-multiple-configurations). We use multiconfs for differentiating between the various target platforms. E.g. `sc573-gen6` corresponds to IRMA6 R1 and `imx8mp-irma6r2` corresponds to IRMA6 R2. Click [here](https://github.com/iris-GmbH/meta-iris-base/tree/develop/conf/multiconfig) for all supported multiconfigs. | `imx8mp-irma6r2` |
-| KAS_TARGET_RECIPE | Defines one or more bitbake recipes to build. Common targets include `irma6-maintenance-bundle`, `irma6-deploy-bundle`, `irma6-dev-bundle` | `irma6-maintenance-bundle` |
+| KAS_TARGET_RECIPE | Defines one or more bitbake recipes to build. Common targets include `irma-maintenance-bundle`, `irma-deploy-bundle`, `irma-dev-bundle` | `irma-maintenance-bundle` |
 | KAS_TASK | The bitbake task to perform. Common tasks include `build`, `populate_sdk`, `fetch`, `clean`, ... Check the Yocto docs for a more complete list. | `build` |
 | SSH_DIR | Specifies the folder containing a SSH key for authenticating against iris' proprietary repositories. | `~/.ssh` |
 
-For example `MULTI_CONF=sc573-gen6 KAS_TARGET_RECIPE=irma6-deploy-bundle make` will build the deploy bundle for the IRMA6 R1 target.
+For example `MULTI_CONF=sc573-gen6 KAS_TARGET_RECIPE=irma-deploy-bundle make` will build the deploy bundle for the IRMA6 R1 target.
 
 ### Updating layer repositories
 
@@ -149,7 +149,7 @@ In some rare cases the KAS `build` plugin might not be flexible enough for you. 
 
 By default `make kas` behaves identical to `make kas-build`, however it allows for a complete override of the KAS arguments by setting the `KAS_ARGS` environment variable, e.g.:
 
-- `KAS_ARGS="shell -c \"bitbake mc:sc573-gen6:irma6-maintenance-bundle\"" make kas`
+- `KAS_ARGS="shell -c \"bitbake mc:sc573-gen6:irma-maintenance-bundle\"" make kas`
 - `KAS_ARGS="checkout" make kas`
 
 #### Reproducible builds
