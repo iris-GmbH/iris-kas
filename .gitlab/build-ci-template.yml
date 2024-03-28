@@ -199,7 +199,7 @@ release-ci-build-setup:
     - gp-tiny
   script:
     - echo "RELEASE=true" >> build.env
-    - echo "DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
+    - echo "IRMA_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
     - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
     - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_TAG}-" >> build.env
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
