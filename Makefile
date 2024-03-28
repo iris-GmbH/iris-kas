@@ -120,17 +120,21 @@ export KAS_TARGET
 $(foreach word,${KASFILE_EXTRA},$(eval KASFILE_EXTRA_LIST := ${KASFILE_EXTRA_LIST}$(word)))
 KASFILE_GENERATED := ${KAS_BASE_CONFIG_FILE}${KASFILE_EXTRA_LIST}
 
-# Get iris product name from outside of the KAS environment
-# Due to a bug in kas (https://github.com/siemens/kas/issues/108), we add | head -n 1 to only output the echoed line.
-export IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' ${KASFILE} | head -n 1)
+# Get iris product name from inside of the KAS environment
+# This export variable may NOT be called IRIS_PRODUCT itself,
+# otherwise there is a chicken-egg problem, since Makefile will
+# first export the variable with an empty string before running the
+# KAS command to assign the actual value, thus overriding the default IRIS_PRODUCT value
+# set as a "env" in the product specific KAS config file.
+export _IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' ${KASFILE})
 # Re-assigning the variable with := prevents re-running the KAS command everytime the variable is referenced
-export IRIS_PRODUCT := ${IRIS_PRODUCT}
-# Use the IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
+export _IRIS_PRODUCT := ${_IRIS_PRODUCT}
+# Use the _IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
 ifeq (${DEFAULT_DISTRO_VERSION}, ${DISTRO_VERSION})
 	ifneq (${CI_PIPELINE_ID},)
 		GENERATE_NEXT_VERSION_PIPELINE_ARGS := -i ${CI_PIPELINE_ID}
 	endif
-	export DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
+	export DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${_IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
 endif
 
 ######################
