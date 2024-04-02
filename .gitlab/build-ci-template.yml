@@ -230,6 +230,7 @@ wipe-sstate-caches:
 release-ensure-lockfiles-exist:
   rules:
     - !reference [.release_template, rules]
+  stage: kas-lockfiles
   image: busybox:1.36.1-uclibc
   parallel:
     matrix:
