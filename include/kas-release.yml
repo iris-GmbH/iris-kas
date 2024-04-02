@@ -7,3 +7,7 @@ header:
 local_conf_header:
   hashservice: |
     unset BB_HASHSERVE
+  # do not include the timestamp in release build artifact file names, see:
+  # https://docs.yoctoproject.org/singleindex.html#term-IMAGE_VERSION_SUFFIX
+  image_version_suffix: |
+    unset IMAGE_VERSION_SUFFIX

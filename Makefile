@@ -7,7 +7,7 @@ MAKEFILE_DIR := $(dir ${MAKEFILE_PATH})
 .DEFAULT_GOAL := kas-build
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
-DEFAULT_DISTRO_VERSION := 0.0-unknown
+DEFAULT_IRMA_DISTRO_VERSION := 0.0-unknown
 
 .PHONY: kas-build kas
 
@@ -52,11 +52,11 @@ export KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-pr
 # TODO: Use --ssh-agent instead of --ssh-dir. Adjust SELinux rules and resolve remote host validation failure.
 export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR}
 export IRIS_KAS_CONTAINER_PULL ?= always
-export DISTRO_VERSION ?= ${DEFAULT_DISTRO_VERSION}
+export IRMA_DISTRO_VERSION ?= ${DEFAULT_IRMA_DISTRO_VERSION}
 export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
 	--runtime-args " \
 	--pull ${IRIS_KAS_CONTAINER_PULL} \
-	-e DISTRO_VERSION=${DISTRO_VERSION} \
+	-e IRMA_DISTRO_VERSION=${IRMA_DISTRO_VERSION} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
 export KAS_BASE_CONFIG_FILE ?= kas-${MULTI_CONF}.yml
@@ -92,7 +92,7 @@ export BRANCH_NAME ?= master
 ######################
 
 ifeq (${RELEASE}, false)
-	DISTRO_VERSION_DEV_SUFFIX := -dev
+	IRMA_DISTRO_VERSION_DEV_SUFFIX := -dev
 endif
 
 ifeq (${RELEASE}, true)
@@ -120,17 +120,21 @@ export KAS_TARGET
 $(foreach word,${KASFILE_EXTRA},$(eval KASFILE_EXTRA_LIST := ${KASFILE_EXTRA_LIST}$(word)))
 KASFILE_GENERATED := ${KAS_BASE_CONFIG_FILE}${KASFILE_EXTRA_LIST}
 
-# Get iris product name from outside of the KAS environment
-# Due to a bug in kas (https://github.com/siemens/kas/issues/108), we add | head -n 1 to only output the echoed line.
-export IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' ${KASFILE} | head -n 1)
+# Get iris product name from inside of the KAS environment
+# This export variable may NOT be called IRIS_PRODUCT itself,
+# otherwise there is a chicken-egg problem, since Makefile will
+# first export the variable with an empty string before running the
+# KAS command to assign the actual value, thus overriding the default IRIS_PRODUCT value
+# set as a "env" in the product specific KAS config file.
+export _IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' ${KASFILE})
 # Re-assigning the variable with := prevents re-running the KAS command everytime the variable is referenced
-export IRIS_PRODUCT := ${IRIS_PRODUCT}
-# Use the IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
-ifeq (${DEFAULT_DISTRO_VERSION}, ${DISTRO_VERSION})
+export _IRIS_PRODUCT := ${_IRIS_PRODUCT}
+# Use the _IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
+ifeq (${DEFAULT_IRMA_DISTRO_VERSION}, ${IRMA_DISTRO_VERSION})
 	ifneq (${CI_PIPELINE_ID},)
 		GENERATE_NEXT_VERSION_PIPELINE_ARGS := -i ${CI_PIPELINE_ID}
 	endif
-	export DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
+	export IRMA_DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${_IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
 endif
 
 ######################

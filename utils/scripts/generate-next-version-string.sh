@@ -8,16 +8,16 @@ usage() { echo "usage: $0:  [-p IRIS_PRODUCT] [-g GIT_WORK_DIR] [optional: -i CI
 
 while getopts p:g:i:h option
 do
-    case $option in
+  case $option in
     p)  IRIS_PRODUCT="$OPTARG";;
     g)  GIT_WORK_DIR="$OPTARG";;
     i)  CI_PIPELINE_ID="$OPTARG";;
     h | ?) usage; exit 2;;
-    esac
+  esac
 done
 
 if test -z "${IRIS_PRODUCT}" || test -z "${GIT_WORK_DIR}"; then
-    usage; exit 1;
+  usage; exit 1;
 fi
 
 FALLBACK_SCHEMA=false
@@ -25,31 +25,26 @@ VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l | grep -P "^${IRIS_PRODUCT}-\d+\.
 
 # Use fallback versioning if current schema not in use
 if test -z "${VERSION_TAG}"; then
-    FALLBACK_SCHEMA=true
-    VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l | grep -P "^\d+\.\d+\.\d+$" | tail -n 1)"
+  FALLBACK_SCHEMA=true
+  VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l | grep -P "^\d+\.\d+\.\d+$" | tail -n 1)"
 fi
 if test -z "${VERSION_TAG}"; then
-    exit 1
+  echo "Could not determinate next version tag" >&2
+  exit 1
 fi
 
-# Get patch version substring, increment and concatenate afterwards.
 if ${FALLBACK_SCHEMA}; then
-    MAJOR_MINOR_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 1,2)
-    PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 3)
+  PRODUCT_MAJOR_VERSION=${IRIS_PRODUCT}-$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
+  PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2)
 else
-    PRODUCT_MAJOR_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
-    PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2)
+  PRODUCT_MAJOR_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
+  PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2)
 fi
 
 NEXT_PATCH_VERSION=$((PATCH_VERSION+1))
 
 if test -n "${CI_PIPELINE_ID}"; then
-  PIPELINE_VERSION_SUFFIX="-pipeline-${CI_PIPELINE_ID}"
+  PIPELINE_VERSION_SUFFIX="-pipeline_${CI_PIPELINE_ID}"
 fi
 
-# Keep versioning schema for output schema.
-if ${FALLBACK_SCHEMA}; then
-    echo "${MAJOR_MINOR_VERSION}.${NEXT_PATCH_VERSION}${PIPELINE_VERSION_SUFFIX}-dev"    
-else
-    echo "${PRODUCT_MAJOR_VERSION}.${NEXT_PATCH_VERSION}${PIPELINE_VERSION_SUFFIX}-dev"
-fi
+echo "${PRODUCT_MAJOR_VERSION}.${NEXT_PATCH_VERSION}-dev${PIPELINE_VERSION_SUFFIX}"
