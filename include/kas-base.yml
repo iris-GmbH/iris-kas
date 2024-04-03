@@ -7,7 +7,7 @@ header:
   version: 14
 distro: "poky-iris-maintenance"
 env:
-  IRMA_DISTRO_VERSION: "0.0.0-unknown"
+  IRMA_DISTRO_VERSION: None
   KAS_WORK_DIR: None
 bblayers_conf_header:
   standard: |
