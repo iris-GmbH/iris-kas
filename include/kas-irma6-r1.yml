@@ -6,7 +6,6 @@ header:
   includes:
     - include/kas-base-repos.yml
     - include/kas-meta-iris-base.yml
-    - include/kas-iris-product.yml
 
 env:
   IRIS_PRODUCT: irma6r1
