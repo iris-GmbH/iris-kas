@@ -5,7 +5,6 @@ header:
   version: 14
   includes:
     - include/kas-meta-iris-base.yml
-    - include/kas-iris-product.yml
 
 env:
   IRIS_PRODUCT: matrix

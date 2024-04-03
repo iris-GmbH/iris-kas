@@ -7,8 +7,9 @@ header:
   version: 14
 distro: "poky-iris-maintenance"
 env:
-  IRMA_DISTRO_VERSION: None
-  KAS_WORK_DIR: None
+  # Passthrough of variables that are set in the Makefile
+  IRMA_DISTRO_VERSION: null
+  KAS_WORK_DIR: null
 bblayers_conf_header:
   standard: |
     POKY_BBLAYERS_CONF_VERSION = "2"
