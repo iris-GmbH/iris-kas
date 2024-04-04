@@ -28,6 +28,14 @@ repos:
       # Fix CPE generation for SBOM generation used in dependencytrack
       0001-cve_check-Fix-cpe_id-generation:
         path: "patches/0001-cve_check-Fix-cpe_id-generation.patch"
+      # Use modified patches for mickledore, remove/adapt when matrix and irma6r2
+      # share same poky branch/commit
+      0099-python3-calver-Add-recipe:
+        path: "patches/0099-python3-calver-Add-recipe_mickledore.patch"
+      0099-python3-trove-classifiers-Add-recipe:
+        path: "patches/0099-python3-trove-classifiers-Add-recipe_mickledore.patch"
+      0099-Add-python3-hatchling-1.18.0:
+        path: "patches/0099-Add-python3-hatchling-1.18.0.patch"
   meta-openembedded:
     url: "https://github.com/openembedded/meta-openembedded.git"
     commit: "922f41b39f364e5b6be596b4b51e0fb37ffe1971"
