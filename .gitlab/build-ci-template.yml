@@ -299,7 +299,7 @@ release-build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-maintenance-image:
   extends: .build-maintenance-image
@@ -322,7 +322,7 @@ develop-build-maintenance-image:
     KAS_TARGET_RECIPE: "irma-dev-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev"
   tags:
-    - kas-perf
+    - kas-large
 
 release-build-dev-image:
   extends: .build-dev-image
@@ -354,7 +354,7 @@ release-build-maintenance-oci:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-maintenance-oci:
   extends: .build-maintenance-oci
@@ -380,7 +380,7 @@ release-build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
   script:
     # archive copy-left sources for license compliance
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml:include/kas-osselot.yml"
@@ -441,7 +441,7 @@ release-build-test-oci:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-test-oci:
   extends: .build-test-oci
@@ -475,7 +475,7 @@ release-build-sdk:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-sdk:
   extends: .build-sdk
@@ -495,7 +495,7 @@ release-archive-kas-build-environment:
     - !reference [.release_template, rules]
   stage: build
   tags:
-    - kas-perf
+    - kas-large
   parallel:
     matrix:
       - <<: *target_multi_confs
