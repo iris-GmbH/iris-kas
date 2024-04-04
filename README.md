@@ -21,8 +21,7 @@
       - [Reproducible builds](#reproducible-builds)
         - [Reproducing a release build](#reproducing-a-release-build)
         - [Preparing a develop build for reproducibility](#preparing-a-develop-build-for-reproducibility)
-          - [Local build](#local-build)
-          - [CI build](#ci-build)
+        - [Run a reproducible pipeline build](#run-a-reproducible-pipeline-build)
           - [Working with the KAS lock file](#working-with-the-kas-lock-file)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
