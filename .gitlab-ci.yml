@@ -36,7 +36,7 @@ variables:
     description: 'Set to "true" to use identical named branches in iris meta layers during build'
   REPRODUCIBLE_BUILD:
     value: "false"
-    description: 'Set to "true" to archive build artifacts required for making the maintenance firmware build reproducible. WARNING: We can only guarantee reproducibility for changes done to protected branches!'
+    description: 'Set to "true" to archive build artifacts required for making the firmware build reproducible. WARNING: We can only guarantee reproducibility for changes done to protected branches!'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'

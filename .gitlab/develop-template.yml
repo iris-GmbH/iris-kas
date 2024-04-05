@@ -18,3 +18,13 @@
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+
+  script:
+    reproduce_build:
+      # if we have a lock file from a previous reproducible develop build, use this instead
+      - >
+        if test "${RELEASE}" != "true" && test -f ${KAS_LOCK_FILE_ARTIFACT_LOCATION}; then
+          echo "Will use existing kas lock file ${KAS_LOCK_FILE_ARTIFACT_LOCATION}:"
+          cat ${KAS_LOCK_FILE_ARTIFACT_LOCATION}
+          mv -f ${KAS_LOCK_FILE_ARTIFACT_LOCATION} ${CI_PROJECT_DIR}
+        fi
