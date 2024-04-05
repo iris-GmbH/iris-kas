@@ -134,12 +134,13 @@ Note, that the interactive shell is always limited to the configured `MULTI_CONF
 
 1. Ensure your `iris-kas` develop branch is up-to-date: `git checkout develop && git pull --ff-only`.
 2. Create a release or support branch, branching of the current develop (e.g. `release/irma6r1-3.0-1`, `support/irma6r2-3.0.1-support_suffix`): `git checkout -b release/<RELEASE_VERSION>`.
-3. The command `MULTI_CONF=<MULTI_CONF> make prepare-release` will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-<MULTI_CONF>.lock.yml`, where `MULTI_CONF` is a MULTI_CONF relevant to the release. **Repeat this step for all product relevant MULTI_CONFs!** (e.g. for irma6r1 with `imx8mp-irma6r2` and `qemux86-64-r2`)
+3. The command `MULTI_CONF=<MULTI_CONF> make prepare-release` will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-<MULTI_CONF>.lock.yml`, where `MULTI_CONF` is a MULTI_CONF relevant to the release. **Repeat this step for all product relevant MULTI_CONFs!** (e.g. for irma6r2 with `imx8mp-irma6r2` and `qemux86-64-r2`)
 4. Verify the content of the lock files. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in **all** the lock files appropriately.
-5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`.
-6. create a commit tag: `git tag <RELEASE_VERSION>`.
-7. Push commit and commit tag to remote: `git push && git push origin <RELEASE_VERSION>`.
-8. Wait for the automatically triggered pipeline to succeed.
+5. Stage all changes: `git add -A`.
+6. Create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`.
+7. Create a commit tag: `git tag <RELEASE_VERSION>`.
+8. Push commit and commit tag to remote: `git push --set-upstream origin <RELEASE_BRANCH_NAME> && git push origin <RELEASE_VERSION>`.
+9. Wait for the automatically triggered pipeline to succeed.
 
 ### Advanced use-cases
 #### Running arbitrary KAS commands (make kas)
