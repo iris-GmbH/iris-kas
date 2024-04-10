@@ -798,12 +798,9 @@ develop-upload-sdks:
   script:
     - >
       for ARTIFACT in ${KAS_ARTIFACT_PREFIX}*${KAS_ARTIFACT_SUFFIX}; do
-        # remove the commit sha from the artifact file name, so that we can make use of GitLabs package registry cleanup for identical named packages
-        ARTIFACT_NO_SHA=$(echo ${ARTIFACT} | sed "s/-${CI_COMMIT_SHORT_SHA}//g")
-        sudo mv ${ARTIFACT} ${ARTIFACT_NO_SHA}
         # SDK is already heavily compressed, thus no gzip
-        sudo tar 2>&1 -cvf ${ARTIFACT_NO_SHA}.tar ${ARTIFACT_NO_SHA}
-        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT_NO_SHA}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT_NO_SHA}.tar"
+        sudo tar 2>&1 -cvf ${ARTIFACT}.tar ${ARTIFACT}
+        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT}.tar"
       done
 
 # this job will archive the artifacts necessary for reproducing a build.
