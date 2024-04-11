@@ -95,22 +95,27 @@ include:
 ### YAML ANCHORS ###
 ####################
 
+# Define default build targets, can be overriden on manual pipelines using the BUILD_TARGETS variable
 .target_multi_confs: &target_multi_confs
   MULTI_CONF:
     - sc573-gen6
     - imx8mp-irma6r2
+    - imx93-evk
 
 .oci_multi_confs: &oci_multi_confs
   MULTI_CONF:
     - qemux86-64-r1
     - qemux86-64-r2
+    - qemux86-64-matrix
 
 .all_multi_confs: &all_multi_confs
   MULTI_CONF:
     - sc573-gen6
     - imx8mp-irma6r2
+    - imx93-evk
     - qemux86-64-r1
     - qemux86-64-r2
+    - qemux86-64-matrix
 
 
 ###############
