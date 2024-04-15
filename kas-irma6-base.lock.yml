@@ -15,7 +15,7 @@ overrides:
         meta-iris:
             commit: e8afae2afb734cf371641d30c881c9f51761745e
         meta-iris-base:
-            commit: dbc44e697fb19df16f63176450cd80793f1c2b91
+            commit: 059e8485fb18d3513de8e8f514392ba371db5695
         meta-iris-thirdparty:
             commit: f421d0d8fdb564ef427b1db3e4d52571271f1648
         meta-openembedded:
