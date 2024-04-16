@@ -98,9 +98,6 @@ repos:
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
     branch: "kirkstone"
-    patches:
-      0001-swupdate-lualoader-Set-SECTION-to-devel-lua.patch:
-        path: "patches/0001-swupdate-lualoader-Set-SECTION-to-devel-lua.patch"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     branch: "dunfell"
