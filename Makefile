@@ -192,7 +192,7 @@ kas-buildhistory-collect-srcrevs:
 >	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}; \
 > fi
 > @# collect srcrevs from the previous buildhistory (do some sed magic to escape double quotes in the resulting string) into the kas lock file
-> ${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs -a | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
+> ${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
 
 develop-prepare-reproducible-build: kas-buildhistory-collect-srcrevs
 > @echo "Prepared a reproducible build for target mc:${MULTI_CONF}:${KAS_TARGET_RECIPE}."
