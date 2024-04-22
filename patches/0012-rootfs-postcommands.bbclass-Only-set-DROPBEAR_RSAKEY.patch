@@ -1,0 +1,36 @@
+From 173c688f082a0031d32a0d6aa827962ea3163b2c Mon Sep 17 00:00:00 2001
+From: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+Date: Mon, 22 Apr 2024 12:05:39 +0200
+Subject: [PATCH] rootfs-postcommands.bbclass: Only set DROPBEAR_RSAKEY_DIR
+ once
+
+If DROPBEAR_RSAKEY_DIR has already been set before, e.g. by overwriting
+the file dropbear.default, the line will still be appended a second time.
+
+DROPBEAR_RSAKEY_DIR="/path/to/dropbear"
+DROPBEAR_EXTRA_ARGS="-B"
+DROPBEAR_RSAKEY_DIR=/var/lib/dropbear
+
+Signed-off-by: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+---
+ meta/classes/rootfs-postcommands.bbclass | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/meta/classes/rootfs-postcommands.bbclass b/meta/classes/rootfs-postcommands.bbclass
+index 5c0b3ec37c..f7517c66dc 100644
+--- a/meta/classes/rootfs-postcommands.bbclass
++++ b/meta/classes/rootfs-postcommands.bbclass
+@@ -119,7 +119,9 @@ read_only_rootfs_hook () {
+ 		# Also tweak the key location for dropbear in the same way.
+ 		if [ -d ${IMAGE_ROOTFS}/etc/dropbear ]; then
+ 			if [ ! -e ${IMAGE_ROOTFS}/etc/dropbear/dropbear_rsa_host_key ]; then
+-				echo "DROPBEAR_RSAKEY_DIR=/var/lib/dropbear" >> ${IMAGE_ROOTFS}/etc/default/dropbear
++				if ! grep -q "^DROPBEAR_RSAKEY_DIR=" ${IMAGE_ROOTFS}/etc/default/dropbear ; then
++					echo "DROPBEAR_RSAKEY_DIR=/var/lib/dropbear" >> ${IMAGE_ROOTFS}/etc/default/dropbear
++				fi
+ 			fi
+ 		fi
+ 	fi
+-- 
+2.44.0
+
