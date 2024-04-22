@@ -49,9 +49,13 @@ stages:
     project: public-projects/yocto/iris-kas
     branch: gitlab-pipeline
     strategy: depend
+    forward:
+      pipeline_variables: true
   trunk-trigger:
     project: public-projects/yocto/iris-kas
     strategy: depend
+    forward:
+      pipeline_variables: true
 
 # workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
 update-non-protected-branch:
@@ -88,15 +92,6 @@ trigger-kas-pipeline:
     BRANCH_NAME: $CI_COMMIT_BRANCH
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "true"
-    SKIP_OCI_TESTS: $SKIP_OCI_TESTS
-    SKIP_DEPLOY_IMAGE_BUILD: $SKIP_DEPLOY_IMAGE_BUILD
-    SKIP_MAINTENANCE_IMAGE_BUILD: $SKIP_MAINTENANCE_IMAGE_BUILD
-    FORCE_IRIS_KAS_CONTAINER_BUILD: $FORCE_IRIS_KAS_CONTAINER_BUILD
-    SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
-    SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
-    BUILD_FROM_SCRATCH: $BUILD_FROM_SCRATCH
-    BUILD_TARGETS: $BUILD_TARGETS
-    KAS_RUNNER_TAG: $KAS_RUNNER_TAG
   stage: !reference [.trigger-kas-pipeline_template, stage]
   trigger: !reference [.trigger-kas-pipeline_template, trigger]
 
