@@ -116,8 +116,14 @@ default:
   retry:
     max: 2
     when:
-      - runner_system_failure
+      - unknown_failure
       - api_failure
+      - stuck_or_timeout_failure
+      - runner_system_failure
+      - job_execution_timeout
+      - scheduler_failure
+      - data_integrity_failure
+
   before_script:
     # configure git safe directory
     - if command -v git >/dev/null 2>&1; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
