@@ -16,9 +16,6 @@ variables:
     SSTATE_CACHE: "/mnt/yocto-sstate-cache"
     SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
     DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
-    # redefine already existing variables
-    BUILD_IMAGE_TAG: "latest"
-    BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_IMAGE_TAG}"
     # set makefile relevant variables
     KAS_EXE: "kas"
     KAS_WORK_DIR: "${CI_PROJECT_DIR}"
@@ -547,9 +544,19 @@ release-archive-kas-build-environment:
     KAS_ARTIFACT_SUFFIX: "-kas-environment"
     ARTIFACT_NAME: "${KAS_ARTIFACT_FOLDER}"
     ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
+    IRIS_KAS_CONTAINER_IMAGE_DIR: "${ARTIFACT_FOLDER}/iris-kas-oci"
     KAS_ARGS: "checkout"
   script:
     - make kas
+    # include the oci image used during the build
+    - mkdir "${IRIS_KAS_CONTAINER_IMAGE_DIR}"
+    - >-
+      skopeo copy
+      --src-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      docker://${BUILD_IMAGE_IRIS_KAS}
+      oci:${IRIS_KAS_CONTAINER_IMAGE_DIR}:${CI_COMMIT_TAG}
+    # Remove the .git folder which might contain sensitive data
+    - rm -rf "${ARTIFACT_FOLDER}/.git"
     - !reference [.common_template, script, create-archive-from-folder]
     - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${ARTIFACT_NAME}.tar.gz" >> build.env
   artifacts: !reference [.common_template, artifacts, archive-folder-artifacts]
