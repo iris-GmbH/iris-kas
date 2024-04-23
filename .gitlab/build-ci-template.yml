@@ -161,14 +161,20 @@ develop-ci-build-setup:
     - gp-tiny
   script:
     # set OCI tag
+    # due to GitLab Ci bug, this must be identifyable on commit level for service containers:
+    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
     - >
       if test -n "${UPSTREAM_PROJECT_NAME}"; then
-        OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+        OCI_TAG="$(echo "${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG}" | tail -c 63 | sed -r 's/^-//g')"
+        OCI_TAG_SHA="$(echo "${OCI_TAG}-${UPSTREAM_COMMIT_SHORT_SHA}-${CI_COMMIT_SHORT_SHA}" | tail -c 63 | sed -r 's/^-//g')"
       else
         OCI_TAG="${CI_COMMIT_REF_SLUG}"
+        OCI_TAG_SHA="$(echo "${OCI_TAG}-${CI_COMMIT_SHORT_SHA}" | tail -c 63 | sed -r 's/^-//g')"
       fi
-    - echo "OCI_TAG set to ${OCI_TAG}."
+    - echo "OCI_TAG set to ${OCI_TAG}"
+    - echo "OCI_TAG_SHA set to ${OCI_TAG_SHA}"
     - echo "OCI_TAG=${OCI_TAG}" >> build.env
+    - echo "OCI_TAG_SHA=${OCI_TAG_SHA}" >> build.env
     - echo "KAS_ARTIFACT_PREFIX=develop-" >> build.env
     # identify branch name for identifying identical named branches in all iris meta layers
     # depending on pipeline source, the name of the current branch (or upstream branch) is saved as different variables. Unify into a single variable.
@@ -208,6 +214,7 @@ release-ci-build-setup:
     - echo "RELEASE=true" >> build.env
     - echo "IRMA_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
     - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
+    - echo "OCI_TAG_SHA=${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}" >> build.env
     - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_TAG}-" >> build.env
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
   artifacts:
@@ -625,6 +632,11 @@ push-test-oci:
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:${OCI_IMAGE}:latest
+      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}
 
 
 ##################
@@ -653,7 +665,10 @@ test-oci:
   tags:
     - gp
   services:
-    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}"
+      # Setting pull_policy for services is currently broken, see:
+      # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
+      # Therefore, we use the commit short sha to ensure the correct commit is tested
+    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
@@ -785,6 +800,11 @@ develop-push-maintenance-oci:
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:${OCI_IMAGE}:latest
+      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG_SHA}
 
 develop-create-sdk-container-images:
   rules:
@@ -812,6 +832,7 @@ develop-create-sdk-container-images:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG_SHA}"
 
 # upload the SDKs to the gitlab package registry for later consumption
 develop-upload-sdks:
