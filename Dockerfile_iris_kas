@@ -3,7 +3,7 @@
 
 FROM mikefarah/yq:4.33.2 AS yq
 
-FROM ghcr.io/siemens/kas/kas:4.2
+FROM ghcr.io/siemens/kas/kas:4.3.1
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
 USER root
 RUN set -ex \
@@ -17,6 +17,7 @@ RUN set -ex \
         python3-click \
         python3-requests \
         python3-gitlab \
+        skopeo \
     && rm -rf /var/lib/apt/lists
 COPY --from=yq /usr/bin/yq /usr/bin/yq
 ADD utils/create_gitlab_release/src/create_gitlab_release.py /usr/bin/create_gitlab_release

@@ -3,6 +3,9 @@
 
 header:
   version: 14
+  includes:
+    - include/kas-base.yml
+    - include/kas-irma6-r1.yml
 
 target:
   - multiconfig:sc573-gen6

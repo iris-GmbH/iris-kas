@@ -3,6 +3,9 @@
 
 header:
   version: 14
+  includes:
+    - include/kas-base.yml
+    - include/kas-irma6-r2.yml
 
 target:
   - multiconfig:imx8mp-evk

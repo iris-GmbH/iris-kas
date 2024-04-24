@@ -1,64 +1,12 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
-
-# The KAS base configuration file for the irma6 firmware build
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
 
 header:
   version: 14
-  includes:
-    - "include/kas-targets.yml"
-distro: "poky-iris-maintenance"
-env:
-  IRMA6_DISTRO_VERSION: "0.0.0-unknown"
-  KAS_WORK_DIR: None
-bblayers_conf_header:
-  standard: |
-    POKY_BBLAYERS_CONF_VERSION = "2"
-    BBPATH = "${TOPDIR}"
-    BBFILES ?= ""
-    ACCEPT_FSL_EULA = "1"
-local_conf_header:
-  standard: |
-    CONF_VERSION = "2"
-  dl_dir: |
-    DL_DIR ?= "${TOPDIR}/dl_dir"
-  sstate_dir: |
-    SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
-  hashservice: |
-    BB_HASHSERVE ?= "auto"
-  build_history: |
-    INHERIT += "buildhistory"
-    BUILDHISTORY_COMMIT ?= "1"
-  diskmon: |
-    BB_DISKMON_DIRS = "\
-      STOPTASKS,${TMPDIR},1G,100K \
-      STOPTASKS,${DL_DIR},1G,100K \
-      STOPTASKS,${SSTATE_DIR},1G,100K \
-      STOPTASKS,/tmp,100M,100K \
-      HALT,${TMPDIR},100M,1K \
-      HALT,${DL_DIR},100M,1K \
-      HALT,${SSTATE_DIR},100M,1K \
-      HALT,/tmp,10M,1K"
-  #osselot: |
-  #  INHERIT += "osselot"
-defaults:
-  repos:
-    patches:
-      repo: "this"
 repos:
-  # the iris-kas repo
-  this:
-    path: ""
-  # iris-specific repos
-  meta-iris-base:
-    url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    commit: "dbc44e697fb19df16f63176450cd80793f1c2b91"
-  meta-iris-thirdparty:
-    url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    branch: "kirkstone"
   # general repos
   poky:
-    url: "https://git.yoctoproject.org/git/poky"
+    url: "https://github.com/yoctoproject/poky.git"
     branch: "kirkstone"
     layers:
       meta:
@@ -89,7 +37,7 @@ repos:
       0001-cve_check-Fix-cpe_id-generation:
         path: "patches/0001-cve_check-Fix-cpe_id-generation.patch"
   meta-openembedded:
-    url: "https://git.openembedded.org/meta-openembedded"
+    url: "https://github.com/openembedded/meta-openembedded.git"
     branch: "kirkstone"
     layers:
       meta-oe:
@@ -128,56 +76,9 @@ repos:
       # Add patch for Json-schema.-validator
       0001-json-schema-validator-Updrade-to-2.2.0.patch:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
-  meta-swupdate:
-    url: "https://github.com/sbabic/meta-swupdate"
+  meta-iris-thirdparty:
+    url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     branch: "kirkstone"
-    patches:
-      0001-Mongoose-Fix-request-handling:
-        path: "patches/0001-APC-7142-Fix-request-handling-of-malformed-data.patch"
-  meta-secure-imx:
-    url: "https://source.denx.de/denx/meta-secure-imx.git"
-    branch: "dunfell"
-    patches:
-      0001-APC-5918-Remove-bbappend-for-cryptsetup:
-        path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
-      0002-meta-secure-imx-Update-to-new-override-syntax:
-        path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
-  meta-virtualization:
-    url: "https://git.yoctoproject.org/meta-virtualization"
-    branch: "kirkstone"
-  meta-dependencytrack:
-    url: "https://github.com/bgnetworks/meta-dependencytrack.git"
-    branch: "main"
-    patches:
-      0001-Add-support-for-yocto-CVE-backports:
-        path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
   meta-osselot:
     url: "https://github.com/iris-GmbH/meta-osselot.git"
-    branch: "kirkstone"
-  # irma6 HWv1 repos
-  lnxdsp-adi-meta:
-    url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta.git"
-    branch: "release/yocto-1.0.0"
-    layers:
-      meta-adi-adsp-sc5xx:
-      meta-adi-external-toolchain:
-    patches:
-      0001-lnxdsp-adi-meta-Update-to-new-override-syntax:
-        path: "patches/0001-lnxdsp-adi-meta-Update-to-new-override-syntax.patch"
-  # irma6 HWv2 repos
-  meta-freescale:
-    url: "https://github.com/Freescale/meta-freescale.git"
-    branch: "kirkstone"
-    patches:
-      0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
-        path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
-      0001-Replace-tinycompress-src_uri:
-        path: "patches/0001-Replace-tinycompress-src_uri.patch"
-      0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
-        path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
-  meta-freescale-3rdparty:
-    url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    branch: "kirkstone"
-  meta-freescale-distro:
-    url: "https://github.com/Freescale/meta-freescale-distro"
     branch: "kirkstone"

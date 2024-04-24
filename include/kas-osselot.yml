@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+
+local_conf_header:
+  osselot: |
+    INHERIT += "osselot"

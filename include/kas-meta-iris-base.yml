@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+# The KAS base configuration file for the irma firmware build
+
+header:
+  version: 14
+repos:
+  meta-iris-base:
+    url: "https://github.com/iris-GmbH/meta-iris-base.git"
+    branch: "master"

@@ -5,15 +5,11 @@ header:
   version: 13
 
 env:
-  # set to 'None' for environment passthrough
-  DEPENDENCYTRACK_API_KEY: None
-  DEPENDENCYTRACK_PROJECT: None
-  DEPENDENCYTRACK_API_URL: None
+  # set to null for environment passthrough
+  DEPENDENCYTRACK_API_KEY: null
+  DEPENDENCYTRACK_PROJECT: null
+  DEPENDENCYTRACK_API_URL: null
 
 local_conf_header:
   dependencytrack: |
     INHERIT += "dependency-track"
-    BB_ENV_PASSTHROUGH_ADDITIONS += " \
-                                     DEPENDENCYTRACK_API_KEY \
-                                     DEPENDENCYTRACK_PROJECT \
-                                     DEPENDENCYTRACK_API_URL"

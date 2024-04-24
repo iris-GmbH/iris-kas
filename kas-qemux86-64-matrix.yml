@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+  includes:
+    - include/kas-base.yml
+    - include/kas-matrix.yml
+
+target:
+  - multiconfig:qemux86-64-matrix
+
+
+# remove "repos" and "bbmask" (and include meta-virtualization.yml again) when irma-matrix is using the same yocto release
+repos:
+  meta-virtualization:
+    url: "https://git.yoctoproject.org/meta-virtualization"
+    branch: "mickledore"
+
+local_conf_header:
+  bbmask: |
+    BBMASK  = "imx-atf_2.6"
+    BBMASK .= "|u-boot-adi|linux-adi"
+    BBMASK .= "|u-boot-imx-mfgtool|linux-imx-mfgtool"

@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2021-2023 iris-GmbH infrared & intelligent sensors
+
+# The KAS base configuration file for the firmware build
+
+header:
+  version: 14
+distro: "poky-iris-maintenance"
+env:
+  # Passthrough of variables that are set in the Makefile
+  IRMA_DISTRO_VERSION: null
+  KAS_WORK_DIR: null
+bblayers_conf_header:
+  standard: |
+    POKY_BBLAYERS_CONF_VERSION = "2"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+local_conf_header:
+  standard: |
+    CONF_VERSION = "2"
+  dl_dir: |
+    DL_DIR ?= "${TOPDIR}/dl_dir"
+  sstate_dir: |
+    SSTATE_DIR ?= "${TOPDIR}/sstate_dir"
+  hashservice: |
+    BB_HASHSERVE ?= "auto"
+  prservice: |
+    PRSERV_HOST ?= "localhost:0"
+  build_history: |
+    INHERIT += "buildhistory"
+    BUILDHISTORY_COMMIT ?= "1"
+  diskmon: |
+    BB_DISKMON_DIRS = "\
+      STOPTASKS,${TMPDIR},1G,100K \
+      STOPTASKS,${DL_DIR},1G,100K \
+      STOPTASKS,${SSTATE_DIR},1G,100K \
+      STOPTASKS,/tmp,100M,100K \
+      HALT,${TMPDIR},100M,1K \
+      HALT,${DL_DIR},100M,1K \
+      HALT,${SSTATE_DIR},100M,1K \
+      HALT,/tmp,10M,1K"
+defaults:
+  repos:
+    patches:
+      repo: "this"
+repos:
+  # the iris-kas repo
+  this:
+    path: ""

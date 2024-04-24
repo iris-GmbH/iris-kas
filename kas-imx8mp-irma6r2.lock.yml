@@ -2,31 +2,27 @@ header:
     version: 14
 overrides:
     repos:
-        lnxdsp-adi-meta:
-            commit: ad2203c11723b07727589a8eebe33f3129cc236a
         meta-dependencytrack:
             commit: 70b34dc50f64c73a911826ebbc3a99e1beb5682a
         meta-freescale:
-            commit: 710e55d529c86d15a93c4421365ef62eb601a49b
+            commit: 1aa79a0c9b7d6d8af626b2d39a1d518d70d28205
         meta-freescale-3rdparty:
             commit: 9e94b64bdfebcf7bfdf2af6447cec866a4efa814
         meta-freescale-distro:
             commit: d5bbb487b2816dfc74984a78b67f7361ce404253
         meta-iris:
-            commit: 63525644e4c60977aa55a6da1e1cc8c43c73c886
+            commit: aa83ee7e8e39da2f948600ac78c8d20f5fc55310
         meta-iris-base:
-            commit: dbc44e697fb19df16f63176450cd80793f1c2b91
+            commit: f816d97d1d142afee7c1ab7652aaf83b2f380766
         meta-iris-thirdparty:
             commit: f421d0d8fdb564ef427b1db3e4d52571271f1648
         meta-openembedded:
-            commit: 730e44900a0a86265bad93a16b5a5ff344a07266
+            commit: 8bb16533532b6abc2eded7d9961ab2a108fd7a5b
         meta-osselot:
-            commit: aa128af16c7faa0867cb6967ba371aad69744296
+            commit: c0876eb7d5c4a5c368c53dd8a48dc2814c4a553d
         meta-secure-imx:
             commit: 20d409a5e75758a8df7bb07e086a36377fbe16d9
         meta-swupdate:
-            commit: 996ad9be9b5ab378bc2f33a9d3b5ad6c3335f898
-        meta-virtualization:
-            commit: 88327090d26955a678c6f8bd2585aad4d802f6c4
+            commit: 3d12b2788a45d86efcb1ad3e01f209558c54795c
         poky:
-            commit: 426dfdc8d246cae5f4fd37415ece280f169bee08
+            commit: b6f6c729453cb88961488e3332046517e2fe99bb

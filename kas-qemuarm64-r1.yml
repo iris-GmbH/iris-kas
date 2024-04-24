@@ -3,6 +3,10 @@
 
 header:
   version: 14
+  includes:
+    - include/kas-base.yml
+    - include/kas-irma6-r1.yml
+    - include/kas-meta-virtualization.yml
 
 target:
   - multiconfig:qemuarm64-r1
