@@ -20,14 +20,16 @@ if test -z "${IRIS_PRODUCT}" || test -z "${GIT_WORK_DIR}"; then
   usage; exit 1;
 fi
 
-FALLBACK_SCHEMA=false
-VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l | grep -P "^${IRIS_PRODUCT}-\d+\.\d+$" | tail -n 1)"
-
-# Use fallback versioning if current schema not in use
-if test -z "${VERSION_TAG}"; then
+# check whether a tag matching the prefix (excluding support releases) is reachable from current HEAD
+VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l --sort=-version:refname --merged HEAD | grep -P "^${IRIS_PRODUCT}-\d+\.\d+-\d+$" | head -n 1)"
+if test -n "${VERSION_TAG}"; then
+  FALLBACK_SCHEMA=false
+# else fallback to old version schema
+else
+  VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l --sort=-version:refname --merged HEAD | grep -P "^\d+\.\d+\.\d+$" | head -n 1)"
   FALLBACK_SCHEMA=true
-  VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l | grep -P "^\d+\.\d+\.\d+$" | tail -n 1)"
 fi
+
 if test -z "${VERSION_TAG}"; then
   echo "Could not determinate next version tag" >&2
   exit 1
@@ -38,7 +40,7 @@ if ${FALLBACK_SCHEMA}; then
   PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2)
 else
   PRODUCT_MAJOR_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
-  PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2)
+  PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2 | cut -d '-' -f 1)
 fi
 
 NEXT_PATCH_VERSION=$((PATCH_VERSION+1))
