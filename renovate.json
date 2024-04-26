@@ -1,3 +1,22 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/)Dockerfile.*"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sARG .*?_VERSION=\"?(?<currentValue>.*?)\"?\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}loose{{/if}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": ["repology"],
+      "matchPackagePatterns": ["^debian_12/"],
+      "separateMajorMinor": false,
+      "groupName": "debian 12 packages",
+      "groupSlug": "debian_12"
+    }
+  ]
 }
