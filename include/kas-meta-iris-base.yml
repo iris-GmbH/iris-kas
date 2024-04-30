@@ -5,7 +5,8 @@
 
 header:
   version: 14
+
 repos:
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    branch: "master"
+    branch: "develop"
