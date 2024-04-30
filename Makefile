@@ -38,10 +38,10 @@ export RELEASE ?= false
 ################################
 
 export KAS_WORK_DIR ?= ${MAKEFILE_DIR}
-export KAS_BUILD_DIR ?= ${MAKEFILE_DIR}/build
-export KAS_TMPDIR ?= ${MAKEFILE_DIR}/build/tmp
-export DL_DIR ?= ${MAKEFILE_DIR}/build/dl_dir
-export SSTATE_DIR ?= ${MAKEFILE_DIR}/build/sstate_dir
+export KAS_BUILD_DIR ?= ${KAS_WORK_DIR}/build
+export KAS_TMPDIR ?= ${KAS_BUILD_DIR}/tmp
+export DL_DIR ?= ${KAS_BUILD_DIR}/dl_dir
+export SSTATE_DIR ?= ${KAS_BUILD_DIR}/sstate_dir
 
 #####################################
 ### ADVANCED KAS RUNTIME SETTINGS ###
