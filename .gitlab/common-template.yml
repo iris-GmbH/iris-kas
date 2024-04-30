@@ -48,6 +48,9 @@
       - mv ${KAS_LOCK_FILE_NAME} ${KAS_ARTIFACT_FOLDER}
       # create variable for identifying artifact folder
       - echo "$(echo ${MULTI_CONF}${KAS_ARTIFACT_SUFFIX} | tr '-' '_')=${KAS_ARTIFACT_FOLDER}" >> build.env
+      # create logs artifact
+      - touch logs.tar.gz
+      - tar -I "gzip --fast" --exclude=logs.tar.gz -cf logs.tar.gz $(find ${KAS_TMPDIR} -type f -name 'log.do_*' -or -name 'log.task_order')
 
   artifacts:
     kas-artifacts: # required vars: ARTIFACT_FOLDER
@@ -56,8 +59,7 @@
       when: always
       paths:
         - "${KAS_ARTIFACT_FOLDER}"
-        - "${KAS_TMPDIR}/work/**/log.do_*"
-        - "${KAS_TMPDIR}/work/**/log.task_order"
+        - "logs.tar.gz"
       expire_in: 7 days
       reports:
         dotenv: build.env
