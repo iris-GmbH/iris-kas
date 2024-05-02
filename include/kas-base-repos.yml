@@ -36,8 +36,6 @@ repos:
       # Fix CPE generation for SBOM generation used in dependencytrack
       0001-cve_check-Fix-cpe_id-generation:
         path: "patches/0001-cve_check-Fix-cpe_id-generation.patch"
-      0012-rootfs-postcommands.bbclass-Only-set-DROPBEAR_RSAKEY:
-        path: "patches/0012-rootfs-postcommands.bbclass-Only-set-DROPBEAR_RSAKEY.patch"
   meta-openembedded:
     url: "https://github.com/openembedded/meta-openembedded.git"
     branch: "kirkstone"
