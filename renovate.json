@@ -5,9 +5,18 @@
       "customType": "regex",
       "fileMatch": ["(^|/)Dockerfile.*"],
       "matchStrings": [
-        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sARG .*?_VERSION=\"?(?<currentValue>.*?)\"?\\s"
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s+depName=(?<depName>.*?)(\\s+versioning=(?<versioning>.*?))?\\sARG\\s+.*?_VERSION=\"?(?<currentValue>.*?)\"?\\s"
       ],
       "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}loose{{/if}}"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/).*\\.(yml|yaml)$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*depType=(?<depType>.*?)\\s+branch=(?<currentValue>.*?)\\n\\s*\"?url\"?:\\s+\"?(?<depName>.*?)\"?\\n\\s*\"?commit\"?:\\s+\"?(?<currentDigest>.*?)\"?\\n",
+        "#\\s*renovate:\\s*depType=(?<depType>.*?)\\s+branch=(?<currentValue>.*?)\\n\\s*\"?commit\"?:\\s+\"?(?<currentDigest>.*?)\"?\\n\\s*\"?url\"?:\\s+\"?(?<depName>.*?)\"?\\n"
+      ],
+      "datasourceTemplate": "git-refs"
     }
   ],
   "packageRules": [
@@ -21,6 +30,16 @@
       "separateMajorMinor": false,
       "groupName": "debian 12 packages",
       "groupSlug": "debian_12"
+    },
+    {
+      "matchDepTypes": ["upstream-meta-layers"],
+      "groupName": "Upstream Meta Layers",
+      "groupSlug": "upstream-meta-layers"
+    },
+    {
+      "matchDepTypes": ["upstream-meta-layers-matrix"],
+      "groupName": "Upstream Meta Layers for Matrix",
+      "groupSlug": "upstream-meta-layers-matrix"
     }
   ]
 }

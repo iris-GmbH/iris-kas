@@ -17,8 +17,9 @@ bblayers_conf_header:
 repos:
   # irma6 HWv2 repos
   meta-freescale:
-    url: "https://github.com/Freescale/meta-freescale.git"
-    branch: "kirkstone"
+    # renovate: depType=upstream-meta-layers branch=kirkstone
+    url: "https://github.com/Freescale/meta-freescale"
+    commit: "f2255c8dd63c7a694b0af7df72355933f7e87955"
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
@@ -27,25 +28,30 @@ repos:
       0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
         path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
   meta-freescale-3rdparty:
+    # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    branch: "kirkstone"
+    commit: "9e94b64bdfebcf7bfdf2af6447cec866a4efa814"
   meta-freescale-distro:
+    # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/Freescale/meta-freescale-distro"
-    branch: "kirkstone"
+    commit: "d5bbb487b2816dfc74984a78b67f7361ce404253"
   meta-swupdate:
+    # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/sbabic/meta-swupdate"
-    branch: "kirkstone"
+    commit: "f6e6e0f50366877f7988defdb9ba61a9ac9280e3"
   meta-secure-imx:
+    # renovate: depType=upstream-meta-layers branch=dunfell
     url: "https://source.denx.de/denx/meta-secure-imx.git"
-    branch: "dunfell"
+    commit: "20d409a5e75758a8df7bb07e086a36377fbe16d9"
     patches:
       0001-APC-5918-Remove-bbappend-for-cryptsetup:
         path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
       0002-meta-secure-imx-Update-to-new-override-syntax:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-dependencytrack:
-    url: "https://github.com/bgnetworks/meta-dependencytrack.git"
-    branch: "main"
+    # renovate: depType=upstream-meta-layers branch=main
+    url: "https://github.com/bgnetworks/meta-dependencytrack"
+    commit: "70b34dc50f64c73a911826ebbc3a99e1beb5682a"
     patches:
       0001-Add-support-for-yocto-CVE-backports:
         path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
