@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+  includes:
+    - include/repos/kas-base-repos-kirkstone.yml
+    - include/repos/kas-meta-iris-base-repo.yml
+
+repos:
+  # irma6 HWv1 repos
+  lnxdsp-adi-meta:
+    # renovate: depType=upstream-meta-layers branch=release/yocto-3.1.0
+    url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta"
+    commit: "ad2203c11723b07727589a8eebe33f3129cc236a"
+    layers:
+      meta-adi-adsp-sc5xx:
+      meta-adi-external-toolchain:
+    patches:
+      0001-meta-adi-adsp-sc5xx-Update-layercompat:
+        path: "patches/0001-meta-adi-adsp-sc5xx-Update-layercompat.patch"
+      0001-lnxdsp-adi-meta-Update-to-new-override-syntax:
+        path: "patches/0001-lnxdsp-adi-meta-Update-to-new-override-syntax.patch"

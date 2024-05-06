@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+
+repos:
+  meta-virtualization:
+    # renovate: depType=upstream-meta-layers branch=scarthgap
+    url: "https://git.yoctoproject.org/meta-virtualization"
+    commit: "6a80f140e387621f62964209a2e07d3bcfb125ce"

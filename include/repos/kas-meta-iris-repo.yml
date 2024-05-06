@@ -7,4 +7,4 @@ header:
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    branch: "develop"
+    branch: "feature/ersc/MARE-150"
