@@ -6,8 +6,9 @@ header:
 repos:
   # general repos
   poky:
-    url: "https://github.com/yoctoproject/poky.git"
-    branch: "kirkstone"
+    # renovate: depType=upstream-meta-layers branch=kirkstone
+    url: "https://github.com/yoctoproject/poky"
+    commit: "2b21c6009aa6b955e1a0e7312c3c0ad66557681b"
     layers:
       meta:
       meta-poky:
@@ -37,8 +38,9 @@ repos:
       0001-cve_check-Fix-cpe_id-generation:
         path: "patches/0001-cve_check-Fix-cpe_id-generation.patch"
   meta-openembedded:
-    url: "https://github.com/openembedded/meta-openembedded.git"
-    branch: "kirkstone"
+    # renovate: depType=upstream-meta-layers branch=kirkstone
+    url: "https://github.com/openembedded/meta-openembedded"
+    commit: "5a6f7925bd2b885955c942573f70a5594f231563"
     layers:
       meta-oe:
       meta-python:
@@ -77,8 +79,10 @@ repos:
       0001-json-schema-validator-Updrade-to-2.2.0.patch:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
   meta-iris-thirdparty:
-    url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
-    branch: "kirkstone"
+    # renovate: depType=upstream-meta-layers branch=kirkstone
+    url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
+    commit: "f421d0d8fdb564ef427b1db3e4d52571271f1648"
   meta-osselot:
-    url: "https://github.com/iris-GmbH/meta-osselot.git"
-    branch: "kirkstone"
+    # renovate: depType=upstream-meta-layers branch=kirkstone
+    url: "https://github.com/iris-GmbH/meta-osselot"
+    commit: "f7c41f88007d3475bfa1d57f657ebbeb1b82668c"
