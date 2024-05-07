@@ -24,7 +24,7 @@ variables:
   RENOVATE_PLATFORM: "gitlab"
   RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
   RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
-  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"an.tran\", \"erik.schumacher\", \"thomas.noack\", \"michael.kirscht\", \"daniel.baumgart\" ]"
+  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"thomas.noack\" ]"
   RENOVATE_PR_CONCURRENT_LIMIT: "0"
   RENOVATE_PR_HOURLY_LIMIT: "0"
   # Set extra flags for the renovate bot

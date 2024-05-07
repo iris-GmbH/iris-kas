@@ -34,12 +34,14 @@
     {
       "matchDepTypes": ["upstream-meta-layers"],
       "groupName": "Upstream Meta Layers",
-      "groupSlug": "upstream-meta-layers"
+      "groupSlug": "upstream-meta-layers",
+      "additionalReviewers": ["michael.glembotzki", "ian.dannapel", "erik.schumacher"]
     },
     {
       "matchDepTypes": ["upstream-meta-layers-matrix"],
       "groupName": "Upstream Meta Layers for Matrix",
-      "groupSlug": "upstream-meta-layers-matrix"
+      "groupSlug": "upstream-meta-layers-matrix",
+      "additionalReviewers": ["michael.glembotzki", "ian.dannapel", "erik.schumacher"]
     }
   ]
 }
