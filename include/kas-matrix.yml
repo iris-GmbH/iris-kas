@@ -89,6 +89,8 @@ repos:
     patches:
       0001-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
+      0007-imx93-Backport-firmware-ele-imx-for-AHAB-Support-on-.patch:
+        path: "patches/0007-imx93-Backport-firmware-ele-imx-for-AHAB-Support-on-.patch"
   meta-freescale-3rdparty:
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
     commit: "bccd93f1ceece608e69799b6fc8f79e8a519f89e"
