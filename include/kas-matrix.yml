@@ -16,7 +16,6 @@ bblayers_conf_header:
 repos:
   # general repos
   poky:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
     url: "https://github.com/yoctoproject/poky"
     commit: "a57506c46d92bf0767060102d2139be06d46f575"
     layers:
@@ -38,7 +37,6 @@ repos:
       0099-Add-python3-hatchling-1.18.0:
         path: "patches/0099-Add-python3-hatchling-1.18.0.patch"
   meta-openembedded:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
     url: "https://github.com/openembedded/meta-openembedded"
     commit: "922f41b39f364e5b6be596b4b51e0fb37ffe1971"
     layers:
@@ -79,35 +77,28 @@ repos:
       0001-json-schema-validator-Updrade-to-2.2.0.patch:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
   meta-iris-thirdparty:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
     commit: "d8dc94b538d789f326b65bc7fc74e7a9c7422458"
   meta-osselot:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
     url: "https://github.com/iris-GmbH/meta-osselot"
     commit: "3baf435fa8b2bb6b5262acfc70d71f9fafbf01db"
   # irma HWv2 repos
   meta-freescale:
-    # renovate: depType=upstream-meta-layers-matrix branch=master
     url: "https://github.com/Freescale/meta-freescale"
     commit: "7327e03c61823268a5a957fe090c4cc5e1735b34"
     patches:
       0001-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
   meta-freescale-3rdparty:
-    # renovate: depType=upstream-meta-layers-matrix branch=master
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
     commit: "bccd93f1ceece608e69799b6fc8f79e8a519f89e"
   meta-freescale-distro:
-    # renovate: depType=upstream-meta-layers-matrix branch=master
     url: "https://github.com/Freescale/meta-freescale-distro"
     commit: "7956a0ab407a33c40fdc6eb4fabdcb7dc54fd359"
   meta-swupdate:
-    # renovate: depType=upstream-meta-layers-matrix branch=kirkstone
     url: "https://github.com/sbabic/meta-swupdate"
     commit: "f6e6e0f50366877f7988defdb9ba61a9ac9280e3"
   meta-secure-imx:
-    # renovate: depType=upstream-meta-layers-matrix branch=dunfell
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     commit: "20d409a5e75758a8df7bb07e086a36377fbe16d9"
     patches:
@@ -116,7 +107,6 @@ repos:
       0002-meta-secure-imx-Update-to-new-override-syntax:
         path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-dependencytrack:
-    # renovate: depType=upstream-meta-layers-matrix branch=main
     url: "https://github.com/bgnetworks/meta-dependencytrack"
     commit: "70b34dc50f64c73a911826ebbc3a99e1beb5682a"
     patches:
