@@ -78,7 +78,7 @@ repos:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "d8dc94b538d789f326b65bc7fc74e7a9c7422458"
+    commit: "53b86496daffdd6bbda51fa4b40ba9aa5b6847bb"
   meta-osselot:
     url: "https://github.com/iris-GmbH/meta-osselot"
     commit: "3baf435fa8b2bb6b5262acfc70d71f9fafbf01db"
