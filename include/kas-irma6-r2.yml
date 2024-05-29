@@ -38,16 +38,7 @@ repos:
   meta-swupdate:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "3521b91de70e012e3508692682e89fcd264ed9eb"
-  meta-secure-imx:
-    # renovate: depType=upstream-meta-layers branch=dunfell
-    url: "https://source.denx.de/denx/meta-secure-imx.git"
-    commit: "20d409a5e75758a8df7bb07e086a36377fbe16d9"
-    patches:
-      0001-APC-5918-Remove-bbappend-for-cryptsetup:
-        path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
-      0002-meta-secure-imx-Update-to-new-override-syntax:
-        path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
+    commit: "3521b91de70e012e3508692682e89fcd264ed9eb"  
   meta-dependencytrack:
     # renovate: depType=upstream-meta-layers branch=main
     url: "https://github.com/bgnetworks/meta-dependencytrack"
