@@ -5,7 +5,7 @@ overrides:
         lnxdsp-adi-meta:
             commit: ad2203c11723b07727589a8eebe33f3129cc236a
         meta-iris:
-            commit: 974e232191f352c73cd42406bbb0f299eea3d05c
+            commit: b8a85348eba7311ea18243827e478dd021fdb6d7
         meta-iris-base:
             commit: e2f9d3def5e7d3739403b10d10cd2f1513eaff0e
         meta-iris-thirdparty:
