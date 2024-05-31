@@ -97,7 +97,38 @@ repos:
     commit: "7956a0ab407a33c40fdc6eb4fabdcb7dc54fd359"
   meta-swupdate:
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "f6e6e0f50366877f7988defdb9ba61a9ac9280e3"
+    commit: "ec42fbc54048060c500ca6fabe6616cb608b293a"
+    patches:
+      0001-Add-fix-dependency-to-libubootenv.patch:
+        path: "patches/0001-Add-fix-dependency-to-libubootenv.patch"
+      0002-json-c-is-mandatory.patch:
+        path: "patches/0002-json-c-is-mandatory.patch"
+      0003-Drop-obsolete-2022.12.patch:
+        path: "patches/0003-Drop-obsolete-2022.12.patch"
+      0004-Update-to-2023.12.patch:
+        path: "patches/0004-Update-to-2023.12.patch"
+      0005-luafilesystem-Correctly-handle-usrmerge.patch:
+        path: "patches/0005-luafilesystem-Correctly-handle-usrmerge.patch"
+      0006-Update-BitBake-auto-versions-documentation.patch:
+        path: "patches/0006-Update-BitBake-auto-versions-documentation.patch"
+      0007-Backport-libubootenv-0.3.5.patch:
+        path: "patches/0007-Backport-libubootenv-0.3.5.patch"
+      0008-Support-release-2023.12.1.patch:
+        path: "patches/0008-Support-release-2023.12.1.patch"
+      0009-Bump-to-rev-c33e38dfa64ca7a70439b0f3cadf6ec8c8b71a08.patch:
+        path: "patches/0009-Bump-to-rev-c33e38dfa64ca7a70439b0f3cadf6ec8c8b71a08.patch"
+      0010-Backport-Fix-for-IVT-check-BUG-into-release-2023.12..patch:
+        path: "patches/0010-Backport-Fix-for-IVT-check-BUG-into-release-2023.12..patch"
+      0011-swupdate-lualoader-Set-SECTION-to-devel-lua.patch:
+        path: "patches/0011-swupdate-lualoader-Set-SECTION-to-devel-lua.patch"
+      0012-Update-README.patch:
+        path: "patches/0012-Update-README.patch"
+      0013-Extend-variable-expansion.patch:
+        path: "patches/0013-Extend-variable-expansion.patch"
+      0014-Drop-older-releases.patch:
+        path: "patches/0014-Drop-older-releases.patch"
+      0015-Update-to-2024.05.patch:
+        path: "patches/0015-Update-to-2024.05.patch"
   meta-secure-imx:
     url: "https://source.denx.de/denx/meta-secure-imx.git"
     commit: "20d409a5e75758a8df7bb07e086a36377fbe16d9"

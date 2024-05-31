@@ -1,0 +1,31 @@
+From adb24bd65645b234b986cf8b08cf38fd03a27bf5 Mon Sep 17 00:00:00 2001
+From: Stefano Babic <stefano.babic@swupdate.org>
+Date: Mon, 18 Dec 2023 14:58:24 +0100
+Subject: [PATCH 01/15] Add fix dependency to libubootenv
+
+Library is used even if U-Boot is not the bootloader to store internal
+variables.
+
+Signed-off-by: Stefano Babic <stefano.babic@swupdate.org>
+
+Upstream-Status: Backported from Scarthgap to Mickledore
+---
+ recipes-support/swupdate/swupdate.inc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recipes-support/swupdate/swupdate.inc b/recipes-support/swupdate/swupdate.inc
+index ac047bd..f51902e 100644
+--- a/recipes-support/swupdate/swupdate.inc
++++ b/recipes-support/swupdate/swupdate.inc
+@@ -1,7 +1,7 @@
+ SUMMARY="Image updater for Yocto projects"
+ DESCRIPTION = "Application for automatic software update from USB Pen"
+ SECTION="swupdate"
+-DEPENDS += "libconfig zlib"
++DEPENDS += "libconfig zlib libubootenv"
+ 
+ # SWUpdate licensing is described in the following pages:
+ # https://sbabic.github.io/swupdate/licensing.html
+-- 
+2.45.1
+

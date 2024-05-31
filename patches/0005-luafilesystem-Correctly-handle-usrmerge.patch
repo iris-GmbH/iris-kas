@@ -1,0 +1,34 @@
+From 840dbfe57666c4d5b18083679ca406c8acf87051 Mon Sep 17 00:00:00 2001
+From: Joshua Watt <jpewhacker@gmail.com>
+Date: Tue, 19 Dec 2023 08:21:13 -0700
+Subject: [PATCH 05/15] luafilesystem: Correctly handle usrmerge
+
+Fixes the recipe to correctly install when the usrmerge DISTRO_FEATURE
+is active. In this case, base_libdir=/usr/lib, so it should not be
+specified as an argument. Also correctly use the ${prefix} variable for
+the install prefix
+
+Signed-off-by: Joshua Watt <JPEWhacker@gmail.com>
+Signed-off-by: Joshua Watt <Joshua.Watt@garmin.com>
+
+Upstream-Status: Backported from Scarthgap to Mickledore
+---
+ recipes-lua/luafilesystem/luafilesystem_git.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recipes-lua/luafilesystem/luafilesystem_git.bb b/recipes-lua/luafilesystem/luafilesystem_git.bb
+index 1778c04..10e6db8 100644
+--- a/recipes-lua/luafilesystem/luafilesystem_git.bb
++++ b/recipes-lua/luafilesystem/luafilesystem_git.bb
+@@ -15,7 +15,7 @@ inherit pkgconfig
+ 
+ S = "${WORKDIR}/git"
+ 
+-EXTRA_OEMAKE = 'PREFIX=${D}/usr BASELIB=${base_libdir} CROSS_COMPILE=${TARGET_PREFIX} CC="${CC} -fpic" LDFLAGS="${LDFLAGS}"'
++EXTRA_OEMAKE = 'PREFIX=${D}/${prefix} CROSS_COMPILE=${TARGET_PREFIX} CC="${CC} -fpic" LDFLAGS="${LDFLAGS}"'
+ 
+ # NOTE: this is a Makefile-only piece of software, so we cannot generate much of the
+ # recipe automatically - you will need to examine the Makefile yourself and ensure
+-- 
+2.45.1
+
