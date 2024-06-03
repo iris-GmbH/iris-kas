@@ -38,7 +38,7 @@ repos:
   meta-swupdate:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "b1f76d7070bdea6ae4c99d3858a5551ea367d3ac"
+    commit: "3521b91de70e012e3508692682e89fcd264ed9eb"
   meta-secure-imx:
     # renovate: depType=upstream-meta-layers branch=dunfell
     url: "https://source.denx.de/denx/meta-secure-imx.git"
