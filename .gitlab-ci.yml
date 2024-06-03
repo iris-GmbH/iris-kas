@@ -160,7 +160,7 @@ renovate:
     - !reference [.develop_template, rules]
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:37.377.8-full
+  image: renovate/renovate:37.385.0-full
   tags:
     - gp
   script:
