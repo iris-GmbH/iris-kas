@@ -10,7 +10,6 @@ variables:
     REGISTRY_USER: "${CI_REGISTRY_USER}"
     REGISTRY_PASSWORD: "${CI_REGISTRY_PASSWORD}"
     GET_SOURCES_ATTEMPTS: 3
-    RELEASE_BRANCH: "master"
     PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
     SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
     SSTATE_CACHE: "/mnt/yocto-sstate-cache"
