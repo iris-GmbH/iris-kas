@@ -38,7 +38,7 @@ repos:
   meta-swupdate:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "3521b91de70e012e3508692682e89fcd264ed9eb"  
+    commit: "3521b91de70e012e3508692682e89fcd264ed9eb"
   meta-dependencytrack:
     # renovate: depType=upstream-meta-layers branch=main
     url: "https://github.com/bgnetworks/meta-dependencytrack"
