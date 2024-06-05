@@ -131,14 +131,6 @@ repos:
         path: "patches/0014-Drop-older-releases.patch"
       0015-Update-to-2024.05.patch:
         path: "patches/0015-Update-to-2024.05.patch"
-  meta-secure-imx:
-    url: "https://source.denx.de/denx/meta-secure-imx.git"
-    commit: "20d409a5e75758a8df7bb07e086a36377fbe16d9"
-    patches:
-      0001-APC-5918-Remove-bbappend-for-cryptsetup:
-        path: "patches/0001-APC-5918-Remove-bbappend-for-cryptsetup.patch"
-      0002-meta-secure-imx-Update-to-new-override-syntax:
-        path: "patches/0002-meta-secure-imx-Update-to-new-override-syntax.patch"
   meta-dependencytrack:
     url: "https://github.com/bgnetworks/meta-dependencytrack"
     commit: "70b34dc50f64c73a911826ebbc3a99e1beb5682a"
