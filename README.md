@@ -21,8 +21,7 @@
       - [Reproducible builds](#reproducible-builds)
         - [Reproducing a release build](#reproducing-a-release-build)
         - [Preparing a develop build for reproducibility](#preparing-a-develop-build-for-reproducibility)
-          - [Local build](#local-build)
-          - [CI build](#ci-build)
+        - [Run a reproducible pipeline build](#run-a-reproducible-pipeline-build)
           - [Working with the KAS lock file](#working-with-the-kas-lock-file)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -135,12 +134,13 @@ Note, that the interactive shell is always limited to the configured `MULTI_CONF
 
 1. Ensure your `iris-kas` develop branch is up-to-date: `git checkout develop && git pull --ff-only`.
 2. Create a release or support branch, branching of the current develop (e.g. `release/irma6r1-3.0-1`, `support/irma6r2-3.0.1-support_suffix`): `git checkout -b release/<RELEASE_VERSION>`.
-3. The command `MULTI_CONF=<MULTI_CONF> make prepare-release` will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-<MULTI_CONF>.lock.yml`, where `MULTI_CONF` is a MULTI_CONF relevant to the release. **Repeat this step for all product relevant MULTI_CONFs!** (e.g. for irma6r1 with `imx8mp-irma6r2` and `qemux86-64-r2`)
+3. The command `MULTI_CONF=<MULTI_CONF> make prepare-release` will force-update layer repositories, checkout the master branch on meta-iris(-base) layer repositories and create a KAS lock file `kas-<MULTI_CONF>.lock.yml`, where `MULTI_CONF` is a MULTI_CONF relevant to the release. **Repeat this step for all product relevant MULTI_CONFs!** (e.g. for irma6r2 with `imx8mp-irma6r2` and `qemux86-64-r2`)
 4. Verify the content of the lock files. If you are doing a support release on the meta-iris(-base) repositories, manually update the commit hashes in **all** the lock files appropriately.
-5. create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`.
-6. create a commit tag: `git tag <RELEASE_VERSION>`.
-7. Push commit and commit tag to remote: `git push && git push origin <RELEASE_VERSION>`.
-8. Wait for the automatically triggered pipeline to succeed.
+5. Stage all changes: `git add -A`.
+6. Create a commit: `git commit -m "Prepare release <RELEASE_VERSION>"`.
+7. Create a commit tag: `git tag <RELEASE_VERSION>`.
+8. Push commit and commit tag to remote: `git push --set-upstream origin <RELEASE_BRANCH_NAME> && git push origin <RELEASE_VERSION>`.
+9. Wait for the automatically triggered pipeline to succeed.
 
 ### Advanced use-cases
 #### Running arbitrary KAS commands (make kas)
@@ -168,7 +168,7 @@ By default, only CI builds from the trunk branch (develop) are kept reproducible
 
 Additionally, it is possible to force build-reproducibility on other branches, either for a local build or for a CI build, **however** it is up to the developer to ensure that commits on meta-layer and **all** component repositories stay available.
 
-This means that each referenced commit in all build relevant iris repositories that is **not** part of a trunk branch during the build **must** be part of a protected branch (i.e. delete and git history rewrite protected). These branches are identified by their name prefix `fixed/`, e.g.: `fixed/jaor/DEVOPS-777_reproducible_build`. Basically you need to ensure protected branches throughout the build hierarchy.
+This means that each referenced commit in all build relevant iris repositories that is **not** part of a trunk branch during the build **must** be part of a protected branch (i.e. delete and git history rewrite protected). These branches are identified by their name prefix `fixed/`, e.g.: `fixed/jaor/DEVOPS-777_reproducible_build`. Basically you need to ensure that you use protected branches throughout the build hierarchy.
 
 For example, if you want to create a reproducible build of the current development state with code modifications to a component referenced in a iris-specific recipe in meta-iris:
 
@@ -180,9 +180,9 @@ For example, if you want to create a reproducible build of the current developme
 
 1. Set the variable `REPRODUCIBLE_BUILD=true` when starting the CI build for your iris-kas branch.
 2. After the pipeline completed successfully, KAS `*.lock.yml` artifacts will be available as artifacts in the `develop-build-reproducibility` job. These artifacts are kept for 10 years within the pipeline.
-3. When reproducing a build, download all the `*.lock.yml` files from the pipeline.
-4. Add the `*.lock.yml` files to the root folder of iris-kas, create a commit and push it to your `fixed/*` branch.
-5. Running a pipeline from this branch will now reproduce the exact outut of the previous pipeline build.
+3. When reproducing a build, download the `develop-build-reproducibility` jobs artifact file.
+4. Move the folders contained in the artifacts.zip to the root folder of iris-kas. Ensure that the folder names do not change. Create a commit with the lock files in place and push it to your `fixed/*` branch.
+5. Re-running a pipeline from this branch will now reuse the component revisions used during the previous CI run.
 
 ###### Working with the KAS lock file
 

@@ -38,10 +38,10 @@ export RELEASE ?= false
 ################################
 
 export KAS_WORK_DIR ?= ${MAKEFILE_DIR}
-export KAS_BUILD_DIR ?= ${MAKEFILE_DIR}/build
-export KAS_TMPDIR ?= ${MAKEFILE_DIR}/build/tmp
-export DL_DIR ?= ${MAKEFILE_DIR}/build/dl_dir
-export SSTATE_DIR ?= ${MAKEFILE_DIR}/build/sstate_dir
+export KAS_BUILD_DIR ?= ${KAS_WORK_DIR}/build
+export KAS_TMPDIR ?= ${KAS_BUILD_DIR}/tmp
+export DL_DIR ?= ${KAS_BUILD_DIR}/dl_dir
+export SSTATE_DIR ?= ${KAS_BUILD_DIR}/sstate_dir
 
 #####################################
 ### ADVANCED KAS RUNTIME SETTINGS ###
@@ -192,7 +192,7 @@ kas-buildhistory-collect-srcrevs:
 >	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}; \
 > fi
 > @# collect srcrevs from the previous buildhistory (do some sed magic to escape double quotes in the resulting string) into the kas lock file
-> ${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs -a | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
+> ${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
 
 develop-prepare-reproducible-build: kas-buildhistory-collect-srcrevs
 > @echo "Prepared a reproducible build for target mc:${MULTI_CONF}:${KAS_TARGET_RECIPE}."

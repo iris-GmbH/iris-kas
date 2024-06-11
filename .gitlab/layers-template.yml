@@ -5,6 +5,9 @@
 
 workflow:
   rules:
+    # Do not run merge pipeline on draft MRs
+    - if: '$CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
     # automatically start pipeline for CI branches (-ci / _ci suffix)
@@ -32,6 +35,12 @@ variables:
   BUILD_FROM_SCRATCH:
     value: "false"
     description: 'Set to "true" to build from scratch.'
+  BUILD_TARGETS:
+    value: ""
+    description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built.'
+  KAS_RUNNER_TAG:
+    value: "kas"
+    description: "The runner tag to use for build jobs. Can be overridden with kas-large for more performance, e.g. when manually building from scratch"
 
 stages:
   - setup
@@ -43,9 +52,13 @@ stages:
     project: public-projects/yocto/iris-kas
     branch: gitlab-pipeline
     strategy: depend
+    forward:
+      pipeline_variables: true
   trunk-trigger:
     project: public-projects/yocto/iris-kas
     strategy: depend
+    forward:
+      pipeline_variables: true
 
 # workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
 update-non-protected-branch:
@@ -79,16 +92,10 @@ trigger-kas-pipeline:
     - when: on_success
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
+    UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
     BRANCH_NAME: $CI_COMMIT_BRANCH
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "true"
-    SKIP_OCI_TESTS: $SKIP_OCI_TESTS
-    SKIP_DEPLOY_IMAGE_BUILD: $SKIP_DEPLOY_IMAGE_BUILD
-    SKIP_MAINTENANCE_IMAGE_BUILD: $SKIP_MAINTENANCE_IMAGE_BUILD
-    FORCE_IRIS_KAS_CONTAINER_BUILD: $FORCE_IRIS_KAS_CONTAINER_BUILD
-    SKIP_SYSTEMTEST_SMOKE: $SKIP_SYSTEMTEST_SMOKE
-    SKIP_SYSTEMTEST_RELIABILITY: $SKIP_SYSTEMTEST_RELIABILITY
-    BUILD_FROM_SCRATCH: $BUILD_FROM_SCRATCH
   stage: !reference [.trigger-kas-pipeline_template, stage]
   trigger: !reference [.trigger-kas-pipeline_template, trigger]
 
@@ -100,6 +107,7 @@ trigger-protected-kas-pipeline:
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
+    UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
     BRANCH_NAME: $CI_COMMIT_BRANCH
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "false"
@@ -111,6 +119,7 @@ merge-trigger-kas-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
+    UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
     BRANCH_NAME: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "true"

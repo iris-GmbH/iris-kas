@@ -20,11 +20,12 @@ include:
 
 variables:
   BUILD_IMAGE_TAG: "latest"
+  RELEASE_BRANCH: "master"
   BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_IMAGE_TAG}"
   RENOVATE_PLATFORM: "gitlab"
   RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
   RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
-  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"an.tran\", \"erik.schumacher\", \"thomas.noack\", \"michael.kirscht\", \"daniel.baumgart\" ]"
+  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"thomas.noack\" ]"
   RENOVATE_PR_CONCURRENT_LIMIT: "0"
   RENOVATE_PR_HOURLY_LIMIT: "0"
   # Set extra flags for the renovate bot
@@ -36,7 +37,7 @@ variables:
     description: 'Set to "true" to use identical named branches in iris meta layers during build'
   REPRODUCIBLE_BUILD:
     value: "false"
-    description: 'Set to "true" to archive build artifacts required for making the maintenance firmware build reproducible. WARNING: We can only guarantee reproducibility for changes done to protected branches!'
+    description: 'Set to "true" to archive build artifacts required for making the firmware build reproducible. WARNING: We can only guarantee reproducibility for changes done to protected branches!'
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
@@ -67,6 +68,9 @@ variables:
   BUILD_TARGETS:
     value: ""
     description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built.'
+  KAS_RUNNER_TAG:
+    value: "kas"
+    description: "The runner tag to use for build jobs. Can be overridden with kas-large for more performance, e.g. when manually building from scratch"
 
 
 ################
@@ -113,8 +117,14 @@ default:
   retry:
     max: 2
     when:
-      - runner_system_failure
+      - unknown_failure
       - api_failure
+      - stuck_or_timeout_failure
+      - runner_system_failure
+      - job_execution_timeout
+      - scheduler_failure
+      - data_integrity_failure
+
   before_script:
     # configure git safe directory
     - if command -v git >/dev/null 2>&1; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
@@ -151,7 +161,7 @@ renovate:
     - !reference [.develop_template, rules]
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:37.279.0-full
+  image: renovate/renovate:37.356.1-full
   tags:
     - gp
   script:
@@ -218,7 +228,7 @@ build-iris-kas-container:
         ARCH: arm64
   tags:
     - ${TAG}
-  image: gcr.io/kaniko-project/executor:v1.9.2-debug
+  image: gcr.io/kaniko-project/executor:v1.22.0-debug
   script:
     - >-
       /kaniko/executor
@@ -262,7 +272,7 @@ merge-container-manifests:
   stage: generate-pipeline
   tags:
     - gp-tiny
-  image: mikefarah/yq:4.33.2
+  image: mikefarah/yq:4.44.1
   artifacts:
     paths:
       - .gitlab/build-ci-template.yml

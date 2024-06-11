@@ -10,7 +10,6 @@ variables:
     REGISTRY_USER: "${CI_REGISTRY_USER}"
     REGISTRY_PASSWORD: "${CI_REGISTRY_PASSWORD}"
     GET_SOURCES_ATTEMPTS: 3
-    RELEASE_BRANCH: "master"
     PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
     SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
     SSTATE_CACHE: "/mnt/yocto-sstate-cache"
@@ -29,6 +28,8 @@ variables:
       ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
       ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
     KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
+    KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
+    KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
     RUN_MAINTENANCE: "false"
     WIPE_SSTATE_CACHE: "false"
     # Refspec of the systemtest_base repo to use
@@ -52,7 +53,7 @@ variables:
 default:
   tags:
     # run on gitlab runners designed for kas builds
-    - kas
+    - ${KAS_RUNNER_TAG}
   image:
     name: "${BUILD_IMAGE_IRIS_KAS}"
     pull_policy:
@@ -60,8 +61,13 @@ default:
   retry:
     max: 2
     when:
-      - runner_system_failure
+      - unknown_failure
       - api_failure
+      - stuck_or_timeout_failure
+      - runner_system_failure
+      - job_execution_timeout
+      - scheduler_failure
+      - data_integrity_failure
   before_script:
     # configure git safe directory
     - if command -v git >/dev/null 2>&1; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
@@ -75,7 +81,6 @@ default:
           echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas."
         fi
       fi
-
 
 #####################
 ### INCLUDE FILES ###
@@ -91,22 +96,27 @@ include:
 ### YAML ANCHORS ###
 ####################
 
+# Define default build targets, can be overriden on manual pipelines using the BUILD_TARGETS variable
 .target_multi_confs: &target_multi_confs
   MULTI_CONF:
     - sc573-gen6
     - imx8mp-irma6r2
+    - imx93-evk
 
 .oci_multi_confs: &oci_multi_confs
   MULTI_CONF:
     - qemux86-64-r1
     - qemux86-64-r2
+    - qemux86-64-matrix
 
 .all_multi_confs: &all_multi_confs
   MULTI_CONF:
     - sc573-gen6
     - imx8mp-irma6r2
+    - imx93-evk
     - qemux86-64-r1
     - qemux86-64-r2
+    - qemux86-64-matrix
 
 
 ###############
@@ -150,16 +160,21 @@ develop-ci-build-setup:
     - gp-tiny
   script:
     # set OCI tag
+    # due to GitLab Ci bug, this must be identifyable on commit level for service containers:
+    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
     - >
       if test -n "${UPSTREAM_PROJECT_NAME}"; then
-        OCI_TAG="$(echo ${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG} | head -c 63)"
+        OCI_TAG="$(echo "${UPSTREAM_PROJECT_NAME}-${BRANCH_NAME_SLUG}" | tail -c 63 | sed -r 's/^-//g')"
+        OCI_TAG_SHA="$(echo "${OCI_TAG}-${UPSTREAM_COMMIT_SHORT_SHA}-${CI_COMMIT_SHORT_SHA}" | tail -c 63 | sed -r 's/^-//g')"
       else
         OCI_TAG="${CI_COMMIT_REF_SLUG}"
+        OCI_TAG_SHA="$(echo "${OCI_TAG}-${CI_COMMIT_SHORT_SHA}" | tail -c 63 | sed -r 's/^-//g')"
       fi
-    - echo "OCI_TAG set to ${OCI_TAG}."
+    - echo "OCI_TAG set to ${OCI_TAG}"
+    - echo "OCI_TAG_SHA set to ${OCI_TAG_SHA}"
     - echo "OCI_TAG=${OCI_TAG}" >> build.env
-    # add commit hash to artifact name
-    - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_SHORT_SHA}-" >> build.env
+    - echo "OCI_TAG_SHA=${OCI_TAG_SHA}" >> build.env
+    - echo "KAS_ARTIFACT_PREFIX=develop-" >> build.env
     # identify branch name for identifying identical named branches in all iris meta layers
     # depending on pipeline source, the name of the current branch (or upstream branch) is saved as different variables. Unify into a single variable.
     # if called from an upstream project, the BRANCH_NAME variable is already defined.
@@ -198,6 +213,7 @@ release-ci-build-setup:
     - echo "RELEASE=true" >> build.env
     - echo "IRMA_DISTRO_VERSION=${CI_COMMIT_TAG}" >> build.env
     - echo "OCI_TAG=${CI_COMMIT_REF_SLUG}" >> build.env
+    - echo "OCI_TAG_SHA=${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}" >> build.env
     - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_TAG}-" >> build.env
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
   artifacts:
@@ -235,7 +251,7 @@ release-ensure-lockfiles-exist:
   script:
     - echo "Ensuring that kas lockfile for MULTI_CONF ${MULTI_CONF} exists..."
     - >
-      if ! test -e kas-${MULTI_CONF}.lock.yml; then
+      if ! test -e ${KAS_LOCK_FILE_NAME}; then
         echo "Error: Could not find a KAS lockfile for MULTI_CONF ${MULTI_CONF}. Please read the README section on how to create a release."
         exit 1
       fi
@@ -258,12 +274,12 @@ develop-create-kas-lockfiles:
     # we generate a kas lock file, which will be used by all following build jobs for this release,
     # unless there is already a lock file checked in for reproducible builds
     - >
-      if ! test -e "kas-${MULTI_CONF}.lock.yml"; then
+      if ! test -e "${KAS_LOCK_FILE_NAME}"; then
         make kas-dump-lockfile
       fi
   artifacts:
     paths:
-      - "kas-${MULTI_CONF}.lock.yml"
+      - "${KAS_LOCK_FILE_NAME}"
       # since KAS 4.3.x the commit in the lock file must match the branch in the kas config
       # thus we add the files modified by the checkout script to follow-up steps
       - "include/kas-meta-iris-base.yml"
@@ -296,7 +312,7 @@ release-build-maintenance-image:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-maintenance-image:
   extends: .build-maintenance-image
@@ -306,6 +322,7 @@ develop-build-maintenance-image:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
@@ -319,7 +336,7 @@ develop-build-maintenance-image:
     KAS_TARGET_RECIPE: "irma-dev-bundle"
     KAS_ARTIFACT_SUFFIX: "-dev"
   tags:
-    - kas-perf
+    - kas-large
 
 release-build-dev-image:
   extends: .build-dev-image
@@ -334,7 +351,12 @@ develop-build-dev-image:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
+    - >
+      if test "${REPRODUCIBLE_BUILD}" = "true"; then
+        make develop-prepare-reproducible-build
+      fi
 
 
 .build-maintenance-oci:
@@ -351,7 +373,7 @@ release-build-maintenance-oci:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-maintenance-oci:
   extends: .build-maintenance-oci
@@ -360,7 +382,12 @@ develop-build-maintenance-oci:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
+    - >
+      if test "${REPRODUCIBLE_BUILD}" = "true"; then
+        make develop-prepare-reproducible-build
+      fi
 
 
 # build deploy image with dev keys.
@@ -377,11 +404,12 @@ release-build-dev-deploy-image:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
   script:
     # archive copy-left sources for license compliance
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml:include/kas-osselot.yml"
     # create and populate a seperate DT project during release
+    # project might pre-exist, due to previous failed or canceled job
     - >
       if test "${MULTI_CONF}" = "imx8mp-irma6r2"; then
         curl \
@@ -391,12 +419,27 @@ release-build-dev-deploy-image:
         --retry-delay 0 \
         --retry-max-time 40 \
         -o resp.json \
-        -X PUT \
+        -X GET \
         -H "Content-Type: application/json" \
         -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
-        --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}\", \"classifier\": \"FIRMWARE\"}" \
-        ${DEPENDENCYTRACK_API_URL}/v1/project
-        export DEPENDENCYTRACK_PROJECT="$(cat resp.json | jq -r ".uuid")"
+        --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}\"}" \
+        "${DEPENDENCYTRACK_API_URL}/v1/project/lookup"
+        export DEPENDENCYTRACK_PROJECT="$(jq -r ".uuid" < resp.json)"
+        if test "${DEPENDENCYTRACK_PROJECT}" = "null"; then
+          curl \
+          --connect-timeout 5 \
+          --max-time 10 \
+          --retry 5 \
+          --retry-delay 0 \
+          --retry-max-time 40 \
+          -o resp.json \
+          -X PUT \
+          -H "Content-Type: application/json" \
+          -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
+          --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}\", \"classifier\": \"FIRMWARE\"}" \
+          "${DEPENDENCYTRACK_API_URL}/v1/project"
+          export DEPENDENCYTRACK_PROJECT="$(jq -r ".uuid" < resp.json)"
+        fi
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
       fi
     - make kas-build
@@ -409,6 +452,7 @@ develop-build-dev-deploy-image:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     # include osselot tasks when default branch run
     - >
       if test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
@@ -422,6 +466,10 @@ develop-build-dev-deploy-image:
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
       fi
     - make kas-build
+    - >
+      if test "${REPRODUCIBLE_BUILD}" = "true"; then
+        make develop-prepare-reproducible-build
+      fi
 
 
 .build-test-oci:
@@ -438,7 +486,7 @@ release-build-test-oci:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-test-oci:
   extends: .build-test-oci
@@ -448,6 +496,7 @@ develop-build-test-oci:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
@@ -472,7 +521,7 @@ release-build-sdk:
   rules:
     - !reference [.release_template, rules]
   tags:
-    - kas-perf
+    - kas-large
 
 develop-build-sdk:
   extends: .build-sdk
@@ -482,7 +531,12 @@ develop-build-sdk:
     - when: manual
       allow_failure: true
   script:
+    - !reference [.develop_template, script, reproduce_build]
     - make kas-build
+    - >
+      if test "${REPRODUCIBLE_BUILD}" = "true"; then
+        make develop-prepare-reproducible-build
+      fi
 
 
 # We archive the build environment for license compliance
@@ -492,7 +546,7 @@ release-archive-kas-build-environment:
     - !reference [.release_template, rules]
   stage: build
   tags:
-    - kas-perf
+    - kas-large
   parallel:
     matrix:
       - <<: *target_multi_confs
@@ -577,6 +631,11 @@ push-test-oci:
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:${OCI_IMAGE}:latest
+      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}
 
 
 ##################
@@ -605,7 +664,10 @@ test-oci:
   tags:
     - gp
   services:
-    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}"
+      # Setting pull_policy for services is currently broken, see:
+      # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
+      # Therefore, we use the commit short sha to ensure the correct commit is tested
+    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
@@ -720,9 +782,6 @@ develop-push-maintenance-oci:
   needs:
     - job: develop-ci-build-setup
     - job: develop-build-maintenance-oci
-      optional: true
-    - job: release-build-maintenance-oci
-      optional: true
     - job: test-oci
   parallel:
     matrix:
@@ -740,6 +799,11 @@ develop-push-maintenance-oci:
       --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
       oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG}
+    - >-
+      /usr/bin/skopeo copy
+      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
+      oci:${OCI_IMAGE}:latest
+      docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG_SHA}
 
 develop-create-sdk-container-images:
   rules:
@@ -750,10 +814,6 @@ develop-create-sdk-container-images:
   needs:
     - job: develop-ci-build-setup
     - job: develop-build-sdk
-      optional: true
-    - job: release-build-sdk
-      optional: true
-    - job: test-oci
   tags:
     - gp
   parallel:
@@ -771,6 +831,7 @@ develop-create-sdk-container-images:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG_SHA}"
 
 # upload the SDKs to the gitlab package registry for later consumption
 develop-upload-sdks:
@@ -785,21 +846,14 @@ develop-upload-sdks:
   needs:
     - job: develop-ci-build-setup
     - job: develop-build-sdk
-      optional: true
-    - job: release-build-sdk
-      optional: true
-    - job: test-oci
   tags:
     - gp
   script:
     - >
       for ARTIFACT in ${KAS_ARTIFACT_PREFIX}*${KAS_ARTIFACT_SUFFIX}; do
-        # remove the commit sha from the artifact file name, so that we can make use of GitLabs package registry cleanup for identical named packages
-        ARTIFACT_NO_SHA=$(echo ${ARTIFACT} | sed "s/-${CI_COMMIT_SHORT_SHA}//g")
-        sudo mv ${ARTIFACT} ${ARTIFACT_NO_SHA}
         # SDK is already heavily compressed, thus no gzip
-        sudo tar 2>&1 -cvf ${ARTIFACT_NO_SHA}.tar ${ARTIFACT_NO_SHA}
-        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT_NO_SHA}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT_NO_SHA}.tar"
+        sudo tar 2>&1 -cvf ${ARTIFACT}.tar ${ARTIFACT}
+        curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT}.tar"
       done
 
 # this job will archive the artifacts necessary for reproducing a build.
