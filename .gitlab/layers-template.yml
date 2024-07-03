@@ -82,46 +82,30 @@ update-non-protected-branch:
     - git reset --hard origin/${CI_DEFAULT_BRANCH}
     - git push --force --set-upstream origin gitlab-pipeline
 
-# can be triggered by any developers on non-protected branches
-trigger-kas-pipeline:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
-      when: never
-    - when: on_success
+.trigger-kas-pipeline:
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
     UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
-    BRANCH_NAME: $CI_COMMIT_BRANCH
+    BRANCH_NAME: $CI_COMMIT_REF_NAME
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "true"
   stage: !reference [.trigger-kas-pipeline_template, stage]
+
+# can be triggered by any developers on non-protected branches
+trigger-kas-pipeline:
+  extends: .trigger-kas-pipeline
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+      when: never
+    - when: on_success
   trigger: !reference [.trigger-kas-pipeline_template, trigger]
 
 # can only be triggered by maintainers on protected branches, will update yocto sstate cache
 trigger-protected-kas-pipeline:
+  extends: .trigger-kas-pipeline
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: never
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'
-  variables:
-    UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
-    UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
-    BRANCH_NAME: $CI_COMMIT_BRANCH
-    BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
-    USE_IDENTICAL_NAMED_BRANCHES: "false"
-  stage: !reference [.trigger-kas-pipeline_template, stage]
   trigger: !reference [.trigger-kas-pipeline_template, trunk-trigger]
-
-merge-trigger-kas-pipeline:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-  variables:
-    UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
-    UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
-    BRANCH_NAME: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-    BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
-    USE_IDENTICAL_NAMED_BRANCHES: "true"
-  stage: !reference [.trigger-kas-pipeline_template, stage]
-  trigger: !reference [.trigger-kas-pipeline_template, trigger]
