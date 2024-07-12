@@ -404,39 +404,11 @@ release-build-dev-deploy-image:
   script:
     # archive copy-left sources for license compliance
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml:include/kas-osselot.yml"
-    # create and populate a seperate DT project during release
-    # project might pre-exist, due to previous failed or canceled job
+    # create and populate a seperate DT project during release, see script for more details
     - >
       if test "${MULTI_CONF}" = "imx8mp-irma6r2"; then
-        curl \
-        --connect-timeout 5 \
-        --max-time 10 \
-        --retry 5 \
-        --retry-delay 0 \
-        --retry-max-time 40 \
-        -o resp.json \
-        -X GET \
-        -H "Content-Type: application/json" \
-        -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
-        --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}\"}" \
-        "${DEPENDENCYTRACK_API_URL}/v1/project/lookup"
-        export DEPENDENCYTRACK_PROJECT="$(jq -r ".uuid" < resp.json)"
-        if test "${DEPENDENCYTRACK_PROJECT}" = "null"; then
-          curl \
-          --connect-timeout 5 \
-          --max-time 10 \
-          --retry 5 \
-          --retry-delay 0 \
-          --retry-max-time 40 \
-          -o resp.json \
-          -X PUT \
-          -H "Content-Type: application/json" \
-          -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
-          --data "{\"name\": \"${MULTI_CONF}-deploy\", \"version\": \"${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}\", \"classifier\": \"FIRMWARE\"}" \
-          "${DEPENDENCYTRACK_API_URL}/v1/project"
-          export DEPENDENCYTRACK_PROJECT="$(jq -r ".uuid" < resp.json)"
-        fi
-        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
+        export DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}")"
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml";
       fi
     - make kas-build
 
