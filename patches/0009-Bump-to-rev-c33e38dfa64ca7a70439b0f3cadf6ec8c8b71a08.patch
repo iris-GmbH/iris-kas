@@ -1,0 +1,97 @@
+From d4b787a8dffe061a82f4fbfff84f11e3f3a5754b Mon Sep 17 00:00:00 2001
+From: Stefano Babic <stefano.babic@swupdate.org>
+Date: Fri, 1 Mar 2024 11:35:23 +0100
+Subject: [PATCH 09/15] Bump to rev c33e38dfa64ca7a70439b0f3cadf6ec8c8b71a08
+
+	c33e38df Fix coverity #487521
+	c07e7779 parsers: Fix false positive parser format errors
+	3afdb189 suricatta/lua: Adapt General HTTP Server to updated specification
+	043b3012 suricatta/wfx: Adapt to updated specification
+	35f4c5aa suricatta/lua: Update specification
+	c0348750 swupdate-progress: multiline file redirected stdout progress
+	2b3dd418 hawkbit: add ability to set configdata via command line
+	dab98ec2 Lua: add function emmcbootpart
+	1229ce39 handler: eMMC internal register
+	a7ab76af Rework roadmap dropping reached goals
+	a22dbbe6 Fix warnings in case CONFIG_LUA is not set
+	f939eb87 doc: explain Lua and shell script handlers
+	e2047257 Lua Script Handler: allows to run scripts globally
+	7ec9958c run_lua_script: check input parms
+	cf9842ac Lua Script: TRACE the name of the called function
+	efdec160 Introduce postfailure scripts
+	89d4e7de Export run_prepost_script to other modules
+	8f27c3db Introduce entry for post-update failure scripts
+	cb74cc3f Lua Script: runs with global Lua state
+	33a10452 Store install Lua State in image structure
+	c7354351 image: create pointer to per install Lua state
+	1f2b1e93 Lua: move out state initialization from run_lua_script
+	577afa2a Lua: prepare to extend Lua lifetime
+	c794c12c doc: nitpick in post update description
+	6dfe6fc7 doc: extend pre install script
+	875d8b11 parser: factorize setting of back pointers
+	10f7f231 readback: drop unused header
+	65d07c5a Cleanup: drop unused enum
+	22c1f0eb Cleanup: using strtobool where needed
+	91028596 lua: check for valid pointer before setting bootenv
+	fee1c3fe BUG: regression checking IVT
+	f185f75d mongoose: fix info message
+	ca4678fe kconfig: fix selects
+	66952eff (tag: 2023.12.1) Prepare 2023.12.1
+	90c6db16 scripts: on fail realloc function does not free orig res but null it
+	7be4bca9 bootloader: cboot: fix Resource leak
+	ea8a8d3b doc: show that IPC selection should be accepted by swupdate
+	12f94088 archive handler: check return value from newlocale()
+	93318e6d notifier: Add error reporting on sendto() failure
+	3f0428de Fix warning in raw_handler
+	50b5441e docker: rework and add support for network / volumes
+	bebc03dc FreeBSD: Set proper notifier socket buffer size
+	792eee9c FreeBSD: Rework notifier socket location
+	26552f3b mongoose: add swupdate websocket heartbeat
+	b7c7ab1d mongoose: use websocket flag of connection struct
+	a11db0f4 doc: Improve POST /upload request documentation
+	8d90eb41 containers: let DOCKER select CHANNEL_CURL
+	117c23de doc: handlers: fix syntax error in sw-description fragment
+	7c5df082 handlers: raw_handler.c: fix return value when an error occurred
+	d0e67fe3 suricatta/lua: Add missing sys/stat.h include
+	a1a36ed1 FreeBSD: #include for device ID, major, minor
+	ad0076e2 Use portable RB_AUTOBOOT for reboot(2)
+	4ca78ec5 Updated e-mail Address
+	5ea9ce94 web-app: sync dist with sources
+	b234b878 web-app: ignore states message not in status enum
+	4b3d18cb web-app: use enum for status messages
+	8d0e863a BUG: post-update command is no longer called from mongoose interface
+	68d55d8a Revert "progress: Clear source after reported download progress"
+	baf31fa9 gpg: fix broken build
+	139f1493 Avoid giving invalid arguments to memcpy
+	3922034e Free pointer before exiting on error
+	369cf206 core: fix typo in logging statement
+	1ecac6cd Update BitBake auto versions documentation
+	e48a8665 util: BUG: __swupdate_copy accepts invalid ivt
+	7317146d util: BUG: set_aes_key does not fail on invalid aes key or ivt
+	7dee6d65 util: Remove unused function extract_next_file
+	0453c44f notifier: Don't create 'NotifyServer:' socket
+	4214ffe4 hawkbit: Add more proxy environment variables
+	8567fcb1 doc: progress: Add missing -q option
+	3d34b144 downloader: ignore SIGPIPE as other processes
+
+Signed-off-by: Stefano Babic <stefano.babic@swupdate.org>
+
+Upstream-Status: Backported from Scarthgap to Mickledore
+---
+ recipes-support/swupdate/swupdate_git.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/recipes-support/swupdate/swupdate_git.bb b/recipes-support/swupdate/swupdate_git.bb
+index ea7f95a..a65e4c4 100644
+--- a/recipes-support/swupdate/swupdate_git.bb
++++ b/recipes-support/swupdate/swupdate_git.bb
+@@ -2,5 +2,5 @@ require swupdate.inc
+ 
+ DEFAULT_PREFERENCE = "-1"
+ 
+-SRCREV ?= "2042e6dc0f5466bd428f4db18eaff638203150ad"
++SRCREV ?= "c33e38dfa64ca7a70439b0f3cadf6ec8c8b71a08"
+ PV = "2023.12+git${SRCPV}"
+-- 
+2.45.1
+

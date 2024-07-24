@@ -161,7 +161,7 @@ renovate:
     - !reference [.develop_template, rules]
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:37.356.1-full
+  image: renovate/renovate:37.422.0-full
   tags:
     - gp
   script:
@@ -228,7 +228,7 @@ build-iris-kas-container:
         ARCH: arm64
   tags:
     - ${TAG}
-  image: gcr.io/kaniko-project/executor:v1.22.0-debug
+  image: gcr.io/kaniko-project/executor:v1.23.0-debug
   script:
     - >-
       /kaniko/executor
@@ -272,7 +272,7 @@ merge-container-manifests:
   stage: generate-pipeline
   tags:
     - gp-tiny
-  image: mikefarah/yq:4.44.1
+  image: mikefarah/yq:4.44.2
   artifacts:
     paths:
       - .gitlab/build-ci-template.yml

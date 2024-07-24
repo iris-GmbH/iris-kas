@@ -1,0 +1,35 @@
+From f0d67fe6cc97242484e85c57ecf1fb2e0e5f1207 Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Fri, 24 May 2024 22:13:22 +0200
+Subject: [PATCH] Fix invalid bom format
+
+According to https://cyclonedx.org/docs/1.4/json/#components_items_type
+each component must have a type defined for a bom to be valid cyclonedx.
+This definition was previously missing from the generated bom.
+
+Since 4.11 of DT (https://github.com/DependencyTrack/dependency-track/pull/3522)
+uploaded boms are validated against the cyclonedx schema, thus causing
+meta-dependencytrack to fail.
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ classes/dependency-track.bbclass | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/classes/dependency-track.bbclass b/classes/dependency-track.bbclass
+index acaa103..00547fe 100644
+--- a/classes/dependency-track.bbclass
++++ b/classes/dependency-track.bbclass
+@@ -77,7 +77,8 @@ python do_dependencytrack_collect() {
+                 "name": names[index],
+                 "version": version,
+                 "cpe": cpe,
+-                "bom-ref": bom_ref
++                "bom-ref": bom_ref,
++                "type": "application"
+             })
+ 
+             # populate vex file with patched CVEs
+-- 
+2.45.0
+

@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/yoctoproject/poky"
-    commit: "2b21c6009aa6b955e1a0e7312c3c0ad66557681b"
+    commit: "be9285cbd9c959e1c712971b6dd753a971717c79"
     layers:
       meta:
       meta-poky:
@@ -40,7 +40,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "5a6f7925bd2b885955c942573f70a5594f231563"
+    commit: "6ff0748a4741517519a281985fc3cd95dadb633e"
     layers:
       meta-oe:
       meta-python:
@@ -81,7 +81,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "f421d0d8fdb564ef427b1db3e4d52571271f1648"
+    commit: "85e0834563d46f41760e6bf0489892425dbc618f"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-osselot"

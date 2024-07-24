@@ -1,0 +1,46 @@
+From 45191793a3d4c4e543b6c1e33a1ac85922a6b46a Mon Sep 17 00:00:00 2001
+From: Bastian Neumann <DasBasti@users.noreply.github.com>
+Date: Wed, 20 Dec 2023 09:34:37 +0100
+Subject: [PATCH 06/15] Update BitBake auto versions documentation
+
+Some time ago the aforementioned SWU_AUTO_VERSION was removed
+and is replaced with a function call to swupdate_get_pkgvar
+
+Signed-off-by: Bastian Neumann <neumann.bastian@gmail.com>
+
+Upstream-Status: Backported from Scarthgap to Mickledore
+---
+ README | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/README b/README
+index 6975ae9..63cac53 100644
+--- a/README
++++ b/README
+@@ -28,20 +28,13 @@ pass $swupdate_get_sha256(IMAGE) (where IMAGE is an image filename).
+ BitBake auto versions
+ ---------------------
+ 
+-By setting the version tag in the update file to `@SWU_AUTO_VERSION` it is
++By setting the version tag in the update file to `$swupdate_get_pkgvar(<package-name>)` it is
+ automatically replaced with `PV` from BitBake's package-data-file for the package
+-matching the name of the provided filename tag.
+-
+-Since the filename can differ from package name (deployed with another name or
+-the file is a container for the real package) you can append the correct package
+-name to the tag:
+-`@SWU_AUTO_VERSION:<package-name>`
++matching the name of the provided <package-name> tag.
+ 
+ To insert the value of a variable from BitBake's package-data-file different to
+ `PV` (e.g. `PKGV`) you can append the variable name to the tag:
+-`@SWU_AUTO_VERSION@<package-data-variable>`
+-or
+-`@SWU_AUTO_VERSION:<package-name>@<package-data-variable>`
++`$swupdate_get_pkgvar(<package-name>@<package-data-variable>)`
+ 
+ SWU image signing
+ -----------------
+-- 
+2.45.1
+

@@ -1,0 +1,38 @@
+From 9d2eb94f034f25eeb24a5b7d1415a4032d9734e8 Mon Sep 17 00:00:00 2001
+From: Stefano Babic <stefano.babic@swupdate.org>
+Date: Thu, 30 May 2024 14:11:35 +0200
+Subject: [PATCH 15/15] Update to 2024.05
+
+Signed-off-by: Stefano Babic <stefano.babic@swupdate.org>
+
+Upstream-Status: Backported from Scarthgap to Mickledore
+---
+ recipes-support/swupdate/swupdate_2024.05.bb | 3 +++
+ recipes-support/swupdate/swupdate_git.bb     | 4 ++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+ create mode 100644 recipes-support/swupdate/swupdate_2024.05.bb
+
+diff --git a/recipes-support/swupdate/swupdate_2024.05.bb b/recipes-support/swupdate/swupdate_2024.05.bb
+new file mode 100644
+index 0000000..eead5b9
+--- /dev/null
++++ b/recipes-support/swupdate/swupdate_2024.05.bb
+@@ -0,0 +1,3 @@
++require swupdate.inc
++
++SRCREV = "3a333f4b4b1cec5e3cb1f2e3da41ad82735d0242"
+diff --git a/recipes-support/swupdate/swupdate_git.bb b/recipes-support/swupdate/swupdate_git.bb
+index a65e4c4..ae24cf0 100644
+--- a/recipes-support/swupdate/swupdate_git.bb
++++ b/recipes-support/swupdate/swupdate_git.bb
+@@ -2,5 +2,5 @@ require swupdate.inc
+ 
+ DEFAULT_PREFERENCE = "-1"
+ 
+-SRCREV ?= "c33e38dfa64ca7a70439b0f3cadf6ec8c8b71a08"
+-PV = "2023.12+git${SRCPV}"
++SRCREV ?= "3a333f4b4b1cec5e3cb1f2e3da41ad82735d0242"
++PV = "2024.05+git${SRCPV}"
+-- 
+2.45.1
+
