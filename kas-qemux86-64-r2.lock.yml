@@ -1,0 +1,28 @@
+header:
+    version: 14
+overrides:
+    repos:
+        meta-dependencytrack:
+            commit: 70b34dc50f64c73a911826ebbc3a99e1beb5682a
+        meta-freescale:
+            commit: 4c81b4161b99698b03332842b588dd8235ac47e4
+        meta-freescale-3rdparty:
+            commit: 9e94b64bdfebcf7bfdf2af6447cec866a4efa814
+        meta-freescale-distro:
+            commit: d5bbb487b2816dfc74984a78b67f7361ce404253
+        meta-iris:
+            commit: a35581aad69cb61a59ac54efb65f1b86bafdb5f9
+        meta-iris-base:
+            commit: 8e52fb6ff2de3ff37301db8310880996d3974ff6
+        meta-iris-thirdparty:
+            commit: 85e0834563d46f41760e6bf0489892425dbc618f
+        meta-openembedded:
+            commit: 6ff0748a4741517519a281985fc3cd95dadb633e
+        meta-osselot:
+            commit: f7c41f88007d3475bfa1d57f657ebbeb1b82668c
+        meta-swupdate:
+            commit: 6918be849ddf1fed5b7a0173e51c7a136e8d4101
+        meta-virtualization:
+            commit: 8b356b91ed0d4bcab72350a2ddcef880f4fa5c26
+        poky:
+            commit: cbac0f1bfc025d11aea74db16034e9589fbcffa6
