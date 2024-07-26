@@ -48,7 +48,7 @@ repos:
   # iris-specific repos
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    branch: "master"
+    branch: "support/3.1.0-ssh_qip-counter"
   meta-iris-thirdparty:
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty.git"
     branch: "kirkstone"
