@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+env:
+  SKIP_PTEST_TESTS: null
+local_conf_header:
+  ptest: |
+    # Adding "ptest" to your DISTRO_FEATURES variable causes -ptest packages to be build
+    # Adding "ptest-pkgs" to IMAGE_FEATURES variable causes all -ptest packages corresponding with other packages installed in your image to be additionally installed.
+    DISTRO_FEATURES:append = "${@' ptest' if d.getVar("SKIP_PTEST_TESTS") == "false" else ''}"
+    EXTRA_IMAGE_FEATURES:append = "${@'ptest-pkgs' if d.getVar("SKIP_PTEST_TESTS") == "false" else ''}"

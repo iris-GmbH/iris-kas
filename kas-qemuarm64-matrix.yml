@@ -6,6 +6,7 @@ header:
   includes:
     - include/kas-base.yml
     - include/kas-matrix.yml
+    - include/kas-ptest.yml
 
 target:
   - multiconfig:qemuarm64-matrix

@@ -7,6 +7,7 @@ header:
     - include/kas-base.yml
     - include/kas-irma6-r2.yml
     - include/kas-meta-virtualization.yml
+    - include/kas-ptest.yml
 
 target:
   - multiconfig:qemux86-64-r2
