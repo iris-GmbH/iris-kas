@@ -1,4 +1,4 @@
-FROM gitlab/gitlab-ee:17.1.2-ee.0
+FROM gitlab/gitlab-ee:17.2.1-ee.0
 
 ADD ./omnibus_config.rb /omnibus_config.rb
 ADD ./entrypoint.sh /entrypoint.sh
