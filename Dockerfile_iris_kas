@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
-FROM mikefarah/yq:4.44.2 AS yq
+FROM mikefarah/yq:4.44.3 AS yq
 
 FROM ghcr.io/siemens/kas/kas:4.4
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
