@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+
+env:
+  CYCLONEDX_EXPORT_DIR: null
+  CYCLONEDX_EXPORT_SBOM: null
+  CYCLONEDX_EXPORT_VEX: null
+local_conf_header:
+  cyclonedx: |
+    INHERIT += "cyclonedx-export"

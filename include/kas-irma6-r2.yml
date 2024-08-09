@@ -39,12 +39,3 @@ repos:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/sbabic/meta-swupdate"
     commit: "6918be849ddf1fed5b7a0173e51c7a136e8d4101"
-  meta-dependencytrack:
-    # renovate: depType=upstream-meta-layers branch=main
-    url: "https://github.com/bgnetworks/meta-dependencytrack"
-    commit: "70b34dc50f64c73a911826ebbc3a99e1beb5682a"
-    patches:
-      0001-Add-support-for-yocto-CVE-backports:
-        path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
-      0002-Fix-invalid-bom-format:
-        path: "patches/0001-Fix-invalid-bom-format.patch"

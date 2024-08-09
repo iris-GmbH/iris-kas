@@ -86,3 +86,10 @@ repos:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-osselot"
     commit: "884bc9af0d36edf06bd89f3e2d29c32feb888920"
+  meta-cyclonedx:
+    # renovate: depType=upstream-meta-layers branch=main
+    url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
+    commit: "ba7b29de983e50e8185df143606a66d724bde008"
+    patches:
+      0001-Revert-add-deduplication-for-vulnerabilities-in-vex:
+        path: "patches/0001-Revert-add-deduplication-for-vulnerabilities-in-vex..patch"
