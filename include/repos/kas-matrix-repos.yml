@@ -3,139 +3,31 @@
 
 header:
   version: 14
+
   includes:
+    - include/repos/kas-base-repos-scarthgap.yml
     - include/repos/kas-meta-iris-base-repo.yml
 
 repos:
-  # general repos
-  poky:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
-    url: "https://github.com/yoctoproject/poky"
-    commit: "a57506c46d92bf0767060102d2139be06d46f575"
-    layers:
-      meta:
-      meta-poky:
-    patches:
-      # backports for making hatchling python build backend work
-      0001-python3-manifest-add-ensurepip:
-        path: "patches/0001-python3-manifest-add-ensurepip.patch"
-      # Fix CPE generation for SBOM generation used in dependencytrack
-      0001-cve_check-Fix-cpe_id-generation:
-        path: "patches/0001-cve_check-Fix-cpe_id-generation.patch"
-      # Use modified patches for mickledore, remove/adapt when matrix and irma6r2
-      # share same poky branch/commit
-      0099-python3-calver-Add-recipe:
-        path: "patches/0099-python3-calver-Add-recipe_mickledore.patch"
-      0099-python3-trove-classifiers-Add-recipe:
-        path: "patches/0099-python3-trove-classifiers-Add-recipe_mickledore.patch"
-      0099-Add-python3-hatchling-1.18.0:
-        path: "patches/0099-Add-python3-hatchling-1.18.0.patch"
-  meta-openembedded:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
-    url: "https://github.com/openembedded/meta-openembedded"
-    commit: "922f41b39f364e5b6be596b4b51e0fb37ffe1971"
-    layers:
-      meta-oe:
-      meta-python:
-      meta-networking:
-      meta-webserver:
-      meta-filesystems:
-    patches:
-      # Backport and fix python3-platformdirs, dependency for python3-virtualenv,
-      # in turn dependency for python3-tox
-      0001-Backport-python3-platformdirs-to-kirkstone:
-        path: "patches/0001-Backport-python3-platformdirs-to-kirkstone.patch"
-      0001-Backport-python3-pytest-mock-to-kirkstone:
-        path: "patches/0001-Backport-python3-pytest-mock-to-kirkstone.patch"
-      0001-python3-pytest-cov-Add-initial-recipe-4.1.0:
-        path: "patches/0001-python3-pytest-cov-Add-initial-recipe-4.1.0.patch"
-      0002-python3-covdefaults-Add-initial-recipe-2.3.0:
-        path: "patches/0002-python3-covdefaults-Add-initial-recipe-2.3.0.patch"
-      0003-python3-platformdirs-Fix-recipe-version-3.6.0:
-        path: "patches/0003-python3-platformdirs-Fix-recipe-version-3.6.0.patch"
-      # Add python3-distlib, dependency for python3-virtualenv
-      0001-python3-distlib-Add-initial-recipe-0.3.6:
-        path: "patches/0001-python3-distlib-Add-initial-recipe-0.3.6.patch"
-      # Add python3-filelock, dependency for python3-virtualenv and python3-tox
-      0002-python3-filelock-Add-initial-recipe-3.12.0:
-        path: "patches/0002-python3-filelock-Add-initial-recipe-3.12.0.patch"
-      # Add python3-virtualenv, dependency for python3-tox
-      0003-python3-virtualenv-Add-initial-recipe-20.23.0:
-        path: "patches/0003-python3-virtualenv-Add-initial-recipe-20.23.0.patch"
-      # Add python3-pyproject-api, dependency for python3-tox
-      0004-python3-pyproject-api-Add-initial-recipe-1.5.1:
-        path: "patches/0004-python3-pyproject-api-Add-initial-recipe-1.5.1.patch"
-      # Add python3-tox
-      0005-python3-tox-Add-initial-recipe-4.6.0:
-        path: "patches/0005-python3-tox-Add-initial-recipe-4.6.0.patch"
-      # Add patch for Json-schema.-validator
-      0001-json-schema-validator-Updrade-to-2.2.0.patch:
-        path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
-  meta-iris-thirdparty:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
-    url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "d8dc94b538d789f326b65bc7fc74e7a9c7422458"
-  meta-osselot:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
-    url: "https://github.com/iris-GmbH/meta-osselot"
-    commit: "3baf435fa8b2bb6b5262acfc70d71f9fafbf01db"
-  # irma HWv2 repos
+  # irma matrix repos
   meta-freescale:
-    # renovate: depType=upstream-meta-layers-matrix branch=master
+    # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale"
-    commit: "7327e03c61823268a5a957fe090c4cc5e1735b34"
+    commit: "41b923e59e048b9b2942ff737a4ddac386954c62"
     patches:
       0001-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
-      0007-imx93-Backport-firmware-ele-imx-for-AHAB-Support-on-.patch:
-        path: "patches/0007-imx93-Backport-firmware-ele-imx-for-AHAB-Support-on-.patch"
+      0002-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
+        path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
   meta-freescale-3rdparty:
-    # renovate: depType=upstream-meta-layers-matrix branch=master
+    # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    commit: "bccd93f1ceece608e69799b6fc8f79e8a519f89e"
+    commit: "8b61684f0b1ba8bacdf3a69d993445e9791d4932"
   meta-freescale-distro:
-    # renovate: depType=upstream-meta-layers-matrix branch=master
+    # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-distro"
-    commit: "7956a0ab407a33c40fdc6eb4fabdcb7dc54fd359"
+    commit: "158cc55b6ee30d09957b380859dba52c0f6af68d"
   meta-swupdate:
-    # renovate: depType=upstream-meta-layers-matrix branch=mickledore
+    # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "ec42fbc54048060c500ca6fabe6616cb608b293a"
-    patches:
-      0001-Add-fix-dependency-to-libubootenv.patch:
-        path: "patches/0001-Add-fix-dependency-to-libubootenv.patch"
-      0002-json-c-is-mandatory.patch:
-        path: "patches/0002-json-c-is-mandatory.patch"
-      0003-Drop-obsolete-2022.12.patch:
-        path: "patches/0003-Drop-obsolete-2022.12.patch"
-      0004-Update-to-2023.12.patch:
-        path: "patches/0004-Update-to-2023.12.patch"
-      0005-luafilesystem-Correctly-handle-usrmerge.patch:
-        path: "patches/0005-luafilesystem-Correctly-handle-usrmerge.patch"
-      0006-Update-BitBake-auto-versions-documentation.patch:
-        path: "patches/0006-Update-BitBake-auto-versions-documentation.patch"
-      0007-Backport-libubootenv-0.3.5.patch:
-        path: "patches/0007-Backport-libubootenv-0.3.5.patch"
-      0008-Support-release-2023.12.1.patch:
-        path: "patches/0008-Support-release-2023.12.1.patch"
-      0009-Bump-to-rev-c33e38dfa64ca7a70439b0f3cadf6ec8c8b71a08.patch:
-        path: "patches/0009-Bump-to-rev-c33e38dfa64ca7a70439b0f3cadf6ec8c8b71a08.patch"
-      0010-Backport-Fix-for-IVT-check-BUG-into-release-2023.12..patch:
-        path: "patches/0010-Backport-Fix-for-IVT-check-BUG-into-release-2023.12..patch"
-      0011-swupdate-lualoader-Set-SECTION-to-devel-lua.patch:
-        path: "patches/0011-swupdate-lualoader-Set-SECTION-to-devel-lua.patch"
-      0012-Update-README.patch:
-        path: "patches/0012-Update-README.patch"
-      0013-Extend-variable-expansion.patch:
-        path: "patches/0013-Extend-variable-expansion.patch"
-      0014-Drop-older-releases.patch:
-        path: "patches/0014-Drop-older-releases.patch"
-      0015-Update-to-2024.05.patch:
-        path: "patches/0015-Update-to-2024.05.patch"
-  meta-dependencytrack:
-    # renovate: depType=upstream-meta-layers-matrix branch=main
-    url: "https://github.com/bgnetworks/meta-dependencytrack"
-    commit: "70b34dc50f64c73a911826ebbc3a99e1beb5682a"
-    patches:
-      0001-Add-support-for-yocto-CVE-backports:
-        path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
+    commit: "f1266f66b4d245c56e334f1be1694a307c0f09d0"
