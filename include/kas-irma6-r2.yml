@@ -23,7 +23,7 @@ repos:
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
-      0001-Replace-tinycompress-src_uri:
+      0002-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
       0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
         path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
@@ -46,5 +46,5 @@ repos:
     patches:
       0001-Add-support-for-yocto-CVE-backports:
         path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
-      0001-Fix-invalid-bom-format:
+      0002-Fix-invalid-bom-format:
         path: "patches/0001-Fix-invalid-bom-format.patch"
