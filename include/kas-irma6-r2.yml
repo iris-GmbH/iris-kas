@@ -19,7 +19,7 @@ repos:
   meta-freescale:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/Freescale/meta-freescale"
-    commit: "4c81b4161b99698b03332842b588dd8235ac47e4"
+    commit: "c525e0c19bdc46d45f71873b5f286f49abb69418"
     patches:
       0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
         path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
