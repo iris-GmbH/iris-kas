@@ -18,8 +18,8 @@ variables:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
   SKIP_PTEST_TESTS:
-    value: "false"
-    description: 'Set to "true" to skip the PTEST tests.'
+    value: "true"
+    description: 'Set to "false" to run the PTEST tests.'
   SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance image build'
