@@ -1,0 +1,85 @@
+From 6efdd1ee890dbdd749e23336b0eef46e02bbf4ed Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Tue, 13 Aug 2024 18:05:59 +0200
+Subject: [PATCH] Revert "add deduplication for vulnerabilities in vex.json"
+
+This reverts commit 4dd0573b6a15cbd6aef86ce02c0b79ab08e61e88.
+
+See: https://github.com/savoirfairelinux/meta-cyclonedx/issues/7
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+---
+ classes/cyclonedx-export.bbclass | 51 ++++++++++++--------------------
+ 1 file changed, 19 insertions(+), 32 deletions(-)
+
+diff --git a/classes/cyclonedx-export.bbclass b/classes/cyclonedx-export.bbclass
+index 03a863d..51dfca3 100644
+--- a/classes/cyclonedx-export.bbclass
++++ b/classes/cyclonedx-export.bbclass
+@@ -80,45 +80,32 @@ python do_cyclonedx_package_collect() {
+             # populate vex file with patched CVEs
+             for _, patched_cve in enumerate(oe.cve_check.get_patched_cves(d)):
+                 bb.debug(2, f"Found patch for CVE {patched_cve} in {name}@{version}")
+-                index_found = next((i for i, v in enumerate(vex["vulnerabilities"]) if v["id"] == patched_cve), None)
+-                if index_found is None:
++                vex["vulnerabilities"].append({
++                    "id": patched_cve,
++                    # vex documents require a valid source, see https://github.com/DependencyTrack/dependency-track/issues/2977
++                    # this should always be NVD for yocto CVEs.
++                    "source": {"name": "NVD", "url": f"https://nvd.nist.gov/vuln/detail/{patched_cve}"},
++                    "analysis": {"state": "resolved"},
++                    # Hint: Component specific resolving seems not to work at the moment when using DependencyTrack
++                    # resolution will of CVE will be applied to all components within the project that contain the CVE
++                    "affects": [{"ref": f"urn:cdx:{sbom_serial_number}/1#{bom_ref}"}]
++                })
++            # populate vex file with ignored CVEs defined in CVE_CHECK_IGNORE
++            cve_check_ignore = d.getVar("CVE_CHECK_IGNORE")
++            if cve_check_ignore is not None:
++                for ignored_cve in cve_check_ignore.split():
++                    bb.debug(2, f"Found ignore statement for CVE {ignored_cve} in {name}@{version}")
+                     vex["vulnerabilities"].append({
+-                        "id": patched_cve,
++                        "id": ignored_cve,
+                         # vex documents require a valid source, see https://github.com/DependencyTrack/dependency-track/issues/2977
+                         # this should always be NVD for yocto CVEs.
+-                        "source": {"name": "NVD", "url": f"https://nvd.nist.gov/vuln/detail/{patched_cve}"},
+-                        "analysis": {"state": "resolved"},
++                        "source": {"name": "NVD", "url": f"https://nvd.nist.gov/vuln/detail/{ignored_cve}"},
++                        # setting not-affected state for ignored CVEs
++                        "analysis": {"state": "not_affected"},
+                         # Hint: Component specific resolving seems not to work at the moment when using DependencyTrack
+                         # resolution will of CVE will be applied to all components within the project that contain the CVE
+                         "affects": [{"ref": f"urn:cdx:{sbom_serial_number}/1#{bom_ref}"}]
+                     })
+-                else:
+-                    vex["vulnerabilities"][index_found]["affects"].append(
+-                        {"ref": f"urn:cdx:{sbom_serial_number}/1#{bom_ref}"}
+-                    )
+-
+-            # populate vex file with ignored CVEs defined in CVE_CHECK_IGNORE
+-            cve_check_ignore = d.getVar("CVE_CHECK_IGNORE")
+-            if cve_check_ignore is not None:
+-                for ignored_cve in cve_check_ignore.split():
+-                    bb.debug(2, f"Found ignore statement for CVE {ignored_cve} in {name}@{version}")
+-                    index_found = next((i for i, v in enumerate(vex["vulnerabilities"]) if v["id"] == ignored_cve), None)
+-                    if index_found is None:
+-                        vex["vulnerabilities"].append({
+-                            "id": ignored_cve,
+-                            # vex documents require a valid source, see https://github.com/DependencyTrack/dependency-track/issues/2977
+-                            # this should always be NVD for yocto CVEs.
+-                            "source": {"name": "NVD", "url": f"https://nvd.nist.gov/vuln/detail/{ignored_cve}"},
+-                            # setting not-affected state for ignored CVEs
+-                            "analysis": {"state": "not_affected"},
+-                            # Hint: Component specific resolving seems not to work at the moment when using DependencyTrack
+-                            # resolution will of CVE will be applied to all components within the project that contain the CVE
+-                            "affects": [{"ref": f"urn:cdx:{sbom_serial_number}/1#{bom_ref}"}]
+-                        })
+-                    else:
+-                        vex["vulnerabilities"][index_found]["affects"].append(
+-                            {"ref": f"urn:cdx:{sbom_serial_number}/1#{bom_ref}"}
+-                        )
+     
+     # write it back to the deploy directory
+     write_json(d.getVar("CYCLONEDX_EXPORT_SBOM"), sbom)
+-- 
+2.46.0
+

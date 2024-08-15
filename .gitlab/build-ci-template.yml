@@ -42,8 +42,14 @@ variables:
     SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
     GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
     GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
+    CYCLONEDX_EXPORT_DIR: "${KAS_TMPDIR}/deploy/cyclonedx-export"
+    CYCLONEDX_EXPORT_SBOM: "${CYCLONEDX_EXPORT_DIR}/bom.json"
+    CYCLONEDX_EXPORT_VEX: "${CYCLONEDX_EXPORT_DIR}/vex.json"
     DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
-    DEPENDENCYTRACK_PROJECT: "c8bcea87-ba60-45cf-a45f-51d956681850"
+    # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
+    # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
+    IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
+    FORCE_DEPENDENCYTRACK: "false"
 
 
 ########################
@@ -406,11 +412,9 @@ release-build-dev-deploy-image:
   script:
     # archive copy-left sources for license compliance
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-archive-copyleft-sources.yml:include/kas-osselot.yml"
-    # create and populate a seperate DT project during release, see script for more details
     - >
       if test "${MULTI_CONF}" = "imx8mp-irma6r2"; then
-        export DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}")"
-        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml";
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-cyclonedx.yml";
       fi
     - make kas-build
 
@@ -429,11 +433,11 @@ develop-build-dev-deploy-image:
         echo "Including Osselot tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-osselot.yml"
       fi
-    # include dependencytrack tasks when R2 and default branch run
+    # include cyclonedx tasks when R2 and default branch run
     - >
-      if test "${MULTI_CONF}" = "imx8mp-irma6r2" && test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
-        echo "Including DT tasks..."
-        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-dependencytrack.yml"
+      if ( test "${MULTI_CONF}" = "imx8mp-irma6r2" && test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" ) || test "${FORCE_DEPENDENCYTRACK}" = "true"; then
+        echo "Including CycloneDX SBOM tasks..."
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-cyclonedx.yml"
       fi
     - make kas-build
     - >
@@ -902,6 +906,64 @@ develop-build-reproducibility:
     exclude:
       # exclude top-level lock file
       - "*.lock.yml"
+
+upload-cyclonedx-to-dependencytrack:
+  stage: upload-artifacts
+  rules:
+    - !reference [.release_template, rules]
+    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+    - if: '$FORCE_DEPENDENCYTRACK == "true"'
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+  needs:
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+    - job: release-build-dev-deploy-image
+      optional: true
+    - job: develop-build-dev-deploy-image
+      optional: true
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - api_failure
+      - stuck_or_timeout_failure
+      - runner_system_failure
+      - job_execution_timeout
+      - scheduler_failure
+      - data_integrity_failure
+      # additionally retry on script_failure for dt upload
+      - script_failure
+  variables:
+    KAS_ARTIFACT_SUFFIX: "-dev-deploy"
+  allow_failure:
+    exit_codes:
+     - 123
+  tags:
+    - gp-tiny
+  script:
+    # check whether there is a dependencytrack project defined for this multiconf
+    - MULTI_CONF_SANITIZED="$(echo "${MULTI_CONF}" | tr '[:lower:]-' '[:upper:]_')"
+    - MULTI_CONF_DT_PROJECT_VAR_NAME="${MULTI_CONF_SANITIZED}_DEPENDENCYTRACK_PROJECT"
+    # Shell Parameter Expansion is a bashism, therefore ensure it is run in bash, not POSIX sh
+    - DEPENDENCYTRACK_PROJECT="$(bash -c "printf \"${!MULTI_CONF_DT_PROJECT_VAR_NAME}\"")"
+    - >
+      if test -z "${DEPENDENCYTRACK_PROJECT}"; then
+        echo "No default DependencyTrack Project ID defined for MULTI_CONF ${MULTI_CONF}. Exiting."
+        exit 123
+      fi
+    # create and populate a seperate DT project during release, see script for more details
+    - >
+      if test -n "${CI_COMMIT_TAG}"; then
+        DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}")"
+      fi
+    # upload sbom and vex file
+    - SBOM_FILE="$(echo "$CYCLONEDX_EXPORT_SBOM" | sed "s%${KAS_TMPDIR}%${KAS_ARTIFACT_FOLDER}%g")"
+    - VEX_FILE="$(echo "$CYCLONEDX_EXPORT_VEX" | sed "s%${KAS_TMPDIR}%${KAS_ARTIFACT_FOLDER}%g")"
+    - ${CI_PROJECT_DIR}/utils/scripts/upload-cyclonedx-to-dependencytrack.sh -u ${DEPENDENCYTRACK_API_URL} -k ${DEPENDENCYTRACK_API_KEY} -p ${DEPENDENCYTRACK_PROJECT} -b ${SBOM_FILE} -v ${VEX_FILE}
 
 
 #####################
