@@ -5,4 +5,3 @@ header:
   version: 14
   includes:
     - include/ci/kas-ci-populate-caches.yml
-    - include/kas-ptest.yml
