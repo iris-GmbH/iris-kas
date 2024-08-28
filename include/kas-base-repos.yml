@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/yoctoproject/poky"
-    commit: "48ef389f9151f3e8766cd2b56b245b19ded997f6"
+    commit: "2b5ca6638e1a490a1230bccdb34a95b43f3d253e"
     layers:
       meta:
       meta-poky:
@@ -89,7 +89,7 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=main
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "ba7b29de983e50e8185df143606a66d724bde008"
+    commit: "7badaf8c0029d3d2ad9d7bcadb3f6967d6345f8c"
     patches:
       0001-Revert-add-deduplication-for-vulnerabilities-in-vex:
         path: "patches/0001-Revert-add-deduplication-for-vulnerabilities-in-vex..patch"
