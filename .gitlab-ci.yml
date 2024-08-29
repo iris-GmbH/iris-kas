@@ -231,7 +231,7 @@ build-iris-kas-container:
         ARCH: arm64
   tags:
     - ${TAG}
-  image: gcr.io/kaniko-project/executor:v1.23.0-debug
+  image: gcr.io/kaniko-project/executor:v1.23.2-debug
   script:
     - >-
       /kaniko/executor
