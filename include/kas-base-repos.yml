@@ -90,6 +90,3 @@ repos:
     # renovate: depType=upstream-meta-layers branch=main
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
     commit: "413d3d9fd4e17bfe67bb81a4ca1a2cab3576af38"
-    patches:
-      0001-Revert-add-deduplication-for-vulnerabilities-in-vex:
-        path: "patches/0001-Revert-add-deduplication-for-vulnerabilities-in-vex..patch"
