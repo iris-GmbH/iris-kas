@@ -25,6 +25,9 @@ repos:
       meta-networking:
       meta-webserver:
       meta-filesystems:
+    patches:
+      0001-Use-inherit_defer-for-python-class-in-nftables-recipe:
+        path: "patches/0001-Use-inherit_defer-for-python-class-in-nftables-recip.patch"
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
