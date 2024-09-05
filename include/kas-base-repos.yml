@@ -89,4 +89,4 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=main
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "413d3d9fd4e17bfe67bb81a4ca1a2cab3576af38"
+    commit: "4680f22fa23b37b7e38dbd4d5d769d83180659ee"
