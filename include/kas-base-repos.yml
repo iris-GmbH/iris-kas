@@ -87,6 +87,6 @@ repos:
     url: "https://github.com/iris-GmbH/meta-osselot"
     commit: "b4a530af5200c435d55ea4f8ff92f0f72a6ee307"
   meta-cyclonedx:
-    # renovate: depType=upstream-meta-layers branch=main
+    # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "413d3d9fd4e17bfe67bb81a4ca1a2cab3576af38"
+    commit: "a291529e4544a196a6b6c50cb76efe44347f28b3"
