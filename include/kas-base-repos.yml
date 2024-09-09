@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/yoctoproject/poky"
-    commit: "0ae3b2bd492d32ba401a447f09679ebaf10ddad4"
+    commit: "4cdc553814640851cce85f84ee9c0b58646cd33b"
     layers:
       meta:
       meta-poky:
@@ -40,7 +40,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "52ecd66835dcfd8b4e55c9cb6325908ccea6a4e7"
+    commit: "9a24b7679810628b594cc5a9b52f77f53d37004f"
     layers:
       meta-oe:
       meta-python:
