@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+repos:
+  # general repos
+  poky:
+    # renovate: depType=upstream-meta-layers branch=scarthgap
+    url: "https://github.com/yoctoproject/poky"
+    commit: "c5627ab06fc07221237b9a7059ac378ea80578f8"
+    layers:
+      meta:
+      meta-poky:
+    patches:
+      0001-Revert-avahi-handle-invalid-service-types-gracefully:
+        path: "patches/0001-Revert-avahi-handle-invalid-service-types-gracefully.patch"
+  meta-openembedded:
+    # renovate: depType=upstream-meta-layers branch=scarthgap
+    url: "https://github.com/openembedded/meta-openembedded"
+    commit: "a72010b414ee3d73888ac9cb4e310e8f05e13aea"
+    layers:
+      meta-oe:
+      meta-python:
+      meta-networking:
+      meta-webserver:
+      meta-filesystems:
+    patches:
+      0001-Use-inherit_defer-for-python-class-in-nftables-recipe:
+        path: "patches/0001-Use-inherit_defer-for-python-class-in-nftables-recip.patch"
+  meta-iris-thirdparty:
+    # renovate: depType=upstream-meta-layers branch=scarthgap
+    url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
+    commit: "2b1fa91223376edc726b1a69bafba38f47e0e1b1"
+  meta-osselot:
+    # renovate: depType=upstream-meta-layers branch=scarthgap
+    url: "https://github.com/iris-GmbH/meta-osselot"
+    commit: "e20135ec036286cf708ecb46acbcf0a411680c9b"
+  meta-cyclonedx:
+    # renovate: depType=upstream-meta-layers branch=main
+    url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
+    commit: "ba7b29de983e50e8185df143606a66d724bde008"
+    patches:
+      0001-Repl-deprecated-CVE_CHECK_IGNORE-with-CVE_STATUS:
+        path: "patches/0001-Repl-deprecated-CVE_CHECK_IGNORE-with-CVE_STATUS.patch"

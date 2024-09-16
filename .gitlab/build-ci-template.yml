@@ -286,8 +286,8 @@ develop-create-kas-lockfiles:
       - "${KAS_LOCK_FILE_NAME}"
       # since KAS 4.3.x the commit in the lock file must match the branch in the kas config
       # thus we add the files modified by the checkout script to follow-up steps
-      - "include/kas-meta-iris-base.yml"
-      - "include/kas-meta-iris.yml"
+      - "include/repos/kas-meta-iris-base-repo.yml"
+      - "include/repos/kas-meta-iris-repo.yml"
 
 ###################
 ### BUILD STAGE ###
