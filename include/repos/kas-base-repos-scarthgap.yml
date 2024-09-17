@@ -37,9 +37,6 @@ repos:
     url: "https://github.com/iris-GmbH/meta-osselot"
     commit: "af2c6c3f9e0ea71ddd37bda8a5f17c48a51aa8ce"
   meta-cyclonedx:
-    # renovate: depType=upstream-meta-layers branch=main
+    # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "4680f22fa23b37b7e38dbd4d5d769d83180659ee"
-    patches:
-      0001-Repl-deprecated-CVE_CHECK_IGNORE-with-CVE_STATUS:
-        path: "patches/0001-Repl-deprecated-CVE_CHECK_IGNORE-with-CVE_STATUS.patch"
+    commit: "f30113516223e8a59e4ebd141e338cfad5a7ddd4"
