@@ -10,7 +10,7 @@ header:
 repos:
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
-    # renovate: depType=upstream-meta-layers branch=release/yocto-3.1.0
+    # renovate: depType=upstream-meta-layers branch=release/yocto-1.0.0
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta"
     commit: "ad2203c11723b07727589a8eebe33f3129cc236a"
     layers:

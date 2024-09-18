@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "c5627ab06fc07221237b9a7059ac378ea80578f8"
+    commit: "703740d19f0e144d56ad000b532d92197ec8ddf1"
     layers:
       meta:
       meta-poky:
@@ -18,7 +18,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "a72010b414ee3d73888ac9cb4e310e8f05e13aea"
+    commit: "1235dd4ed4a57e67683c045ad76b6a0f9e896b45"
     layers:
       meta-oe:
       meta-python:
@@ -35,11 +35,8 @@ repos:
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
-    commit: "e20135ec036286cf708ecb46acbcf0a411680c9b"
+    commit: "af2c6c3f9e0ea71ddd37bda8a5f17c48a51aa8ce"
   meta-cyclonedx:
-    # renovate: depType=upstream-meta-layers branch=main
+    # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "ba7b29de983e50e8185df143606a66d724bde008"
-    patches:
-      0001-Repl-deprecated-CVE_CHECK_IGNORE-with-CVE_STATUS:
-        path: "patches/0001-Repl-deprecated-CVE_CHECK_IGNORE-with-CVE_STATUS.patch"
+    commit: "f30113516223e8a59e4ebd141e338cfad5a7ddd4"
