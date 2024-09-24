@@ -13,12 +13,10 @@ repos:
   meta-freescale:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale"
-    commit: "41b923e59e048b9b2942ff737a4ddac386954c62"
+    commit: "f21ec21e0b3516ef3b4678dc9d977c5362b7b1ff"
     patches:
       0001-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
-      0002-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
-        path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
   meta-freescale-3rdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
