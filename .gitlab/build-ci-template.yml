@@ -879,7 +879,7 @@ develop-upload-sdks:
     - >
       for ARTIFACT in ${KAS_ARTIFACT_PREFIX}*${KAS_ARTIFACT_SUFFIX}; do
         # SDK is already heavily compressed, thus no gzip
-        sudo tar 2>&1 -cvf ${ARTIFACT}.tar ${ARTIFACT}
+        sudo tar 2>&1 -cf ${ARTIFACT}.tar ${ARTIFACT}
         curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ARTIFACT}.tar "${SDK_PACKAGE_REGISTRY_URL}/${CI_COMMIT_REF_SLUG}/${ARTIFACT}.tar"
       done
 
