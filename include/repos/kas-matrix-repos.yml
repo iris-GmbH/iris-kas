@@ -7,25 +7,4 @@ header:
   includes:
     - include/repos/kas-base-repos-scarthgap.yml
     - include/repos/kas-meta-iris-base-repo.yml
-
-repos:
-  # irma matrix repos
-  meta-freescale:
-    # renovate: depType=upstream-meta-layers branch=scarthgap
-    url: "https://github.com/Freescale/meta-freescale"
-    commit: "f21ec21e0b3516ef3b4678dc9d977c5362b7b1ff"
-    patches:
-      0001-Replace-tinycompress-src_uri:
-        path: "patches/0001-Replace-tinycompress-src_uri.patch"
-  meta-freescale-3rdparty:
-    # renovate: depType=upstream-meta-layers branch=scarthgap
-    url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    commit: "6c063450d464eb2f380443c7d9af1b94ce9b9d75"
-  meta-freescale-distro:
-    # renovate: depType=upstream-meta-layers branch=scarthgap
-    url: "https://github.com/Freescale/meta-freescale-distro"
-    commit: "b9d6a5d9931922558046d230c1f5f4ef6ee72345"
-  meta-swupdate:
-    # renovate: depType=upstream-meta-layers branch=scarthgap
-    url: "https://github.com/sbabic/meta-swupdate"
-    commit: "1600c74ed6d9eabc15a680a7a4cb359aa537bd65"
+    - include/repos/kas-imx-repos-scarthgap.yml
