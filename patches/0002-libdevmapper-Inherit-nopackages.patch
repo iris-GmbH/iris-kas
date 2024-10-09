@@ -1,0 +1,34 @@
+From c1662c7c34c65b926e112b49a9bc84d3e7ae55a0 Mon Sep 17 00:00:00 2001
+From: Ian Dannapel <ian.dannapel@iris-sensing.com>
+Date: Mon, 7 Oct 2024 15:22:33 +0200
+Subject: [PATCH] libdevmapper: Inherit nopackages
+
+This fixes errors from buildhistory changes where packages-split would
+be empty.
+
+Signed-off-by: Peter Kjellerstedt <peter.kjellerstedt@axis.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+
+Upstream-Status: Backport [90f96e053ad3eefa7693d9748efdfbfa72d7dcfd]
+
+Signed-off-by: Ian Dannapel <ian.dannapel@iris-sensing.com>
+---
+ meta-oe/recipes-support/lvm2/libdevmapper_2.03.22.bb | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/meta-oe/recipes-support/lvm2/libdevmapper_2.03.22.bb b/meta-oe/recipes-support/lvm2/libdevmapper_2.03.22.bb
+index be558ce1d..3b4439c3a 100644
+--- a/meta-oe/recipes-support/lvm2/libdevmapper_2.03.22.bb
++++ b/meta-oe/recipes-support/lvm2/libdevmapper_2.03.22.bb
+@@ -5,6 +5,8 @@ require lvm2.inc
+ 
+ DEPENDS += "autoconf-archive-native"
+ 
++inherit nopackages
++
+ TARGET_CC_ARCH += "${LDFLAGS}"
+ 
+ do_install() {
+-- 
+2.43.0
+
