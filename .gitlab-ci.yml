@@ -193,7 +193,7 @@ build-container-get-tag:
   stage: setup
   tags:
     - gp-tiny
-  image: busybox:1.36.1-uclibc
+  image: busybox:1.37.0-uclibc
   script:
     # Default branch = latest tag
     # Release = release tag
