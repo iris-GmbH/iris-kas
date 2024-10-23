@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "cd44e6bd40b0c1f498b3feaeb5e9b72f8bf32d41"
+    commit: "200d12b6a58ad961d60a7774ca0f7a9d29498724"
     layers:
       meta:
       meta-poky:
@@ -18,7 +18,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "72018ca1b1a471226917e8246e8bbf9a374ccf97"
+    commit: "2e3126c9c16bb3df0560f6b3896d01539a3bfad7"
     layers:
       meta-oe:
       meta-python:
