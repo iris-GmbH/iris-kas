@@ -39,9 +39,9 @@ export RELEASE ?= false
 
 export KAS_WORK_DIR ?= ${MAKEFILE_DIR}
 export KAS_BUILD_DIR ?= ${KAS_WORK_DIR}/build
-export KAS_TMPDIR ?= ${KAS_BUILD_DIR}/tmp
 export DL_DIR ?= ${KAS_BUILD_DIR}/dl_dir
 export SSTATE_DIR ?= ${KAS_BUILD_DIR}/sstate_dir
+export KAS_TMPDIR = ${KAS_BUILD_DIR}/tmp
 
 #####################################
 ### ADVANCED KAS RUNTIME SETTINGS ###
@@ -72,7 +72,7 @@ export OPTIONS ?= --log-level ${KAS_LOG_LEVEL}
 export KASOPTIONS ?=
 export KASFILE ?= ${KASFILE_GENERATED}
 export KASFILE_EXTRA ?=
-export KAS_COMMAND ?= TMPDIR="${KAS_TMPDIR}" ${KAS_EXE} ${OPTIONS}
+export KAS_COMMAND ?= ${KAS_EXE} ${OPTIONS}
 
 #########################
 ### KAS TASK SETTINGS ###
