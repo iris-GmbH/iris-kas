@@ -32,6 +32,7 @@ variables:
   RENOVATE_EXTRA_FLAGS: ""
   FORCE_RENOVATE_RUN: "false"
   RENOVATE_DRY_RUN: "false"
+  KAS_RUNNER_TAG: "kas-large"
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named branches in iris meta layers during build'
@@ -71,9 +72,6 @@ variables:
   BUILD_TARGETS:
     value: ""
     description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built.'
-  KAS_RUNNER_TAG:
-    value: "kas"
-    description: "The runner tag to use for build jobs. Can be overridden with kas-large for more performance, e.g. when manually building from scratch"
 
 
 ################
