@@ -13,4 +13,3 @@ target:
 local_conf_header:
   bbmask: |
     BBMASK = "u-boot-adi|linux-adi"
-    BBMASK .= "|u-boot-imx-mfgtool|linux-imx-mfgtool"
