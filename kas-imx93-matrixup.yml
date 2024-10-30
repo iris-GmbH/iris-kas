@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
+# Copyright (C) 2024 iris-GmbH infrared & intelligent sensors
 
 header:
   version: 14
@@ -8,7 +8,7 @@ header:
     - include/kas-matrix.yml
 
 target:
-  - multiconfig:imx93-evk
+  - multiconfig:imx93-matrixup
 
 local_conf_header:
   bbmask: |

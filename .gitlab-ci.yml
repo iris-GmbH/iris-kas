@@ -330,8 +330,9 @@ develop-generate-pipeline:
       case "${BUILD_TARGETS}" in
         *matrix*)
           yq -i '.".target_multi_confs".MULTI_CONF += ["imx93-evk"]' .gitlab/build-ci-template.yml;
+          yq -i '.".target_multi_confs".MULTI_CONF += ["imx93-matrixup"]' .gitlab/build-ci-template.yml;
           yq -i '.".oci_multi_confs".MULTI_CONF += ["qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
-          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-evk", "qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
+          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-evk", "imx93-matrixup", "qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
       esac
     - echo "Generated child pipeline:"
     - cat .gitlab/build-ci-template.yml
