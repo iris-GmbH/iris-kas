@@ -35,7 +35,17 @@
       "matchDepTypes": ["upstream-meta-layers"],
       "groupName": "Upstream Meta Layers",
       "groupSlug": "upstream-meta-layers",
-      "additionalReviewers": ["michael.glembotzki", "ian.dannapel", "erik.schumacher"]
+      "additionalReviewers": ["michael.glembotzki", "ian.dannapel", "erik.schumacher"],
+      "prBodyDefinitions": {
+        "Git branch": "`{{{currentValue}}}`"
+      },
+      "prBodyColumns": [
+        "Package",
+        "Type",
+        "Update",
+        "Change",
+        "Git branch"
+      ]
     }
   ]
 }
