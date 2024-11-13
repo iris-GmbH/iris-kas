@@ -5,7 +5,7 @@ RUN SCRIPT=$(find /${SDK_SOURCE} -type f -name "*.sh") \
     && if test -z "${SCRIPT}"; then echo "No sh install script found in ${SDK_SOURCE}"; exit 1; fi \
     && /bin/sh ${SCRIPT} -d /sdk -y
 
-FROM debian:12.7-slim
+FROM debian:12.8-slim
 COPY --from=build /sdk /sdk
 ADD entrypoint_sdk.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
