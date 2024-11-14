@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+
+local_conf_header:
+  # override swupdate develop keys with production keys for release
+  swupdate_signing: |
+    SWUPDATE_CA_CERT = "/vault/secrets/matrix-up/swupdate/swupdate-ca.pem"
+    SWUPDATE_CMS_CERT = "/vault/secrets/matrix-up/swupdate/swupdate-signing-cert.pem"
+    SWUPDATE_CMS_KEY = "/vault/secrets/matrix-up/swupdate/swupdate-signing-key.pem"
+    SWUPDATE_AES_FILE = "/vault/secrets/matrix-up/swupdate/swupdate-encryption.key"
+
+  # override roothash develop keys with production keys for release
+  roothash_signing: |
+    ROOTHASH_SIGNING_PRIVATE_KEY = "/vault/secrets/matrix-up/roothash/private.pem"
+    ROOTHASH_SIGNING_PUBLIC_KEY = "/vault/secrets/matrix-up/roothash/public.pem"
+    ROOTHASH_DM_VERITY_SALT = "/vault/secrets/matrix-up/roothash/salt.txt"
+
+  # override secureboot hab dir for release
+  hab_signing: |
+    HAB_DIR = "/vault/secrets/matrix-up/ahab"
+  # override download develop keys with production keys for release
+  dl_signing:
+    DOWNLOAD_CRT = "/vault/secrets/download/matrix-up.crt"
