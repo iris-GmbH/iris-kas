@@ -21,9 +21,6 @@ local_conf_header:
   # override secureboot hab dir for release
   hab_signing: |
     HAB_DIR = "/vault/secrets/hab"
-    SRKTAB = "${HAB_DIR}/crts/SRK_1_2_3_4_table.bin"
-    CSFK = "${HAB_DIR}/crts/CSF1_1_sha256_secp521r1_v3_usr_crt.pem"
-    SIGN_CERT = "${HAB_DIR}/crts/IMG1_1_sha256_secp521r1_v3_usr_crt.pem"
   # override download develop keys with production keys for release
   dl_signing:
     DOWNLOAD_CRT = "/vault/secrets/download/r2.crt"
