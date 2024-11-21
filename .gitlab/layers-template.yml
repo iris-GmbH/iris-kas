@@ -93,6 +93,7 @@ update-non-protected-branch:
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "true"
   stage: !reference [.trigger-kas-pipeline_template, stage]
+  interruptible: true
 
 # can be triggered by any developers on non-protected branches
 trigger-kas-pipeline:

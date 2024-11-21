@@ -351,6 +351,7 @@ develop-generate-pipeline:
       - artifact: .gitlab/build-ci-template.yml
         job: develop-generate-pipeline
     strategy: depend
+  interruptible: true
 
 release-trigger-generated-pipeline:
   extends: .trigger-generated-pipeline
