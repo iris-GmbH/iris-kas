@@ -273,7 +273,7 @@ merge-container-manifests:
   stage: generate-pipeline
   tags:
     - gp-tiny
-  image: mikefarah/yq:4.44.5
+  image: mikefarah/yq:4.44.6
   artifacts:
     paths:
       - .gitlab/build-ci-template.yml
