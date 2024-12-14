@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "f636d6eed72091fc2672f78eb0f5bf319b3d390f"
+    commit: "2541a8171f91812a4b16e7dc4da0d77d2318a256"
     layers:
       meta:
       meta-poky:
