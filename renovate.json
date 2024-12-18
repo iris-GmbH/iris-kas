@@ -1,5 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "gitlabci": {
+    "fileMatch": [
+      "\\.gitlab-ci\\.ya?ml$",
+      "\\.gitlab/.*\\.ya?ml$"
+    ]
+  },
   "customManagers": [
     {
       "customType": "regex",
