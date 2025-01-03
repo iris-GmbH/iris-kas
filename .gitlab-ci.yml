@@ -129,8 +129,6 @@ default:
       - data_integrity_failure
 
   before_script:
-    # configure git safe directory
-    - if command -v git >/dev/null 2>&1; then git config --global --add safe.directory "${CI_PROJECT_DIR}"; fi
     # if called from upstream pipeline, attempt to checkout identical named branch in iris-kas
     - |
       if [ -n "${UPSTREAM_PROJECT_NAME}" ] && [ "${RELEASE}" != "true" ] && command -v git >/dev/null 2>&1; then
