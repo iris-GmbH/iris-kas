@@ -22,28 +22,21 @@ fi
 
 # check whether a tag matching the prefix (excluding support releases) is reachable from current HEAD
 VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l --sort=-version:refname --merged HEAD | grep -P "^${IRIS_PRODUCT}-\d+\.\d+-\d+$" | head -n 1)"
-if test -n "${VERSION_TAG}"; then
-  FALLBACK_SCHEMA=false
-# else fallback to old version schema
-else
-  VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l --sort=-version:refname --merged HEAD | grep -P "^\d+\.\d+\.\d+$" | head -n 1)"
-  FALLBACK_SCHEMA=true
-fi
 
+# if version tag is not set, this is a new, unreleased product
 if test -z "${VERSION_TAG}"; then
-  echo "Could not determinate next version tag" >&2
-  exit 1
+  VERSION_TAG="${IRIS_PRODUCT}-1.0-1"
+  NEW_PRODUCT=true
 fi
 
-if ${FALLBACK_SCHEMA}; then
-  PRODUCT_MAJOR_VERSION=${IRIS_PRODUCT}-$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
-  PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2)
+PRODUCT_MAJOR_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
+PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2 | cut -d '-' -f 1)
+
+if ! ${NEW_PRODUCT}; then
+  NEXT_PATCH_VERSION=$((PATCH_VERSION+1))
 else
-  PRODUCT_MAJOR_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
-  PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2 | cut -d '-' -f 1)
+  NEXT_PATCH_VERSION=${PATCH_VERSION}
 fi
-
-NEXT_PATCH_VERSION=$((PATCH_VERSION+1))
 
 if test -n "${CI_PIPELINE_ID}"; then
   PIPELINE_VERSION_SUFFIX="-pipeline_${CI_PIPELINE_ID}"
