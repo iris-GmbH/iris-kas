@@ -10,6 +10,7 @@ env:
   # Passthrough of variables that are set in the Makefile
   IRMA_DISTRO_VERSION: null
   KAS_WORK_DIR: null
+  ENABLE_PA_CCACHE: "true"
 bblayers_conf_header:
   standard: |
     POKY_BBLAYERS_CONF_VERSION = "2"

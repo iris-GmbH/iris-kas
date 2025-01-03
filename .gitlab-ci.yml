@@ -72,6 +72,9 @@ variables:
   BUILD_TARGETS:
     value: ""
     description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built.'
+  ENABLE_PA_CCACHE:
+    value: "true"
+    description: 'Set to "false" to disable ccache for the PA'
 
 
 ################
