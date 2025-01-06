@@ -23,3 +23,6 @@ repos:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/sbabic/meta-swupdate"
     commit: "4a65b1ed36c0b6ee4942d5f23c4984552b17cfe6"
+    patches:
+      0001-packagegroup-core-standalone-sdk-target-Add-missing-:
+        path: "patches/0001-packagegroup-core-standalone-sdk-target-Add-missing-.patch"
