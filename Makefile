@@ -25,6 +25,8 @@ export SSH_DIR ?= ~/.ssh
 ###############################
 
 export BUILD_FROM_SCRATCH ?= false
+# use CCACHE for iris-specific code
+export ENABLE_PA_CCACHE ?= true
 export INCLUDE_PROPRIETARY_LAYERS ?= true
 # Note, that building a release is usually only ever done via CI, as key
 # material is required. Theoretically it is possible to build a release
