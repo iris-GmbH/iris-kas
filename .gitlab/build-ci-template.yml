@@ -652,7 +652,7 @@ test-oci:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.21.0
+  image: alpine:3.21.1
   variables:
     GIT_STRATEGY: none
   parallel:
@@ -716,7 +716,7 @@ test-oci-ptest:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.21.0
+  image: alpine:3.21.1
   variables:
     GIT_STRATEGY: none
   parallel:
