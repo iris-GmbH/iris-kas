@@ -130,7 +130,7 @@ Note, that the interactive shell is always limited to the configured `MULTI_CONF
 
 > :information_source: Before creating a release in iris-kas, ensure you have appropriate releases in meta-iris(-base) layer repositories.
 
-> :information_source: A valid release version always consists of a product identifier, a major and minor version and a feature version. Optionally, a support release suffix can be appended. Thus a valid release tag (<RELEASE_VERSION> throughout this documentation) must match [this](https://regex101.com/r/Sq45x0/4) regular expression.
+> :information_source: A valid release version always consists of a product identifier, a major and minor version and a feature version. Optionally, a support release suffix can be appended. Thus a valid release tag (<RELEASE_VERSION> throughout this documentation) must match [this](https://regex101.com/r/Sq45x0/5) regular expression.
 
 1. Ensure your `iris-kas` develop branch is up-to-date: `git checkout develop && git pull --ff-only`.
 2. Create a release or support branch, branching of the current develop (e.g. `release/irma6r1-3.0-1`, `support/irma6r2-3.0.1-support_suffix`): `git checkout -b release/<RELEASE_VERSION>`.
