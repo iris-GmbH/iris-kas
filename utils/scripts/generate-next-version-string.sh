@@ -25,18 +25,13 @@ VERSION_TAG="$(git -C "${GIT_WORK_DIR}" tag -l --sort=-version:refname --merged 
 
 # if version tag is not set, this is a new, unreleased product
 if test -z "${VERSION_TAG}"; then
-  VERSION_TAG="${IRIS_PRODUCT}-1.0-1"
-  NEW_PRODUCT=true
+  VERSION_TAG="${IRIS_PRODUCT}-0.0-1"
 fi
 
 PRODUCT_MAJOR_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 1)
 PATCH_VERSION=$(echo "${VERSION_TAG}" | cut -d '.' -f 2 | cut -d '-' -f 1)
 
-if ! ${NEW_PRODUCT}; then
-  NEXT_PATCH_VERSION=$((PATCH_VERSION+1))
-else
-  NEXT_PATCH_VERSION=${PATCH_VERSION}
-fi
+NEXT_PATCH_VERSION=$((PATCH_VERSION+1))
 
 if test -n "${CI_PIPELINE_ID}"; then
   PIPELINE_VERSION_SUFFIX="-pipeline_${CI_PIPELINE_ID}"
