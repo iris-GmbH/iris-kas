@@ -13,14 +13,14 @@ include:
   - ".gitlab/common-template.yml"
   - ".gitlab/release-template.yml"
   - ".gitlab/develop-template.yml"
-  - component: $CI_SERVER_FQDN/internal-projects/gitlab-ci-components/common-container-image-tasks/build-container-image@3
+  - component: $CI_SERVER_FQDN/internal-projects/gitlab-ci-components/common-container-image-tasks/build-container-image@4
     inputs:
       stage: build-container
       job_name: build-iris-kas-container
       dockerfile: Dockerfile_iris_kas
       autogenerate_image_tag_git_sha: true
       artifacts_expire_in: "7 days"
-  - component: $CI_SERVER_FQDN/internal-projects/gitlab-ci-components/common-container-image-tasks/copy-container-image@3
+  - component: $CI_SERVER_FQDN/internal-projects/gitlab-ci-components/common-container-image-tasks/copy-container-image@4
     inputs:
       stage: copy-container
       job_name: iris-kas-container-latest-tag
@@ -212,11 +212,19 @@ job-build-iris-kas-container-setup:
   rules:
     - !reference [.common_template, rules, build_container_rules]
 
-job-build-iris-kas-container-build:
+job-build-iris-kas-container-build-linux-amd64:
   rules:
     - !reference [.common_template, rules, build_container_rules]
 
-job-build-iris-kas-container-registry-push:
+job-build-iris-kas-container-build-linux-arm64:
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+
+job-build-iris-kas-container-registry-push-linux-amd64:
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+
+job-build-iris-kas-container-registry-push-linux-arm64:
   rules:
     - !reference [.common_template, rules, build_container_rules]
 
@@ -239,7 +247,11 @@ job-iris-kas-container-latest-tag-export-inputs:
   rules:
     - !reference [.copy-container-latest-tag-rules]
 
-job-iris-kas-container-latest-tag-copy:
+job-iris-kas-container-latest-tag-copy-linux-amd64:
+  rules:
+    - !reference [.copy-container-latest-tag-rules]
+
+job-iris-kas-container-latest-tag-copy-linux-arm64:
   rules:
     - !reference [.copy-container-latest-tag-rules]
 
