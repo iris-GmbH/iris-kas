@@ -25,7 +25,7 @@ variables:
   RENOVATE_PLATFORM: "gitlab"
   RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
   RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
-  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"thomas.noack\" ]"
+  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"thomas.noack\", \"parian.golchin\", \"an.tran\", \"michael.kirscht\", \"jan.hannig\", \"erik.schumacher\", \"paul.gieseler\" ]"
   RENOVATE_PR_CONCURRENT_LIMIT: "0"
   RENOVATE_PR_HOURLY_LIMIT: "0"
   # Set extra flags for the renovate bot
@@ -41,6 +41,9 @@ variables:
   SKIP_OCI_TESTS:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
+  SKIP_PTEST_TESTS:
+    value: "true"
+    description: 'Set to "false" to run the PTEST tests.'
   SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
     description: 'Set to "true" to skip the maintenance image build'
@@ -161,7 +164,7 @@ renovate:
     - !reference [.develop_template, rules]
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:37.422.0-full
+  image: renovate/renovate:38.120.1-full
   tags:
     - gp
   script:
@@ -190,7 +193,7 @@ build-container-get-tag:
   stage: setup
   tags:
     - gp-tiny
-  image: busybox:1.36.1-uclibc
+  image: busybox:1.37.0-uclibc
   script:
     # Default branch = latest tag
     # Release = release tag
@@ -228,7 +231,7 @@ build-iris-kas-container:
         ARCH: arm64
   tags:
     - ${TAG}
-  image: gcr.io/kaniko-project/executor:v1.23.0-debug
+  image: gcr.io/kaniko-project/executor:v1.23.2-debug
   script:
     - >-
       /kaniko/executor
@@ -272,7 +275,7 @@ merge-container-manifests:
   stage: generate-pipeline
   tags:
     - gp-tiny
-  image: mikefarah/yq:4.44.2
+  image: mikefarah/yq:4.44.3
   artifacts:
     paths:
       - .gitlab/build-ci-template.yml

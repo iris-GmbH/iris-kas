@@ -100,7 +100,7 @@ ifeq (${RELEASE}, true)
 endif
 
 ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
-	KASFILE_EXTRA += :include/kas-meta-iris.yml
+	KASFILE_EXTRA += :include/repos/kas-meta-iris-repo.yml
 	export KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
 endif
 
@@ -208,9 +208,9 @@ kas-checkout-branch-in-iris-layers:
 > 	if git checkout "$${BRANCH_NAME}" 2>/dev/null; then \
 > 		echo "Branch $${BRANCH_NAME} has been checked out in $${KAS_REPO_NAME}"; \
 > 		if [ "$${KAS_REPO_NAME}" = "meta-iris" ]; then \
-> 			KASFILE_FILE="include/kas-meta-iris.yml"; \
+> 			KASFILE_FILE="include/repos/kas-meta-iris-repo.yml"; \
 > 		else \
->			KASFILE_FILE="include/kas-meta-iris-base.yml"; \
+>			KASFILE_FILE="include/repos/kas-meta-iris-base-repo.yml"; \
 >		fi; \
 >		yq ".repos.$${KAS_REPO_NAME}.branch = \"$${BRANCH_NAME}\"" -i $${KAS_WORK_DIR}/$${KASFILE_FILE}; \
 >	fi; \

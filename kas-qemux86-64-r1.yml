@@ -6,7 +6,8 @@ header:
   includes:
     - include/kas-base.yml
     - include/kas-irma6-r1.yml
-    - include/kas-meta-virtualization.yml
+    - include/repos/kas-meta-virtualization-repo-kirkstone.yml
+    - include/kas-ptest.yml
 
 target:
   - multiconfig:qemux86-64-r1

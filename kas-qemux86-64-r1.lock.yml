@@ -1,0 +1,22 @@
+header:
+    version: 14
+overrides:
+    repos:
+        lnxdsp-adi-meta:
+            commit: ad2203c11723b07727589a8eebe33f3129cc236a
+        meta-cyclonedx:
+            commit: a291529e4544a196a6b6c50cb76efe44347f28b3
+        meta-iris:
+            commit: 9e74a1ff02cb05e3c8b000a2d8e6431a319c3025
+        meta-iris-base:
+            commit: 37a574b45af046d07bd63df177a6a8bedaed8329
+        meta-iris-thirdparty:
+            commit: 85e0834563d46f41760e6bf0489892425dbc618f
+        meta-openembedded:
+            commit: dd3d2293ffdf2559f8a433f241765a8ab50cd085
+        meta-osselot:
+            commit: b4a530af5200c435d55ea4f8ff92f0f72a6ee307
+        meta-virtualization:
+            commit: 02a6c00d9370992a54296633de26a13a9a08ca2a
+        poky:
+            commit: 7e87dc422d972e0dc98372318fcdc63a76347d16

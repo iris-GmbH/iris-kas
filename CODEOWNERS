@@ -1,0 +1,30 @@
+[Gitlab] @jasper.orschulko @aoife.power @marcel.plumbohm
+.gitlab-ci.y*ml
+utils/**/*
+include/ci/**/*
+.gitlab/**/*
+
+[KAS] @jasper.orschulko @aoife.power @erik.schumacher @michael.glembotzki
+kas
+kas-container
+Dockerfile_iris_kas
+**/kas-*.y*ml
+Makefile
+include/*
+include/repos/**/*
+conf/**/*
+utils/scripts/generate-next-version-string.sh
+
+[Docker] @jasper.orschulko @aoife.power @marcel.plumbohm @martin.koppehel
+Dockerfile_iris_kas
+Dockerfile_sdk
+.dockerignore
+
+[SELinux] @erik.schumacher
+container_read_sshdir.te
+
+[Editorconfig] @jasper.orschulko @martin.koppehel
+.editorconfig
+
+[OE layer patches] @jasper.orschulko @erik.schumacher @ian.dannapel @michael.glembotzki @philipp.schoewe
+patches/**/*

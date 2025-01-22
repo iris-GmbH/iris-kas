@@ -4,8 +4,7 @@
 header:
   version: 14
   includes:
-    - include/kas-base-repos.yml
-    - include/kas-meta-iris-base.yml
+    - include/repos/kas-irma6r2-repos.yml
 
 env:
   IRIS_PRODUCT: irma6r2
@@ -13,38 +12,3 @@ env:
 bblayers_conf_header:
   fsl_eula: |
     ACCEPT_FSL_EULA = "1"
-
-repos:
-  # irma6 HWv2 repos
-  meta-freescale:
-    # renovate: depType=upstream-meta-layers branch=kirkstone
-    url: "https://github.com/Freescale/meta-freescale"
-    commit: "4c81b4161b99698b03332842b588dd8235ac47e4"
-    patches:
-      0001-Fix-compilation-of-fsl-image-mfgtool-initramfs:
-        path: "patches/0001-Fix-compilation-of-fsl-image-mfgtool-initramfs.patch"
-      0001-Replace-tinycompress-src_uri:
-        path: "patches/0001-Replace-tinycompress-src_uri.patch"
-      0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot:
-        path: "patches/0003-Still-append-bootloader-string-iris_1.X.X-to-u-boot.patch"
-  meta-freescale-3rdparty:
-    # renovate: depType=upstream-meta-layers branch=kirkstone
-    url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    commit: "9e94b64bdfebcf7bfdf2af6447cec866a4efa814"
-  meta-freescale-distro:
-    # renovate: depType=upstream-meta-layers branch=kirkstone
-    url: "https://github.com/Freescale/meta-freescale-distro"
-    commit: "d5bbb487b2816dfc74984a78b67f7361ce404253"
-  meta-swupdate:
-    # renovate: depType=upstream-meta-layers branch=kirkstone
-    url: "https://github.com/sbabic/meta-swupdate"
-    commit: "6918be849ddf1fed5b7a0173e51c7a136e8d4101"
-  meta-dependencytrack:
-    # renovate: depType=upstream-meta-layers branch=main
-    url: "https://github.com/bgnetworks/meta-dependencytrack"
-    commit: "70b34dc50f64c73a911826ebbc3a99e1beb5682a"
-    patches:
-      0001-Add-support-for-yocto-CVE-backports:
-        path: "patches/0001-Add-support-for-yocto-CVE-backports.patch"
-      0001-Fix-invalid-bom-format:
-        path: "patches/0001-Fix-invalid-bom-format.patch"

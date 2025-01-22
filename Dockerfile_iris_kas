@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2022 iris-GmbH infrared & intelligent sensors
 
-FROM mikefarah/yq:4.44.2 AS yq
+FROM mikefarah/yq:4.44.3 AS yq
 
-FROM ghcr.io/siemens/kas/kas:4.3.2
+FROM ghcr.io/siemens/kas/kas:4.5
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
 USER root
 # renovate: datasource=repology depName=debian_12/awscli
@@ -23,7 +23,7 @@ ARG PYTHON3_REQUESTS_VERSION="2.28.1+dfsg-1"
 # renovate: datasource=repology depName=debian_12/python3-gitlab
 ARG PYTHON3_GITLAB_VERSION="1:3.12.0-1"
 # renovate: datasource=repology depName=debian_12/skopeo
-ARG SKOPEO_VERSION="1.9.3+ds1-1+b5"
+ARG SKOPEO_VERSION="1.9.3+ds1-1+b9"
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
