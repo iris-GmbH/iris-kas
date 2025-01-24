@@ -38,16 +38,6 @@ variables:
   # set a default tag. will be overridden, if the container build runs.
   CI_BUILD_IMAGE_TAG: "latest"
   BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_BUILD_IMAGE_TAG}"
-  RENOVATE_PLATFORM: "gitlab"
-  RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
-  RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
-  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"thomas.noack\", \"parian.golchin\", \"an.tran\", \"michael.kirscht\", \"jan.hannig\", \"erik.schumacher\", \"paul.gieseler\" ]"
-  RENOVATE_PR_CONCURRENT_LIMIT: "0"
-  RENOVATE_PR_HOURLY_LIMIT: "0"
-  # Set extra flags for the renovate bot
-  RENOVATE_EXTRA_FLAGS: ""
-  FORCE_RENOVATE_RUN: "false"
-  RENOVATE_DRY_RUN: "false"
   KAS_RUNNER_TAG: "kas-large"
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
@@ -170,19 +160,6 @@ stages:
 ###################
 ### SETUP STAGE ###
 ###################
-
-renovate:
-  stage: setup
-  rules:
-    - !reference [.develop_template, rules]
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:38.120.1-full
-  tags:
-    - gp
-  script:
-    - renovate ${RENOVATE_EXTRA_FLAGS}
-  allow_failure: true
 
 # We do not want to run a pipeline on merges to non-default branch.
 # During a release process (merge target branch master), we are interested in the release candidate builds, not the merge request
