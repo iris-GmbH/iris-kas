@@ -1,5 +1,16 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "reviewers": [
+    "jasper.orschulko",
+    "thomas.noack",
+    "parian.golchin",
+    "an.tran",
+    "michael.kirscht",
+    "erik.schumacher",
+    "paul.gieseler",
+    "marcel.plumbohm",
+    "aoife.power"
+  ],
   "gitlabci": {
     "fileMatch": [
       "\\.gitlab-ci\\.ya?ml$",
