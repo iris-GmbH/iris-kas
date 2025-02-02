@@ -184,8 +184,8 @@ kas-force-update:
 run-qemu:
 > ${KAS_COMMAND} shell -c "runqemu qemux86-64 qemuparams=\"-m $$(($$(free -m | awk '/Mem:/ {print $$2}') /100 *70)) -serial stdio\" slirp" ${KASFILE}
 
-kas-dump-lockfile:
-> ${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}
+kas-create-lockfile:
+> ${KAS_COMMAND} lock --update ${KASFILE}
 
 kas-buildhistory-collect-srcrevs:
 > @# only create a kas lockfile, if it does not yet exist
@@ -218,7 +218,7 @@ kas-checkout-branch-in-iris-layers:
 >	fi; \
 >	'
 
-prepare-release: kas-force-update kas-checkout-branch-in-iris-layers kas-dump-lockfile
+prepare-release: kas-force-update kas-checkout-branch-in-iris-layers kas-create-lockfile
 
 patch-thirdparty-hostbuild:
 > @echo "Warning: patch-thirdparty-hostbuild is deprecated and will be removed in the future."

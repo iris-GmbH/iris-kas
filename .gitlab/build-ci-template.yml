@@ -279,7 +279,7 @@ develop-create-kas-lockfiles:
     # unless there is already a lock file checked in for reproducible builds
     - >
       if ! test -e "${KAS_LOCK_FILE_NAME}"; then
-        make kas-dump-lockfile
+        make kas-create-lockfile
       fi
   artifacts:
     paths:
