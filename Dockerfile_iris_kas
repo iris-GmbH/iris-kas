@@ -3,7 +3,7 @@
 
 FROM mikefarah/yq:4.45.1 AS yq
 
-FROM ghcr.io/siemens/kas/kas:4.6
+FROM ghcr.io/siemens/kas/kas:4.7
 LABEL maintainer="Jasper Orschulko <Jasper.Orschulko@iris-sensing.com>"
 USER root
 # renovate: datasource=repology depName=debian_12/awscli
