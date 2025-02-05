@@ -38,7 +38,6 @@ variables:
   # set a default tag. will be overridden, if the container build runs.
   CI_BUILD_IMAGE_TAG: "latest"
   BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_BUILD_IMAGE_TAG}"
-  KAS_RUNNER_TAG: "kas-large"
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named branches in iris meta layers during build'

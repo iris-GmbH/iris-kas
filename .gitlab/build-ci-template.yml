@@ -59,7 +59,7 @@ variables:
 default:
   tags:
     # run on gitlab runners designed for kas builds
-    - ${KAS_RUNNER_TAG}
+    - kas-large
   image:
     name: "${BUILD_IMAGE_IRIS_KAS}"
     pull_policy:
