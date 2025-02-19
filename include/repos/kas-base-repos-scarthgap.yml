@@ -32,7 +32,7 @@ repos:
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
-    commit: "af2c6c3f9e0ea71ddd37bda8a5f17c48a51aa8ce"
+    commit: "623ca1b3ac8bcbc5cb580bc21bb5d3c66824f4b7"
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
