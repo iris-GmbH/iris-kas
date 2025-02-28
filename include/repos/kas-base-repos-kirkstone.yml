@@ -81,7 +81,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "85e0834563d46f41760e6bf0489892425dbc618f"
+    commit: "070b52eb7efc328b925fe5f46dca1e62d1b1b650"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-osselot"
