@@ -1,0 +1,43 @@
+From feda81c69e440d82249dec6e0ffd431b93801a3d Mon Sep 17 00:00:00 2001
+From: Jasper Orschulko <jasper@fancydomain.eu>
+Date: Mon, 3 Mar 2025 11:16:01 +0100
+Subject: [PATCH] u-boot: Add CVE_PRODUCT definition
+
+Adding a correct CVE_PRODUCT definition helps to keep track of upstream
+CVEs
+
+Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+
+Upstream-Status: Submitted [https://github.com/Freescale/meta-freescale/pull/2146]
+---
+ recipes-bsp/u-boot/u-boot-fslc-common_2024.07.inc | 1 +
+ recipes-bsp/u-boot/u-boot-imx-common_2024.04.inc  | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/recipes-bsp/u-boot/u-boot-fslc-common_2024.07.inc b/recipes-bsp/u-boot/u-boot-fslc-common_2024.07.inc
+index b2bea55c..3aa21911 100644
+--- a/recipes-bsp/u-boot/u-boot-fslc-common_2024.07.inc
++++ b/recipes-bsp/u-boot/u-boot-fslc-common_2024.07.inc
+@@ -14,6 +14,7 @@ SRCREV = "5b4d66dd41432d36c22bcdfa2d1ca4afc3a1c2fc"
+ SRCBRANCH = "2024.07+fslc"
+
+ PV = "2024.07+fslc+git${SRCPV}"
++CVE_PRODUCT = "denx:u-boot"
+
+ S = "${WORKDIR}/git"
+ B = "${WORKDIR}/build"
+diff --git a/recipes-bsp/u-boot/u-boot-imx-common_2024.04.inc b/recipes-bsp/u-boot/u-boot-imx-common_2024.04.inc
+index 0c3f8504..33fca46a 100644
+--- a/recipes-bsp/u-boot/u-boot-imx-common_2024.04.inc
++++ b/recipes-bsp/u-boot/u-boot-imx-common_2024.04.inc
+@@ -7,6 +7,7 @@ SRC_URI = "git://github.com/nxp-imx/uboot-imx.git;protocol=https;branch=${SRCBRA
+ SRCBRANCH = "lf_v2024.04"
+ LOCALVERSION ?= "-imx_v2024.04_6.6.52-2.2.0"
+ SRCREV = "6c4545203d123c246c5d7995f2893959506d28e0"
++CVE_PRODUCT = "nxp:uboot_secondary_program_loader denx:u-boot"
+
+ DEPENDS += " \
+     bc-native \
+--
+2.47.2
+

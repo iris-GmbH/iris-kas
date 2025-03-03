@@ -11,6 +11,8 @@ repos:
     patches:
       0001-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
+      0002-u-boot-Add-CVE_PRODUCT-definition:
+        path: "patches/0002-u-boot-Add-CVE_PRODUCT-definition.patch"
   meta-freescale-3rdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
