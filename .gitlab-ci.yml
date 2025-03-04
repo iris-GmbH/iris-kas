@@ -76,7 +76,7 @@ variables:
     description: 'Set to "true" to build from scratch.'
   BUILD_TARGETS:
     value: ""
-    description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built.'
+    description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix, imx93-evk. If left empty, all available products (except imx93-evk) will be built.'
   ENABLE_PA_CCACHE:
     value: "true"
     description: 'Set to "false" to disable ccache for the PA'
@@ -299,10 +299,15 @@ develop-generate-pipeline:
     - >
       case "${BUILD_TARGETS}" in
         *matrix*)
-          yq -i '.".target_multi_confs".MULTI_CONF += ["imx93-evk"]' .gitlab/build-ci-template.yml;
           yq -i '.".target_multi_confs".MULTI_CONF += ["imx93-matrixup"]' .gitlab/build-ci-template.yml;
           yq -i '.".oci_multi_confs".MULTI_CONF += ["qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
-          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-evk", "imx93-matrixup", "qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
+          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-matrixup", "qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
+      esac
+    - >
+      case "${BUILD_TARGETS}" in
+        *imx93-evk*)
+          yq -i '.".target_multi_confs".MULTI_CONF += ["imx93-evk"]' .gitlab/build-ci-template.yml;
+          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-evk"]' .gitlab/build-ci-template.yml;
       esac
     - echo "Generated child pipeline:"
     - cat .gitlab/build-ci-template.yml

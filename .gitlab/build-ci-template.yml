@@ -105,7 +105,6 @@ include:
   MULTI_CONF:
     - sc573-gen6
     - imx8mp-irma6r2
-    - imx93-evk
     - imx93-matrixup
 
 .oci_multi_confs: &oci_multi_confs
@@ -118,7 +117,6 @@ include:
   MULTI_CONF:
     - sc573-gen6
     - imx8mp-irma6r2
-    - imx93-evk
     - imx93-matrixup
     - qemux86-64-r1
     - qemux86-64-r2
