@@ -460,6 +460,7 @@ develop-build-dev-deploy-image:
   variables:
     KAS_TARGET_RECIPE: "irma-test"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
+    KASFILE_EXTRA: "${KASFILE_EXTRA}:include/kas-ptest.yml"
 
 release-build-test-oci:
   extends: .build-test-oci
