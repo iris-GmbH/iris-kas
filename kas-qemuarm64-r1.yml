@@ -11,4 +11,3 @@ header:
 
 target:
   - multiconfig:qemuarm64-r1
-    

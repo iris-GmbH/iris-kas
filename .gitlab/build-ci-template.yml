@@ -431,11 +431,13 @@ develop-build-dev-deploy-image:
       allow_failure: true
   script:
     - !reference [.develop_template, script, reproduce_build]
-    # include osselot tasks when default branch run
+    # include osselot and spdx tasks when default branch run
     - >
       if test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}"; then
         echo "Including Osselot tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-osselot.yml"
+        echo "Including SPDX tasks..."
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-spdx.yml"
       fi
     # include cyclonedx tasks when R2 and default branch run
     - >
@@ -565,6 +567,7 @@ release-build-deploy:
   variables:
     KAS_TARGET_RECIPE: "irma-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-deploy"
+    KASFILE_EXTRA: "${KASFILE_EXTRA}:include/kas-spdx.yml"
   script:
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml:include/kas-osselot.yml"
     - make kas-build
