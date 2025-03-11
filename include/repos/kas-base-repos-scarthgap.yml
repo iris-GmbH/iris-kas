@@ -37,3 +37,6 @@ repos:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
     commit: "f30113516223e8a59e4ebd141e338cfad5a7ddd4"
+    patches:
+      0001-Limit-SBOM-content-to-packages-added-to-the-rootfs:
+        path: "patches/0001-Limit-SBOM-content-to-packages-added-to-the-rootfs.patch"
