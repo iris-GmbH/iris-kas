@@ -7,7 +7,7 @@ repos:
   meta-freescale:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale"
-    commit: "a8a6b9d1b274f1a24e4d75243af1bbde011b2ebb"
+    commit: "7b6b02d24771690d6a65ec6a1a5bca26d0537945"
     patches:
       0001-Replace-tinycompress-src_uri:
         path: "patches/0001-Replace-tinycompress-src_uri.patch"
