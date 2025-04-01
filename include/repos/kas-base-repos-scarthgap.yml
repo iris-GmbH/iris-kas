@@ -18,7 +18,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "edd1a1e284fdcb80cd48d411f235d47f23bc27ae"
+    commit: "67ad83dd7c2485dae0c90eac345007af6195b84d"
     layers:
       meta-oe:
       meta-python:
