@@ -9,8 +9,6 @@ repos:
     url: "https://github.com/Freescale/meta-freescale"
     commit: "12ef152d2c03a57cf728047248d53d2af6152ee1"
     patches:
-      0001-Replace-tinycompress-src_uri:
-        path: "patches/0001-Replace-tinycompress-src_uri.patch"
       0002-u-boot-Add-CVE_PRODUCT-definition:
         path: "patches/0002-u-boot-Add-CVE_PRODUCT-definition.patch"
   meta-freescale-3rdparty:
