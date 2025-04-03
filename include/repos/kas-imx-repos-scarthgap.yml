@@ -7,12 +7,7 @@ repos:
   meta-freescale:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale"
-    commit: "31031c3bedc1986348b2394f42db8e83ed47af02"
-    patches:
-      0001-Replace-tinycompress-src_uri:
-        path: "patches/0001-Replace-tinycompress-src_uri.patch"
-      0002-u-boot-Add-CVE_PRODUCT-definition:
-        path: "patches/0002-u-boot-Add-CVE_PRODUCT-definition.patch"
+    commit: "12ef152d2c03a57cf728047248d53d2af6152ee1"
   meta-freescale-3rdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-3rdparty"

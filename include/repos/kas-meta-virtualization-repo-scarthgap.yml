@@ -8,4 +8,4 @@ repos:
   meta-virtualization:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://git.yoctoproject.org/meta-virtualization"
-    commit: "0c191912421adff2f753e470056a9a525fbce760"
+    commit: "52cf1d59c5af5b795a2efec6f6f33df78ce61c48"
