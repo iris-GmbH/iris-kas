@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/yoctoproject/poky"
-    commit: "378cd5368d34d9ed4b20c9a2c17f53dd64fc48c9"
+    commit: "6eba29d9462a5833fbd49064ea32502c8da6405c"
     layers:
       meta:
       meta-poky:
