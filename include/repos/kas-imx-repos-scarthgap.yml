@@ -7,11 +7,11 @@ repos:
   meta-freescale:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale"
-    commit: "ba243624be61638a49c6875070513d69612e13f8"
+    commit: "fe533cd4b95b6d3c88b6f553684a06c07c48a7bf"
   meta-freescale-3rdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    commit: "1dfc65dd2006b51d156be5bcda0e3c72c936ad0a"
+    commit: "70c83e96c7f75e73245cb77f1b0cada9ed4bbc6d"
   meta-freescale-distro:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-distro"
@@ -19,7 +19,4 @@ repos:
   meta-swupdate:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "d598d4e675b541301ea1dfc8f0c8931983b4dcd0"
-    patches:
-      0001-packagegroup-core-standalone-sdk-target-Add-missing-:
-        path: "patches/0001-packagegroup-core-standalone-sdk-target-Add-missing-.patch"
+    commit: "b5de0ce2ec42e7e58261d81ea66fbf1d51bdf2aa"
