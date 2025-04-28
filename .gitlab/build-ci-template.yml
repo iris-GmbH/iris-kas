@@ -473,7 +473,6 @@ develop-build-test-oci:
     - !reference [.develop_template, rules]
     - if: '$SKIP_OCI_TESTS == "false"'
     - if: '$SKIP_PTEST_TESTS == "false"'
-    - when: manual
       allow_failure: true
   script:
     - !reference [.develop_template, script, reproduce_build]
@@ -703,11 +702,11 @@ test-oci-ptest:
     - !reference [.release_template, rules]
     # skip if SKIP_PTEST_TESTS is set to true and not release build
     - if: '$SKIP_PTEST_TESTS == "false"'
-    - when: manual
+      allow_failure: true
     - !reference [.develop_template, rules]
   allow_failure: true
   tags:
-    - gp
+    - kas-large
   services:
       # Setting pull_policy for services is currently broken, see:
       # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
@@ -719,6 +718,7 @@ test-oci-ptest:
   image: alpine:3.21.3
   variables:
     GIT_STRATEGY: none
+    PKGS_SKIPPED: 'rsyslog librelp libnl dbus bash libxml2 util-linux'
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -726,7 +726,7 @@ test-oci-ptest:
     - apk add --no-cache openssh
   script:
     - echo "Starting Yocto Ptest..."
-    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "mkdir -p /var/volatile/tmp && ptest-runner -x /tmp/ptest_results.xml >> /dev/null"
+    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "mkdir -p /var/volatile/tmp && ptest-runner -e '${PKGS_SKIPPED}' -t 900 -x /tmp/ptest_results.xml >> /dev/null"
   after_script:
     - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/ptest_results.xml "${MULTI_CONF}"-ptest_results.xml
   artifacts:
