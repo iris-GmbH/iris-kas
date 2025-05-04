@@ -243,7 +243,7 @@ job-iris-kas-container-latest-tag-merge-manifests:
   stage: generate-pipeline
   tags:
     - gp-tiny
-  image: mikefarah/yq:4.45.1
+  image: mikefarah/yq:4.45.2
   artifacts:
     paths:
       - .gitlab/build-ci-template.yml
