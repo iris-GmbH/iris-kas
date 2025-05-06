@@ -38,8 +38,5 @@ repos:
     commit: "623ca1b3ac8bcbc5cb580bc21bb5d3c66824f4b7"
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=scarthgap
-    url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "f30113516223e8a59e4ebd141e338cfad5a7ddd4"
-    patches:
-      0001-Limit-SBOM-content-to-packages-added-to-the-rootfs:
-        path: "patches/0001-Limit-SBOM-content-to-packages-added-to-the-rootfs.patch"
+    url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
+    commit: "f6f662dd693e0e957255140d93cb937e2fd282e6"
