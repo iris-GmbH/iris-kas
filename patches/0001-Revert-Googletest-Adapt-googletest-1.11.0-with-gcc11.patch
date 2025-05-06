@@ -1,0 +1,76 @@
+From 12ca27ca5553ca395c68de9944777e2f28f0defe Mon Sep 17 00:00:00 2001
+From: Thomas Noack <thomas.noack@iris-sensing.com>
+Date: Tue, 6 May 2025 10:45:25 +0200
+Subject: [PATCH 1/5] Revert "Googletest: Adapt googletest 1.11.0 with gcc11"
+
+This reverts commit 8fb1e24f.
+
+Upstream-Status: Inappropriate [already fixed in version 1.14.0]
+---
+ .../0001-work-around-GCC-6-11-ADL-bug.patch   | 42 -------------------
+ .../recipes-test/googletest/googletest_git.bb |  3 +-
+ 2 files changed, 1 insertion(+), 44 deletions(-)
+ delete mode 100644 meta-oe/recipes-test/googletest/files/0001-work-around-GCC-6-11-ADL-bug.patch
+
+diff --git a/meta-oe/recipes-test/googletest/files/0001-work-around-GCC-6-11-ADL-bug.patch b/meta-oe/recipes-test/googletest/files/0001-work-around-GCC-6-11-ADL-bug.patch
+deleted file mode 100644
+index c2828e6a94..0000000000
+--- a/meta-oe/recipes-test/googletest/files/0001-work-around-GCC-6-11-ADL-bug.patch
++++ /dev/null
+@@ -1,42 +0,0 @@
+-From 8c70e2680bec526012d96578160901e4c24e1c48 Mon Sep 17 00:00:00 2001
+-From: Paul Groke <paul.groke@dynatrace.com>
+-Date: Thu, 15 Sep 2022 13:36:49 +0200
+-Subject: [PATCH] work around GCC 6~11 ADL bug
+-
+-see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=51577
+-ADL seems to work properly when we do the SFINAE check via the return type, but not when using a dummy template parameter
+-
+-fix #3992
+-Upstream-Status: Backport [https://github.com/google/googletest/pull/3993/commits/096014a45dc38dff993f5b7bb28a258d8323344b]
+-Signed-off-by: Paul Groke <paul.groke@dynatrace.com>
+-Signed-off-by: Sana Kazi <sana.kazi@kpit.com>
+----
+- googletest/include/gtest/gtest-printers.h | 13 +++++++------
+- 1 file changed, 7 insertions(+), 6 deletions(-)
+-
+-diff --git a/googletest/include/gtest/gtest-printers.h b/googletest/include/gtest/gtest-printers.h
+-index 8e4d295344..19c3e0b69b 100644
+---- a/googletest/include/gtest/gtest-printers.h
+-+++ b/googletest/include/gtest/gtest-printers.h
+-@@ -205,12 +205,13 @@ struct StreamPrinter {
+-             // Don't accept member pointers here. We'd print them via implicit
+-             // conversion to bool, which isn't useful.
+-             typename = typename std::enable_if<
+--                !std::is_member_pointer<T>::value>::type,
+--            // Only accept types for which we can find a streaming operator via
+--            // ADL (possibly involving implicit conversions).
+--            typename = decltype(std::declval<std::ostream&>()
+--                                << std::declval<const T&>())>
+--  static void PrintValue(const T& value, ::std::ostream* os) {
+-+                !std::is_member_pointer<T>::value>::type>
+-+  // Only accept types for which we can find a streaming operator via
+-+  // ADL (possibly involving implicit conversions).
+-+  // (Use SFINAE via return type, because it seems GCC < 12 doesn't handle name
+-+  // lookup properly when we do it in the template parameter list.)
+-+  static auto PrintValue(const T& value, ::std::ostream* os) 
+-+  -> decltype((void)(*os << value)) {
+-     // Call streaming operator found by ADL, possibly with implicit conversions
+-     // of the arguments.
+-     *os << value;
+--- 
+-2.25.1
+diff --git a/meta-oe/recipes-test/googletest/googletest_git.bb b/meta-oe/recipes-test/googletest/googletest_git.bb
+index 917a68e95b..869c2c86b6 100644
+--- a/meta-oe/recipes-test/googletest/googletest_git.bb
++++ b/meta-oe/recipes-test/googletest/googletest_git.bb
+@@ -10,8 +10,7 @@ PROVIDES += "gmock gtest"
+ 
+ S = "${WORKDIR}/git"
+ SRCREV = "9e712372214d75bb30ec2847a44bf124d48096f3"
+-SRC_URI = "git://github.com/google/googletest.git;branch=main;protocol=https \
+-           file://0001-work-around-GCC-6-11-ADL-bug.patch "
++SRC_URI = "git://github.com/google/googletest.git;branch=main;protocol=https"
+ 
+ inherit cmake
+ 

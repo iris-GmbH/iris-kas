@@ -1,0 +1,53 @@
+From af630da51d4ad009413af7c902dd1b66abc528d2 Mon Sep 17 00:00:00 2001
+From: Thomas Noack <Thomas.Noack@iris-sensing.com>
+Date: Tue, 6 May 2025 14:50:30 +0000
+Subject: [PATCH 1/2] sdbus-c++: Upgrade to 2.1.0 release
+
+Upstream-Status: Backport [meta-openembedded:master, af630da5]
+
+Signed-off-by: Thomas Noack <thomas.noack@iris-sensing.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ .../{sdbus-c++-tools_2.0.0.bb => sdbus-c++-tools_2.1.0.bb}   | 4 ++--
+ .../sdbus-c++/{sdbus-c++_2.0.0.bb => sdbus-c++_2.1.0.bb}     | 5 ++---
+ 2 files changed, 4 insertions(+), 5 deletions(-)
+ rename meta-oe/recipes-core/sdbus-c++/{sdbus-c++-tools_2.0.0.bb => sdbus-c++-tools_2.1.0.bb} (79%)
+ rename meta-oe/recipes-core/sdbus-c++/{sdbus-c++_2.0.0.bb => sdbus-c++_2.1.0.bb} (95%)
+
+diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.0.0.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
+similarity index 79%
+rename from meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.0.0.bb
+rename to meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
+index af112ced88..c55c305611 100644
+--- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.0.0.bb
++++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
+@@ -8,8 +8,8 @@ inherit cmake
+ 
+ DEPENDS += "expat"
+ 
+-SRCREV = "e62472b210d9e7f06a5e611c23471d414c99a99c"
+-SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;subpath=tools"
++SRCREV = "0261d0ec60b68c1f0a6ec9acf63d1379f7d569f8"
++SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;tag=v${PV};subpath=tools"
+ 
+ S = "${WORKDIR}/tools"
+ 
+diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.0.0.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
+similarity index 95%
+rename from meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.0.0.bb
+rename to meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
+index a3e7c9ab54..f3799adb3c 100644
+--- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.0.0.bb
++++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
+@@ -16,9 +16,8 @@ PACKAGECONFIG[with-tests] = "-DSDBUSCPP_BUILD_TESTS=ON -DSDBUSCPP_INSTALL_TESTS=
+ 
+ DEPENDS += "expat"
+ 
+-PV .= "+git"
+-SRCREV = "e62472b210d9e7f06a5e611c23471d414c99a99c"
+-SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master \
++SRCREV = "0261d0ec60b68c1f0a6ec9acf63d1379f7d569f8"
++SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;tag=v${PV} \
+            file://run-ptest"
+ 
+ EXTRA_OECMAKE = "-DSDBUSCPP_BUILD_CODEGEN=OFF \

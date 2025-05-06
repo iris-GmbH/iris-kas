@@ -78,6 +78,19 @@ repos:
       # Add patch for Json-schema.-validator
       0011-json-schema-validator-Updrade-to-2.2.0.patch:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
+      # Add patches for sdbus-c++
+      0012-Revert-Googletest-Adapt-googletest-1.11.0-with-gcc11.patch:
+        path: "patches/0001-Revert-Googletest-Adapt-googletest-1.11.0-with-gcc11.patch"
+      0013-googletest-upgrade-to-1.14.0.patch:
+        path: "patches/0002-googletest-upgrade-to-1.14.0.patch"
+      0014-basu-import-recipe.patch:
+        path: "patches/0003-basu-import-recipe.patch"
+      0015-sdbus-c-upgrade-to-2.0.0-release.patch:
+        path: "patches/0004-sdbus-c-upgrade-to-2.0.0-release.patch"
+      0016-sdbus-c-Upgrade-to-2.1.0-release.patch:
+        path: "patches/0001-sdbus-c-Upgrade-to-2.1.0-release.patch"
+      0017-remove-tag-from-SRC_URI.patch:
+        path: "patches/0002-remove-tag-from-SRC_URI.patch"
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
