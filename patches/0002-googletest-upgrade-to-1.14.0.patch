@@ -1,0 +1,60 @@
+From 51a68304c5895b372c2fd8aff0685065bc3df915 Mon Sep 17 00:00:00 2001
+From: Thomas Noack <thomas.noack@iris-sensing.com>
+Date: Tue, 6 May 2025 11:05:52 +0200
+Subject: [PATCH 2/5] googletest: upgrade to 1.14.0
+
+backported commits:
+- a30f1158: googletest: allow for shared libraries
+- be06d51d: googletest: Pass -fPIC to CFLAGS
+- db58edbe: googletest: allow for shared libraries
+- bdeb3ecf: googletest: upgrade 1.13.0 -> 1.14.0
+- 46266e59: googletest: upgrade 1.12.1 -> 1.13.0
+- c68cead2: googletest: upgrade 1.12.0 -> 1.12.1
+- 05cf0fdf: googletest: upgrade 1.11.0 -> 1.12.0
+
+Upstream-Status: Backport [meta-openembedded:master, consolidated]
+---
+ .../{googletest_git.bb => googletest_1.14.0.bb} | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
+ rename meta-oe/recipes-test/googletest/{googletest_git.bb => googletest_1.14.0.bb} (68%)
+
+diff --git a/meta-oe/recipes-test/googletest/googletest_git.bb b/meta-oe/recipes-test/googletest/googletest_1.14.0.bb
+similarity index 68%
+rename from meta-oe/recipes-test/googletest/googletest_git.bb
+rename to meta-oe/recipes-test/googletest/googletest_1.14.0.bb
+index 869c2c86b6..6546845715 100644
+--- a/meta-oe/recipes-test/googletest/googletest_git.bb
++++ b/meta-oe/recipes-test/googletest/googletest_1.14.0.bb
+@@ -4,20 +4,27 @@ SECTION = "libs"
+ LICENSE = "BSD-3-Clause"
+ LIC_FILES_CHKSUM = "file://LICENSE;md5=cbbd27594afd089daa160d3a16dd515a"
+ 
+-PV = "1.11.0+git${SRCPV}"
+-
+ PROVIDES += "gmock gtest"
+ 
+ S = "${WORKDIR}/git"
+-SRCREV = "9e712372214d75bb30ec2847a44bf124d48096f3"
++SRCREV = "f8d7d77c06936315286eb55f8de22cd23c188571"
+ SRC_URI = "git://github.com/google/googletest.git;branch=main;protocol=https"
+ 
+-inherit cmake
++inherit cmake pkgconfig
++
++# allow for shared libraries, but do not default to them
++#
++PACKAGECONFIG[shared] = "-DBUILD_SHARED_LIBS=ON,-DBUILD_SHARED_LIBS=OFF,,"
++
++CXXFLAGS:append = " -fPIC"
+ 
+ ALLOW_EMPTY:${PN} = "1"
+ ALLOW_EMPTY:${PN}-dbg = "1"
+ 
+-RDEPENDS:${PN}-dev += "${PN}-staticdev"
++# -staticdev will not be implicitly put into an SDK, so we add an rdepend
++# if we are not building shared libraries
++#
++RDEPENDS:${PN}-dev += "${@bb.utils.contains("PACKAGECONFIG","shared","","${PN}-staticdev",d)}"
+ 
+ BBCLASSEXTEND = "native nativesdk"
+ 

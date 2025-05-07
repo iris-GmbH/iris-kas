@@ -28,6 +28,11 @@ repos:
     patches:
       0001-image_types_verity.bbclass-Optionally-create-hash-da:
         path: "patches/0001-image_types_verity.bbclass-Optionally-create-hash-da.patch"
+      # Add patches for sdbus-c++
+      0002-sdbus-c-Upgrade-to-2.1.0-release.patch:
+        path: "patches/0001-sdbus-c-Upgrade-to-2.1.0-release.patch"
+      0003-remove-tag-from-SRC_URI.patch:
+        path: "patches/0002-remove-tag-from-SRC_URI.patch"
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
