@@ -7,4 +7,4 @@ header:
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    branch: "master"
+    branch: "support/irma6r1_NC_EBUSCO"
