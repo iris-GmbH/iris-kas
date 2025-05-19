@@ -7,50 +7,49 @@
 #################
 
 variables:
-    REGISTRY_USER: "${CI_REGISTRY_USER}"
-    REGISTRY_PASSWORD: "${CI_REGISTRY_PASSWORD}"
-    GET_SOURCES_ATTEMPTS: 3
-    PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
-    SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
-    SSTATE_CACHE: "/mnt/yocto-sstate-cache"
-    SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
-    DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
-    # set makefile relevant variables
-    KAS_EXE: "kas"
-    KAS_WORK_DIR: "${CI_PROJECT_DIR}"
-    KAS_BUILD_DIR: "${CI_PROJECT_DIR}/build"
-    KAS_TMPDIR: "${KAS_BUILD_DIR}/tmp"
-    SSTATE_DIR: "${KAS_BUILD_DIR}/sstate_dir"
-    KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
-    DL_DIR: "${DOWNLOAD_MIRROR}"
-    # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
-    KAS_PREMIRRORS: |
-      ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
-      ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
-    KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
-    KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
-    KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
-    RUN_MAINTENANCE: "false"
-    WIPE_SSTATE_CACHE: "false"
-    # Refspec of the systemtest_base repo to use
-    SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
-    # Set the name of the firmware to be programmed with systemtest_smoke job
-    SYSTEMTEST_SW_NAME: "sc573-gen6"
-    # Set duration of systemtest_reliability job in seconds
-    SYSTEMTEST_RELIABILITY_DURATION: "21600"
-    SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
-    SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
-    GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
-    GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
-    CYCLONEDX_EXPORT_DIR: "${KAS_TMPDIR}/deploy/cyclonedx-export"
-    CYCLONEDX_EXPORT_SBOM: "${CYCLONEDX_EXPORT_DIR}/bom.json"
-    CYCLONEDX_EXPORT_VEX: "${CYCLONEDX_EXPORT_DIR}/vex.json"
-    DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
-    # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
-    # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
-    IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
-    FORCE_DEPENDENCYTRACK: "false"
-
+  REGISTRY_USER: "${CI_REGISTRY_USER}"
+  REGISTRY_PASSWORD: "${CI_REGISTRY_PASSWORD}"
+  GET_SOURCES_ATTEMPTS: 3
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
+  SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
+  SSTATE_CACHE: "/mnt/yocto-sstate-cache"
+  SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
+  DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
+  # set makefile relevant variables
+  KAS_EXE: "kas"
+  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
+  KAS_BUILD_DIR: "${CI_PROJECT_DIR}/build"
+  KAS_TMPDIR: "${KAS_BUILD_DIR}/tmp"
+  SSTATE_DIR: "${KAS_BUILD_DIR}/sstate_dir"
+  KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
+  DL_DIR: "${DOWNLOAD_MIRROR}"
+  # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
+  KAS_PREMIRRORS: |
+    ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
+    ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
+  KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
+  KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
+  KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
+  RUN_MAINTENANCE: "false"
+  WIPE_SSTATE_CACHE: "false"
+  # Refspec of the systemtest_base repo to use
+  SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
+  # Set the name of the firmware to be programmed with systemtest_smoke job
+  SYSTEMTEST_SW_NAME: "sc573-gen6"
+  # Set duration of systemtest_reliability job in seconds
+  SYSTEMTEST_RELIABILITY_DURATION: "21600"
+  SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
+  SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
+  GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
+  GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
+  CYCLONEDX_EXPORT_DIR: "${KAS_TMPDIR}/deploy/cyclonedx-export"
+  CYCLONEDX_EXPORT_SBOM: "${CYCLONEDX_EXPORT_DIR}/bom.json"
+  CYCLONEDX_EXPORT_VEX: "${CYCLONEDX_EXPORT_DIR}/vex.json"
+  DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
+  # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
+  # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
+  IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
+  FORCE_DEPENDENCYTRACK: "false"
 
 ########################
 ### DEFAULT SETTINGS ###
@@ -95,7 +94,6 @@ include:
   - ".gitlab/release-template.yml"
   - ".gitlab/develop-template.yml"
 
-
 ####################
 ### YAML ANCHORS ###
 ####################
@@ -122,7 +120,6 @@ include:
     - qemux86-64-r2
     - qemux86-64-matrix
 
-
 ###############
 ### STAGES ####
 ###############
@@ -137,7 +134,6 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
-
 
 #########################
 ### YOCTO SETUP STAGE ###
@@ -222,7 +218,6 @@ release-ci-build-setup:
     reports:
       dotenv: build.env
 
-
 ################################
 ### WIPE SSTATE CACHES STAGE ###
 ################################
@@ -236,7 +231,6 @@ wipe-sstate-caches:
   script:
     - echo "Ensure you also reset the yocto hashservice database!"
     - find ${SSTATE_CACHE} ${SSTATE_CACHE_RELEASE} -mindepth 1 -exec rm -rfv {} +
-
 
 ###########################
 ### KAS LOCKFILES STAGE ###
@@ -306,7 +300,6 @@ develop-create-kas-lockfiles:
     paths:
       - build/tmp/ccache
 
-
 .build-maintenance-image:
   extends: .build-kas
   variables:
@@ -335,7 +328,6 @@ develop-build-maintenance-image:
         make develop-prepare-reproducible-build
       fi
 
-
 .build-dev-image:
   extends: .build-kas
   variables:
@@ -363,7 +355,6 @@ develop-build-dev-image:
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
         make develop-prepare-reproducible-build
       fi
-
 
 .build-maintenance-oci:
   extends: .build-kas
@@ -394,7 +385,6 @@ develop-build-maintenance-oci:
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
         make develop-prepare-reproducible-build
       fi
-
 
 # build deploy image with dev keys.
 # this will also be used to create source archives for license compliance
@@ -449,7 +439,6 @@ develop-build-dev-deploy-image:
         make develop-prepare-reproducible-build
       fi
 
-
 .build-test-oci:
   extends: .build-kas
   parallel:
@@ -481,7 +470,6 @@ develop-build-test-oci:
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
         make develop-prepare-reproducible-build
       fi
-
 
 .build-sdk:
   extends: .build-kas
@@ -516,7 +504,6 @@ develop-build-sdk:
       if test "${REPRODUCIBLE_BUILD}" = "true"; then
         make develop-prepare-reproducible-build
       fi
-
 
 # We archive the build environment for license compliance
 # as *GPL* requires configuration and build scripts to be released
@@ -572,7 +559,6 @@ release-build-deploy:
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
 
-
 ##############################
 ### PUSH TEST IMAGES STAGE ###
 ##############################
@@ -617,7 +603,6 @@ push-test-oci:
       oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}
 
-
 ##################
 ### TEST STAGE ###
 ##################
@@ -644,9 +629,9 @@ test-oci:
   tags:
     - gp
   services:
-      # Setting pull_policy for services is currently broken, see:
-      # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
-      # Therefore, we use the commit short sha to ensure the correct commit is tested
+    # Setting pull_policy for services is currently broken, see:
+    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
+    # Therefore, we use the commit short sha to ensure the correct commit is tested
     - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
       pull_policy: always
       alias: oci-image
@@ -685,7 +670,6 @@ test-oci:
     reports:
       junit: ${MULTI_CONF}-gtest_results.xml
 
-
 test-oci-ptest:
   stage: test
   needs:
@@ -708,9 +692,9 @@ test-oci-ptest:
   tags:
     - kas-large
   services:
-      # Setting pull_policy for services is currently broken, see:
-      # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
-      # Therefore, we use the commit short sha to ensure the correct commit is tested
+    # Setting pull_policy for services is currently broken, see:
+    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
+    # Therefore, we use the commit short sha to ensure the correct commit is tested
     - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
       pull_policy: always
       alias: oci-image
@@ -718,7 +702,7 @@ test-oci-ptest:
   image: alpine:3.21.3
   variables:
     GIT_STRATEGY: none
-    PKGS_SKIPPED: 'rsyslog librelp libnl dbus bash libxml2 util-linux'
+    PKGS_SKIPPED: "rsyslog librelp libnl dbus bash libxml2 util-linux"
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -736,7 +720,6 @@ test-oci-ptest:
       - ${MULTI_CONF}-ptest_results.xml
     reports:
       junit: ${MULTI_CONF}-ptest_results.xml
-
 
 systemtest_smoke:
   stage: test
@@ -767,7 +750,6 @@ systemtest_smoke:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/log.html
     reports:
       junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/output_xunit.xml
-
 
 ##############################
 ### RELIABILITY TEST STAGE ###
@@ -800,7 +782,6 @@ systemtest_reliability:
       - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
     reports:
       junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
-
 
 ##############################
 ### UPLOAD ARTIFACTS STAGE ###
@@ -917,7 +898,7 @@ upload-cyclonedx-to-dependencytrack:
   stage: upload-artifacts
   rules:
     - !reference [.release_template, rules]
-    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+    - if: "$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH"
     - if: '$FORCE_DEPENDENCYTRACK == "true"'
   parallel:
     matrix:
@@ -947,7 +928,7 @@ upload-cyclonedx-to-dependencytrack:
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
   allow_failure:
     exit_codes:
-     - 123
+      - 123
   tags:
     - gp-tiny
   script:
@@ -971,7 +952,6 @@ upload-cyclonedx-to-dependencytrack:
     - VEX_FILE="$(echo "$CYCLONEDX_EXPORT_VEX" | sed "s%${KAS_TMPDIR}%${KAS_ARTIFACT_FOLDER}%g")"
     - ${CI_PROJECT_DIR}/utils/scripts/upload-cyclonedx-to-dependencytrack.sh -u ${DEPENDENCYTRACK_API_URL} -k ${DEPENDENCYTRACK_API_KEY} -p ${DEPENDENCYTRACK_PROJECT} -b ${SBOM_FILE} -v ${VEX_FILE}
 
-
 #####################
 ### RELEASE STAGE ###
 #####################
@@ -980,9 +960,9 @@ release-clean-sstate-cache:
   stage: release
   dependencies: []
   rules:
-    - if: '$CI_COMMIT_TAG'
+    - if: "$CI_COMMIT_TAG"
       when: on_success
-    - if: '$CI_COMMIT_TAG'
+    - if: "$CI_COMMIT_TAG"
       when: manual
   variables:
     GIT_STRATEGY: none
