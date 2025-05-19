@@ -427,6 +427,12 @@ develop-build-dev-deploy-image:
         echo "Including SPDX tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-spdx.yml"
       fi
+    # include osselot on renovate/osselot-package-analysis branch
+    - >
+      if test "${BRANCH_NAME}" = "renovate/osselot-package-analysis"; then
+        echo "Including Osselot tasks..."
+        export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-osselot.yml"
+      fi
     # include cyclonedx tasks when R2 and default branch run
     - >
       if ( test "${MULTI_CONF}" = "imx8mp-irma6r2" && test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" ) || test "${FORCE_DEPENDENCYTRACK}" = "true"; then

@@ -67,6 +67,9 @@
       "matchDepTypes": ["osselot-package-analysis"],
       "groupName": "Osselot Package Analysis",
       "groupSlug": "osselot-package-analysis",
+      "schedule": ["before 4am on monday"],
+      "automerge": true,
+      "automergeType": "branch",
       "additionalReviewers": [
         "michael.glembotzki",
         "ian.dannapel",
