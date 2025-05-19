@@ -107,6 +107,8 @@ workflow:
         - Dockerfile_iris_kas
     # automatically start pipeline for CI branches (-ci / _ci suffix)
     - if: "$CI_COMMIT_BRANCH =~ /^.*(_|-)ci$/"
+    # automatically start pipeline for renovate osselot branch
+    - if: '$CI_COMMIT_BRANCH == "renovate/osselot-package-analysis"'
 
 ########################
 ### DEFAULT SETTINGS ###

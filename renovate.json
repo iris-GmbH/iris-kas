@@ -43,10 +43,6 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["renovate/renovate"],
-      "schedule": ["on sunday"]
-    },
-    {
       "matchDatasources": ["repology"],
       "matchPackagePatterns": ["^debian_12/"],
       "separateMajorMinor": false,
@@ -71,6 +67,9 @@
       "matchDepTypes": ["osselot-package-analysis"],
       "groupName": "Osselot Package Analysis",
       "groupSlug": "osselot-package-analysis",
+      "schedule": ["before 4am on monday"],
+      "automerge": true,
+      "automergeType": "branch",
       "additionalReviewers": [
         "michael.glembotzki",
         "ian.dannapel",
