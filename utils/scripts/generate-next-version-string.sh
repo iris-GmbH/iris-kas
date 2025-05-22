@@ -17,6 +17,7 @@ do
 done
 
 if test -z "${IRIS_PRODUCT}" || test -z "${GIT_WORK_DIR}"; then
+  echo "Error: Malformed command: $0 $@" >&2
   usage; exit 1;
 fi
 
@@ -36,5 +37,6 @@ NEXT_PATCH_VERSION=$((PATCH_VERSION+1))
 if test -n "${CI_PIPELINE_ID}"; then
   PIPELINE_VERSION_SUFFIX="-pipeline_${CI_PIPELINE_ID}"
 fi
-
-echo "${PRODUCT_MAJOR_VERSION}.${NEXT_PATCH_VERSION}-dev${PIPELINE_VERSION_SUFFIX}"
+PRODUCT_VERSION="${PRODUCT_MAJOR_VERSION}.${NEXT_PATCH_VERSION}-dev${PIPELINE_VERSION_SUFFIX}"
+echo "Product version is set to ${PRODUCT_VERSION}" >&2
+echo "${PRODUCT_VERSION}"
