@@ -7,7 +7,7 @@ MAKEFILE_DIR := $(dir ${MAKEFILE_PATH})
 .DEFAULT_GOAL := kas-build
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
-DEFAULT_IRMA_DISTRO_VERSION := 0.0-unknown
+DEFAULT_IRMA_DISTRO_VERSION := 0.0-0-unknown
 
 .PHONY: kas-build kas
 
