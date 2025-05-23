@@ -622,9 +622,11 @@ test-oci:
       optional: true
     - job: develop-build-test-oci
       optional: true
+      artifacts: false
     - job: release-build-test-oci
       optional: true
     - job: push-test-oci
+      artifacts: false
   rules:
     - !reference [.release_template, rules]
     # skip if SKIP_OCI_TESTS is set to true and not release build
@@ -685,9 +687,12 @@ test-oci-ptest:
       optional: true
     - job: develop-build-test-oci
       optional: true
+      artifacts: false
     - job: release-build-test-oci
       optional: true
+      artifacts: false
     - job: push-test-oci
+      artifacts: false
   rules:
     - !reference [.release_template, rules]
     # skip if SKIP_PTEST_TESTS is set to true and not release build
@@ -803,6 +808,7 @@ develop-push-maintenance-oci:
     - job: develop-ci-build-setup
     - job: develop-build-maintenance-oci
     - job: test-oci
+      artifacts: false
   parallel:
     matrix:
       - <<: *oci_multi_confs
@@ -887,6 +893,9 @@ develop-build-reproducibility:
   variables:
     GIT_STRATEGY: none
   image: busybox:1.37.0-uclibc
+  needs:
+    - job: develop-ci-build-setup
+    - job: develop-create-kas-lockfiles
   tags:
     - gp-tiny
   script:
@@ -985,5 +994,13 @@ publish-release:
   parallel:
     matrix:
       - <<: *target_multi_confs
+  needs:
+    - job: release-ci-build-setup
+    - job: release-build-deploy
+    - job: release-build-maintenance-image
+    - job: release-build-dev-image
+    - job: release-build-dev-deploy-image
+    - job: release-build-sdk
+    - job: release-archive-kas-build-environment
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
