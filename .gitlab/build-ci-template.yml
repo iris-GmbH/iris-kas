@@ -847,7 +847,7 @@ develop-create-sdk-container-images:
       - <<: *all_multi_confs
   variables:
     KAS_ARTIFACT_SUFFIX: "-sdk"
-  image: gcr.io/kaniko-project/executor:v1.23.2-debug
+  image: gcr.io/kaniko-project/executor:v1.24.0-debug
   before_script:
     - SDK_SOURCE=$(find "${KAS_ARTIFACT_FOLDER}" -type d -regex ".*/deploy/sdk")
   script:
