@@ -101,5 +101,5 @@ repos:
     commit: "f11c8c6726ce136a34af05f879c0330c24270ce4"
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=kirkstone
-    url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "a291529e4544a196a6b6c50cb76efe44347f28b3"
+    url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
+    commit: "bb684f5eb55123564291537bdff58ef5b3c932c6"
