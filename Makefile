@@ -203,7 +203,7 @@ kas-buildhistory-collect-srcrevs:
 > @# only create a kas lockfile, if it does not yet exist
 > if ! ls ${MAKEFILE_DIR}/${KAS_BASE_CONFIG_LOCK_FILE} >/dev/null 2>&1; then \
 >	echo "No previous lockfile detected, creating one..."; \
->	${KAS_COMMAND} dump --lock --inplace --update ${KASFILE}; \
+>	${KAS_COMMAND} lock --update ${KASFILE}; \
 > fi
 > @# collect srcrevs from the previous buildhistory (do some sed magic to escape double quotes in the resulting string) into the kas lock file
 > ${KAS_COMMAND} shell -c 'srcrevs=$$(buildhistory-collect-srcrevs | sed "s/\\\"/\\\\\"/g") && yq -P -i "(.local_conf_header.srcrevs |= \"$${srcrevs}\")" $${KAS_WORK_DIR}/${KAS_BASE_CONFIG_LOCK_FILE}' ${KASFILE}
