@@ -67,7 +67,7 @@
       "matchDepTypes": ["osselot-package-analysis"],
       "groupName": "Osselot Package Analysis",
       "groupSlug": "osselot-package-analysis",
-      "schedule": ["* * * * 1"],
+      "schedule": ["* * * * *"],
       "automerge": true,
       "automergeType": "branch",
       "additionalReviewers": [
