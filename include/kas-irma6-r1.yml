@@ -8,3 +8,7 @@ header:
 
 env:
   IRIS_PRODUCT: irma6r1
+
+local_conf_header:
+  musl: |
+    TCLIBC = "musl"
