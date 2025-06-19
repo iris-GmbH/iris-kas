@@ -484,20 +484,36 @@ develop-build-test-oci:
       - <<: *all_multi_confs
   variables:
     KAS_TASK: "populate_sdk"
-    KAS_TARGET_RECIPE: "irma-maintenance"
-    KAS_ARTIFACT_SUFFIX: "-sdk"
   script:
     - make kas-build
-
-release-build-sdk:
-  extends: .build-sdk
-  rules:
-    - !reference [.release_template, rules]
   tags:
     - kas-large
 
-develop-build-sdk:
+release-build-sdk-maintenance:
   extends: .build-sdk
+  variables:
+    KAS_TARGET_RECIPE: "irma-maintenance"
+    KAS_ARTIFACT_SUFFIX: "-sdk-maintenance"
+  rules:
+    - !reference [.release_template, rules]
+
+
+release-build-sdk-deploy:
+  extends: .build-sdk
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+  variables:
+    KAS_TARGET_RECIPE: "irma-deploy"
+    KAS_ARTIFACT_SUFFIX: "-sdk-deploy"
+  rules:
+    - !reference [.release_template, rules]
+
+develop-build-sdk-maintenance:
+  extends: .build-sdk
+  variables:
+    KAS_TARGET_RECIPE: "irma-maintenance"
+    KAS_ARTIFACT_SUFFIX: "-sdk-maintenance"
   rules:
     - !reference [.develop_template, rules]
     - if: '$SKIP_SDK_IMAGE_BUILD == "false"'
@@ -511,6 +527,24 @@ develop-build-sdk:
         make develop-prepare-reproducible-build
       fi
 
+develop-build-sdk-deploy:
+  extends: .build-sdk
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+  variables:
+    KAS_TARGET_RECIPE: "irma-deploy"
+    KAS_ARTIFACT_SUFFIX: "-sdk-deploy"
+  rules:
+    - when: manual
+      allow_failure: true
+  script:
+    - !reference [.develop_template, script, reproduce_build]
+    - make kas-build
+    - >
+      if test "${REPRODUCIBLE_BUILD}" = "true"; then
+        make develop-prepare-reproducible-build
+      fi
 # We archive the build environment for license compliance
 # as *GPL* requires configuration and build scripts to be released
 release-archive-kas-build-environment:
@@ -840,7 +874,7 @@ develop-create-sdk-container-images:
   stage: upload-artifacts
   needs:
     - job: develop-ci-build-setup
-    - job: develop-build-sdk
+    - job: develop-build-sdk-maintenance
   tags:
     - gp
   parallel:
@@ -872,7 +906,7 @@ develop-upload-sdks:
     KAS_ARTIFACT_SUFFIX: "-sdk"
   needs:
     - job: develop-ci-build-setup
-    - job: develop-build-sdk
+    - job: develop-build-sdk-maintenance
   tags:
     - gp
   script:
@@ -1001,7 +1035,8 @@ publish-release:
     - job: release-build-maintenance-image
     - job: release-build-dev-image
     - job: release-build-dev-deploy-image
-    - job: release-build-sdk
+    - job: release-build-sdk-maintenance
+    - job: release-build-sdk-deploy
     - job: release-archive-kas-build-environment
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}

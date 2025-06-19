@@ -19,7 +19,7 @@ from gitlab.v4.objects.groups import Group
 from gitlab.v4.objects.projects import Project
 
 logging.basicConfig(level=logging.DEBUG)
-required_artifacts = ['deploy','dev_deploy','maintenance','dev','sdk','deploy_customer', 'kas_environment']
+required_artifacts = ['deploy','dev_deploy','maintenance','dev','sdk-maintenance','sdk-deploy','deploy_customer','kas_environment']
 gitlab_url = 'http://localhost:8000'
 gitlab_token = 'devtoken'
 default_branch = 'main'
