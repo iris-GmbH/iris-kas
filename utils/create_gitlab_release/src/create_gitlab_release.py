@@ -18,7 +18,7 @@ from gitlab.exceptions import GitlabGetError
 def prepare_release_artifacts(multi_conf: str, project_dir: str, tmpdir: tempfile.TemporaryDirectory, kas_artifact_prefix: str, logging: logging.Logger) -> dict:
   """
   Defines required release artifacts.
-  All release multi-confs must contain the artifacts 'deploy', 'dev_deploy', 'maintenance', 'dev', 'sdk', 'deploy_customer' and 'kas_environment'.
+  All release multi-confs must contain the artifacts 'deploy', 'dev_deploy', 'maintenance', 'dev', 'sdk-maintenance', 'sdk-deploy', 'deploy_customer' and 'kas_environment'.
   Returns an artifacts dict, which is used throughout the script for accessing relevant artifact information.
   """
   artifacts = {
@@ -38,8 +38,12 @@ def prepare_release_artifacts(multi_conf: str, project_dir: str, tmpdir: tempfil
       'description': 'Firmware package containing image suitable for developing.',
       'clearance': 'Internal'
     },
-    'sdk': {
-      'description': 'Yocto SDK used for cross-compiling.',
+    'sdk-maintenance': {
+      'description': 'Yocto Maintenance SDK: used for cross-compiling and for core dump debugging of the maintenance firmware',
+      'clearance': 'Internal'
+    },
+    'sdk-deploy': {
+      'description': 'Yocto Deploy SDK: used for core dump debugging of the deploy firmware',
       'clearance': 'Internal'
     },
     'deploy_customer': {
