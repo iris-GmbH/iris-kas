@@ -11,7 +11,7 @@ overrides:
         meta-freescale-distro:
             commit: b9d6a5d9931922558046d230c1f5f4ef6ee72345
         meta-iris:
-            commit: 998850abfc57c0114ca1180f54879b06f6b8f639
+            commit: 45d5a4059e3eab3df6183382784dfa3daa817e26
         meta-iris-base:
             commit: 37a574b45af046d07bd63df177a6a8bedaed8329
         meta-iris-thirdparty:
