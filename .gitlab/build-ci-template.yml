@@ -881,7 +881,7 @@ develop-create-sdk-container-images:
     matrix:
       - <<: *all_multi_confs
   variables:
-    KAS_ARTIFACT_SUFFIX: "-sdk"
+    KAS_ARTIFACT_SUFFIX: "-sdk-maintenance"
   image: gcr.io/kaniko-project/executor:v1.24.0-debug
   before_script:
     - SDK_SOURCE=$(find "${KAS_ARTIFACT_FOLDER}" -type d -regex ".*/deploy/sdk")
@@ -903,7 +903,7 @@ develop-upload-sdks:
       allow_failure: true
   variables:
     GIT_STRATEGY: none
-    KAS_ARTIFACT_SUFFIX: "-sdk"
+    KAS_ARTIFACT_SUFFIX: "-sdk-maintenance"
   needs:
     - job: develop-ci-build-setup
     - job: develop-build-sdk-maintenance
