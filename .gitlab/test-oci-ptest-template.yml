@@ -26,6 +26,7 @@
   before_script:
     # install GNU sed to get multi-line mode
     - apk add --no-cache openssh sed
+    - for i in 0 1 2 3; do ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "cat /dev/null" && break; sleep 5; done
   after_script:
     - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/ptest_results.xml "${MULTI_CONF}"-ptest_results.xml
     # transform <duration> tags into <testcase time='...'> properties to fit junit.xml format
