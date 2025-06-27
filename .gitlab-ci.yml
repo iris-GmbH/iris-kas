@@ -97,6 +97,8 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
     # Automatic build on merge request/changes to merge request
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      auto_cancel:
+        on_new_commit: interruptible
     # Trigger an automatic build if a new, valid tag is pushed.
     # examples for valid tags:
     # irma6r1-1.0-1, irma6r2-1.0-1-RC1, irma6r2-1.0-1-support_release
@@ -107,6 +109,8 @@ workflow:
         - Dockerfile_iris_kas
     # automatically start pipeline for CI branches (-ci / _ci suffix)
     - if: "$CI_COMMIT_BRANCH =~ /^.*(_|-)ci$/"
+      auto_cancel:
+        on_new_commit: interruptible
     # automatically start pipeline for renovate osselot branch
     - if: '$CI_COMMIT_BRANCH == "renovate/osselot-package-analysis"'
 
@@ -132,6 +136,7 @@ default:
       - job_execution_timeout
       - scheduler_failure
       - data_integrity_failure
+  interruptible: true
 
   before_script:
     # if called from upstream pipeline, attempt to checkout identical named branch in iris-kas

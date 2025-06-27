@@ -84,6 +84,7 @@ default:
           echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas."
         fi
       fi
+  interruptible: true
 
 #####################
 ### INCLUDE FILES ###
@@ -496,7 +497,6 @@ release-build-sdk-maintenance:
     KAS_ARTIFACT_SUFFIX: "-sdk-maintenance"
   rules:
     - !reference [.release_template, rules]
-
 
 release-build-sdk-deploy:
   extends: .build-sdk
