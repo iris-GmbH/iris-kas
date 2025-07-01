@@ -261,6 +261,8 @@ develop-create-kas-lockfiles:
   parallel:
     matrix:
       - <<: *all_multi_confs
+  tags:
+    - gp
   script:
     # if USE_IDENTICAL_NAMED_BRANCHES is set to true, we attempt to checkout BRANCH_NAME in meta-iris(-base) layers.
     # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
