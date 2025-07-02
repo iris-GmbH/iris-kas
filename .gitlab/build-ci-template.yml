@@ -454,7 +454,8 @@ develop-build-dev-deploy-image:
   variables:
     KAS_TARGET_RECIPE: "irma-test"
     KAS_ARTIFACT_SUFFIX: "-test-oci"
-    KASFILE_EXTRA: "${KASFILE_EXTRA}:include/kas-ptest.yml"
+  script:
+    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-ptest.yml"
 
 release-build-test-oci:
   extends: .build-test-oci
@@ -471,6 +472,7 @@ develop-build-test-oci:
     - if: '$SKIP_PTEST_TESTS == "false"'
       allow_failure: true
   script:
+    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-ptest.yml"
     - !reference [.develop_template, script, reproduce_build]
     - make kas-build
     - >
@@ -594,9 +596,8 @@ release-build-deploy:
   variables:
     KAS_TARGET_RECIPE: "irma-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-deploy"
-    KASFILE_EXTRA: "${KASFILE_EXTRA}:include/kas-spdx.yml"
   script:
-    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml:include/kas-osselot.yml"
+    - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml:include/kas-osselot.yml:include/kas-spdx.yml"
     - make kas-build
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
