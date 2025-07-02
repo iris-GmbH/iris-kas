@@ -566,6 +566,7 @@ release-archive-kas-build-environment:
     ARTIFACT_FOLDER: "${CI_PROJECT_DIR}"
     IRIS_KAS_CONTAINER_IMAGE_DIR: "${ARTIFACT_FOLDER}/iris-kas-oci"
     KAS_ARGS: "checkout"
+    GIT_SUBMODULE_STRATEGY: "recursive"
   script:
     - make kas
     # include the oci image used during the build
