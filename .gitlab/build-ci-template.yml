@@ -536,6 +536,7 @@ develop-build-sdk-deploy:
     KAS_TARGET_RECIPE: "irma-deploy"
     KAS_ARTIFACT_SUFFIX: "-sdk-deploy"
   rules:
+    - !reference [.develop_template, rules]
     - when: manual
       allow_failure: true
   script:
