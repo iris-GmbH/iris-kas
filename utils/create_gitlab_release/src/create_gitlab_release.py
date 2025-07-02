@@ -18,7 +18,7 @@ from gitlab.exceptions import GitlabGetError
 def prepare_release_artifacts(multi_conf: str, project_dir: str, tmpdir: tempfile.TemporaryDirectory, kas_artifact_prefix: str, logging: logging.Logger) -> dict:
   """
   Defines required release artifacts.
-  All release multi-confs must contain the artifacts 'deploy', 'dev_deploy', 'maintenance', 'dev', 'sdk-maintenance', 'sdk-deploy', 'deploy_customer' and 'kas_environment'.
+  All release multi-confs must contain the artifacts 'deploy', 'dev_deploy', 'maintenance', 'dev', 'sdk_maintenance', 'sdk_deploy', 'deploy_customer' and 'kas_environment'.
   Returns an artifacts dict, which is used throughout the script for accessing relevant artifact information.
   """
   artifacts = {
@@ -38,11 +38,11 @@ def prepare_release_artifacts(multi_conf: str, project_dir: str, tmpdir: tempfil
       'description': 'Firmware package containing image suitable for developing.',
       'clearance': 'Internal'
     },
-    'sdk-maintenance': {
+    'sdk_maintenance': {
       'description': 'Yocto Maintenance SDK: used for cross-compiling and for core dump debugging of the maintenance firmware',
       'clearance': 'Internal'
     },
-    'sdk-deploy': {
+    'sdk_deploy': {
       'description': 'Yocto Deploy SDK: used for core dump debugging of the deploy firmware',
       'clearance': 'Internal'
     },
@@ -78,7 +78,7 @@ def get_conf_var_name(multi_conf: str) -> str:
 
 def get_artifact_path(multi_conf: str, project_dir: str, artifact_type: str, logging: logging.Logger) -> str:
   """
-  Retrieves the artifact path for a given multi-conf and artifact type from the approriate environment variable (previously set by CI).
+  Retrieves the artifact path for a given multi-conf and artifact type from the appropriate environment variable (previously set by CI).
   """
   conf_var_name = get_conf_var_name(multi_conf)
   try:
