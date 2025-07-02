@@ -458,6 +458,7 @@ develop-build-dev-deploy-image:
     KAS_ARTIFACT_SUFFIX: "-test-oci"
   script:
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-ptest.yml"
+    - make kas-build
 
 release-build-test-oci:
   extends: .build-test-oci
