@@ -472,7 +472,6 @@ develop-build-test-oci:
   extends: .build-test-oci
   rules:
     - !reference [.develop_template, rules]
-    - if: '$SKIP_OCI_TESTS == "false"'
     - if: '$SKIP_PTEST_TESTS == "false"'
       allow_failure: true
   script:
@@ -613,8 +612,8 @@ release-build-deploy:
 push-test-oci:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS are set to true
-    - if: '$SKIP_OCI_TESTS == "false"'
+    # skip if SKIP_PTEST_TESTS are set to true
+    - if: '$SKIP_PTEST_TESTS == "false"'
     - when: manual
       allow_failure: true
     - !reference [.develop_template, rules]
