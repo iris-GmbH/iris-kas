@@ -47,8 +47,8 @@ export RELEASE ?= false
 
 export KAS_WORK_DIR ?= ${MAKEFILE_DIR}
 export KAS_BUILD_DIR ?= ${KAS_WORK_DIR}/${MULTI_CONF}-build
-export DL_DIR ?= ${KAS_BUILD_DIR}/dl_dir
-export SSTATE_DIR ?= ${KAS_BUILD_DIR}/sstate_dir
+export DL_DIR ?= ${KAS_WORK_DIR}/dl_dir
+export SSTATE_DIR ?= ${KAS_WORK_DIR}/sstate_dir
 export KAS_TMPDIR = ${KAS_BUILD_DIR}/tmp
 
 #####################################
