@@ -795,15 +795,8 @@ develop-push-maintenance-oci:
       oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG_SHA}
 
-develop-create-sdk-container-images:
-  rules:
-    - !reference [.develop_template, rules]
-    - when: manual
-      allow_failure: true
+.create-sdk-container-images:
   stage: upload-artifacts
-  needs:
-    - job: develop-ci-build-setup
-    - job: develop-build-sdk-maintenance
   tags:
     - gp
   parallel:
@@ -822,6 +815,24 @@ develop-create-sdk-container-images:
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG_SHA}"
+
+develop-create-sdk-container-images:
+  extends: .create-sdk-container-images
+  rules:
+    - !reference [.develop_template, rules]
+    - when: manual
+      allow_failure: true
+  needs:
+    - job: develop-ci-build-setup
+    - job: develop-build-sdk-maintenance
+
+release-create-sdk-container-images:
+  extends: .create-sdk-container-images
+  rules:
+    - !reference [.release_template, rules]
+  needs:
+    - job: release-ci-build-setup
+    - job: release-build-sdk-maintenance
 
 # upload the SDKs to the gitlab package registry for later consumption
 develop-upload-sdks:
