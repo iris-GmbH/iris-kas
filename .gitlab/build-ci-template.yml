@@ -684,7 +684,7 @@ test-oci:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.22.0
+  image: alpine:3.22.1
   variables:
     GIT_STRATEGY: none
   parallel:
@@ -750,7 +750,7 @@ test-oci-ptest:
       pull_policy: always
       alias: oci-image
       entrypoint: ["/sbin/init"]
-  image: alpine:3.22.0
+  image: alpine:3.22.1
   variables:
     GIT_STRATEGY: none
     PKGS_SKIPPED: "rsyslog librelp libnl dbus bash libxml2 util-linux"
