@@ -1,0 +1,37 @@
+From 75c5334ea2a5f1a1106b92a4487ac974d189673f Mon Sep 17 00:00:00 2001
+From: Thomas Noack <thomas.noack@iris-sensing.com>
+Date: Tue, 6 May 2025 17:03:26 +0200
+Subject: [PATCH 2/2] remove tag from SRC_URI
+
+Upstream-Status: Inappropriate [tag in SRC_URI is not supported in kirkstone and scarthgap]
+---
+ meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb | 2 +-
+ meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb       | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
+index c55c305611..10704a6cd3 100644
+--- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
++++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
+@@ -9,7 +9,7 @@ inherit cmake
+ DEPENDS += "expat"
+ 
+ SRCREV = "0261d0ec60b68c1f0a6ec9acf63d1379f7d569f8"
+-SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;tag=v${PV};subpath=tools"
++SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;subpath=tools"
+ 
+ S = "${WORKDIR}/tools"
+ 
+diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
+index f3799adb3c..2e405459cd 100644
+--- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
++++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
+@@ -17,7 +17,7 @@ PACKAGECONFIG[with-tests] = "-DSDBUSCPP_BUILD_TESTS=ON -DSDBUSCPP_INSTALL_TESTS=
+ DEPENDS += "expat"
+ 
+ SRCREV = "0261d0ec60b68c1f0a6ec9acf63d1379f7d569f8"
+-SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;tag=v${PV} \
++SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master \
+            file://run-ptest"
+ 
+ EXTRA_OECMAKE = "-DSDBUSCPP_BUILD_CODEGEN=OFF \

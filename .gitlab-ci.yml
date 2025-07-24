@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2022-2023 iris-GmbH infrared & intelligent sensors
 
-
 # TODO: implement needs:parallel:matrix once feature is stable: https://docs.gitlab.com/ee/ci/yaml/index.html#needsparallelmatrix
 # TODO: use GitLab CI variables for defining parallism, once supported: https://gitlab.com/gitlab-org/gitlab/-/issues/11549
 
@@ -13,25 +12,31 @@ include:
   - ".gitlab/common-template.yml"
   - ".gitlab/release-template.yml"
   - ".gitlab/develop-template.yml"
+  - component: $CI_SERVER_FQDN/internal-projects/gitlab-ci-components/common-container-image-tasks/build-container-image@4
+    inputs:
+      stage: build-container
+      job_name: build-iris-kas-container
+      dockerfile: Dockerfile_iris_kas
+      autogenerate_image_tag_git_sha: true
+      artifacts_expire_in: "7 days"
+  - component: $CI_SERVER_FQDN/internal-projects/gitlab-ci-components/common-container-image-tasks/copy-container-image@4
+    inputs:
+      stage: copy-container
+      job_name: iris-kas-container-latest-tag
+      src_image_name: $CI_PROJECT_NAME
+      dest_image_name: $CI_PROJECT_NAME
+      src_image_tag: $CI_BUILD_IMAGE_TAG
+      dest_image_tag: latest
 
 ###############################
 ### CI VARIABLE DEFINITIONS ###
 ###############################
 
 variables:
-  BUILD_IMAGE_TAG: "latest"
   RELEASE_BRANCH: "master"
-  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}:${BUILD_IMAGE_TAG}"
-  RENOVATE_PLATFORM: "gitlab"
-  RENOVATE_ENDPOINT: "${CI_API_V4_URL}"
-  RENOVATE_REPOSITORIES: "[ \"${CI_PROJECT_PATH}\" ]"
-  RENOVATE_REVIEWERS: "[ \"jasper.orschulko\", \"rico.biedermann\", \"thomas.noack\", \"parian.golchin\", \"an.tran\", \"michael.kirscht\", \"jan.hannig\", \"erik.schumacher\", \"paul.gieseler\" ]"
-  RENOVATE_PR_CONCURRENT_LIMIT: "0"
-  RENOVATE_PR_HOURLY_LIMIT: "0"
-  # Set extra flags for the renovate bot
-  RENOVATE_EXTRA_FLAGS: ""
-  FORCE_RENOVATE_RUN: "false"
-  RENOVATE_DRY_RUN: "false"
+  # set a default tag. will be overridden, if the container build runs.
+  CI_BUILD_IMAGE_TAG: "latest"
+  BUILD_IMAGE_IRIS_KAS: "${CI_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_BUILD_IMAGE_TAG}"
   USE_IDENTICAL_NAMED_BRANCHES:
     value: "true"
     description: 'Set to "true" to use identical named branches in iris meta layers during build'
@@ -42,7 +47,7 @@ variables:
     value: "false"
     description: 'Set to "true" to skip the OCI tests.'
   SKIP_PTEST_TESTS:
-    value: "true"
+    value: "false"
     description: 'Set to "false" to run the PTEST tests.'
   SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
@@ -70,11 +75,10 @@ variables:
     description: 'Set to "true" to build from scratch.'
   BUILD_TARGETS:
     value: ""
-    description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built.'
-  KAS_RUNNER_TAG:
-    value: "kas"
-    description: "The runner tag to use for build jobs. Can be overridden with kas-large for more performance, e.g. when manually building from scratch"
-
+    description: "Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix, imx93-evk. If left empty, all available products (except imx93-evk) will be built."
+  ENABLE_PA_CCACHE:
+    value: "true"
+    description: 'Set to "false" to disable ccache for the PA'
 
 ################
 ### WORKFLOW ###
@@ -83,7 +87,7 @@ variables:
 workflow:
   rules:
     # Do not run merge pipeline on draft MRs
-    - if: '$CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
+    - if: "$CI_MERGE_REQUEST_TITLE =~ /^Draft:/"
       when: never
     # Allow scheduled builds
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
@@ -93,17 +97,22 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'
     # Automatic build on merge request/changes to merge request
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      auto_cancel:
+        on_new_commit: interruptible
     # Trigger an automatic build if a new, valid tag is pushed.
     # examples for valid tags:
     # irma6r1-1.0-1, irma6r2-1.0-1-RC1, irma6r2-1.0-1-support_release
-    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^(?<product_identifier>irma6r[1-2])-(?<major>\d+)\.(?<minor>\d+)-(?<feature_version>\d+)(-(?<support_release_suffix>\w+))?$/'
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^(?<product_identifier>[\w\d]+)-(?<major>\d+)\.(?<minor>\d+)-(?<feature_version>\d+)(-(?<support_release_suffix>\w+))?$/'
     # allow building the latest iris-kas container image if required
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - Dockerfile_iris_kas
     # automatically start pipeline for CI branches (-ci / _ci suffix)
-    - if: '$CI_COMMIT_BRANCH =~ /^.*(_|-)ci$/'
-
+    - if: "$CI_COMMIT_BRANCH =~ /^.*(_|-)ci$/"
+      auto_cancel:
+        on_new_commit: interruptible
+    # automatically start pipeline for renovate osselot branch
+    - if: '$CI_COMMIT_BRANCH == "renovate/osselot-package-analysis"'
 
 ########################
 ### DEFAULT SETTINGS ###
@@ -127,6 +136,7 @@ default:
       - job_execution_timeout
       - scheduler_failure
       - data_integrity_failure
+  interruptible: true
 
   before_script:
     # if called from upstream pipeline, attempt to checkout identical named branch in iris-kas
@@ -140,7 +150,6 @@ default:
         fi
       fi
 
-
 ##############
 ### STAGES ###
 ##############
@@ -148,26 +157,13 @@ default:
 stages:
   - setup
   - build-container
+  - copy-container
   - generate-pipeline
   - trigger-generated-pipeline
-
 
 ###################
 ### SETUP STAGE ###
 ###################
-
-renovate:
-  stage: setup
-  rules:
-    - !reference [.develop_template, rules]
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: $FORCE_RENOVATE_RUN == "true"
-  image: renovate/renovate:38.120.1-full
-  tags:
-    - gp
-  script:
-    - renovate ${RENOVATE_EXTRA_FLAGS}
-  allow_failure: true
 
 # We do not want to run a pipeline on merges to non-default branch.
 # During a release process (merge target branch master), we are interested in the release candidate builds, not the merge request
@@ -185,85 +181,61 @@ skip-non-default-branch-merge-pipeline:
   script:
     - echo "Running empty pipeline on merge request targeting release branch ${RELEASE_BRANCH}"
 
-build-container-get-tag:
+#############################
+### BUILD CONTAINER STAGE ###
+#############################
+
+# modify template jobs to include job rules
+job-build-iris-kas-container-setup:
   rules:
     - !reference [.common_template, rules, build_container_rules]
-  stage: setup
-  tags:
-    - gp-tiny
-  image: busybox:1.37.0-uclibc
-  script:
-    # Default branch = latest tag
-    # Release = release tag
-    # All other branches are tagged with the currently built commit SHA hash
-    - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        BUILD_IMAGE_TAG="latest"
-      elif [[ -n "$CI_COMMIT_TAG" ]]; then
-        BUILD_IMAGE_TAG="$CI_COMMIT_TAG"
-      else
-        BUILD_IMAGE_TAG="git-${CI_COMMIT_SHORT_SHA}"
-      fi
-    - echo "BUILD_IMAGE_TAG set to ${BUILD_IMAGE_TAG}."
-    - echo "BUILD_IMAGE_TAG=${BUILD_IMAGE_TAG}" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
 
-
-###################################
-### BUILD BUILD CONTAINER STAGE ###
-###################################
-
-build-iris-kas-container:
-  stage: build-container
-  needs:
-    - job: build-container-get-tag
+job-build-iris-kas-container-build-linux-amd64:
   rules:
     - !reference [.common_template, rules, build_container_rules]
-  parallel:
-    matrix:
-      - TAG: gp
-        ARCH: amd64
-      - TAG: gp-arm
-        ARCH: arm64
-  tags:
-    - ${TAG}
-  image: gcr.io/kaniko-project/executor:v1.23.2-debug
-  script:
-    - >-
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile_iris_kas"
-      --destination "${BUILD_IMAGE_IRIS_KAS}-${ARCH}"
-      --tar-path "iris-kas-container-${ARCH}.tar"
-  artifacts:
-    name: "iris-kas-container-${ARCH}"
-    paths:
-      - "iris-kas-container-*"
-    expire_in: "7 days"
 
-merge-container-manifests:
-  stage: build-container
-  needs:
-    - job: build-container-get-tag
-    - job: build-iris-kas-container
-  tags:
-    - gp-tiny
+job-build-iris-kas-container-build-linux-arm64:
   rules:
     - !reference [.common_template, rules, build_container_rules]
-  variables:
-    GIT_STRATEGY: none
-  image: mplatform/manifest-tool:alpine-v2.0.6
-  script:
-    - >-
-      manifest-tool
-      --username=${CI_REGISTRY_USER}
-      --password=${CI_REGISTRY_PASSWORD}
-      push from-args
-      --platforms linux/amd64,linux/arm64
-      --template ${BUILD_IMAGE_IRIS_KAS}-ARCH
-      --target ${BUILD_IMAGE_IRIS_KAS}
+
+job-build-iris-kas-container-registry-push-linux-amd64:
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+
+job-build-iris-kas-container-registry-push-linux-arm64:
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+
+job-build-iris-kas-container-merge-registry-manifests:
+  rules:
+    - !reference [.common_template, rules, build_container_rules]
+
+############################
+### COPY CONTAINER STAGE ###
+############################
+
+.copy-container-latest-tag-rules:
+  - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
+    changes:
+      - Dockerfile_iris_kas
+  - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $FORCE_IRIS_KAS_CONTAINER_BUILD == "true"'
+
+# modify template jobs to include job rules
+job-iris-kas-container-latest-tag-export-inputs:
+  rules:
+    - !reference [.copy-container-latest-tag-rules]
+
+job-iris-kas-container-latest-tag-copy-linux-amd64:
+  rules:
+    - !reference [.copy-container-latest-tag-rules]
+
+job-iris-kas-container-latest-tag-copy-linux-arm64:
+  rules:
+    - !reference [.copy-container-latest-tag-rules]
+
+job-iris-kas-container-latest-tag-merge-manifests:
+  rules:
+    - !reference [.copy-container-latest-tag-rules]
 
 ###############################
 ### GENERATE PIPELINE STAGE ###
@@ -273,7 +245,7 @@ merge-container-manifests:
   stage: generate-pipeline
   tags:
     - gp-tiny
-  image: mikefarah/yq:4.44.3
+  image: mikefarah/yq:4.45.4
   artifacts:
     paths:
       - .gitlab/build-ci-template.yml
@@ -329,13 +301,19 @@ develop-generate-pipeline:
     - >
       case "${BUILD_TARGETS}" in
         *matrix*)
+          yq -i '.".target_multi_confs".MULTI_CONF += ["imx93-matrixup"]' .gitlab/build-ci-template.yml;
+          yq -i '.".oci_multi_confs".MULTI_CONF += ["qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
+          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-matrixup", "qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
+      esac
+    - >
+      case "${BUILD_TARGETS}" in
+        *imx93-evk*)
           yq -i '.".target_multi_confs".MULTI_CONF += ["imx93-evk"]' .gitlab/build-ci-template.yml;
           yq -i '.".oci_multi_confs".MULTI_CONF += ["qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
-          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-evk", "qemux86-64-matrix"]' .gitlab/build-ci-template.yml;
+          yq -i '.".all_multi_confs".MULTI_CONF += ["imx93-evk"]' .gitlab/build-ci-template.yml;
       esac
     - echo "Generated child pipeline:"
     - cat .gitlab/build-ci-template.yml
-
 
 ########################################
 ### TRIGGER GENERATED PIPELINE STAGE ###
@@ -350,6 +328,7 @@ develop-generate-pipeline:
       - artifact: .gitlab/build-ci-template.yml
         job: develop-generate-pipeline
     strategy: depend
+  interruptible: true
 
 release-trigger-generated-pipeline:
   extends: .trigger-generated-pipeline

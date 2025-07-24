@@ -3,8 +3,6 @@
 
 header:
   version: 14
-  includes:
-    - "include/ci/kas-ci-deploy-signing.yml"
 
 local_conf_header:
   # override download develop keys with production keys for release

@@ -3,12 +3,9 @@
 
 header:
   version: 14
-  includes:
-    - include/repos/kas-irma6r1-repos.yml
-
 env:
-  IRIS_PRODUCT: irma6r1
-
+ #SPDX_PRETTY makes the SPDX output more human-readable
+ SPDX_PRETTY: "1"
 local_conf_header:
-  musl: |
-    TCLIBC = "musl"
+  spdx: |
+    INHERIT += "create-spdx"

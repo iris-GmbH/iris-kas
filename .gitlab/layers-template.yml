@@ -6,12 +6,17 @@
 workflow:
   rules:
     # Do not run merge pipeline on draft MRs
-    - if: '$CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
+    - if: "$CI_MERGE_REQUEST_TITLE =~ /^Draft:/"
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      auto_cancel:
+        on_new_commit: interruptible
     - if: '$CI_PIPELINE_SOURCE == "web"'
     # automatically start pipeline for CI branches (-ci / _ci suffix)
-    - if: '$CI_COMMIT_BRANCH =~ /^.*(_|-)ci$/'
+    - if: "$CI_COMMIT_BRANCH =~ /^.*(_|-)ci$/"
+
+default:
+  interruptible: true
 
 variables:
   SKIP_OCI_TESTS:
@@ -40,7 +45,7 @@ variables:
     description: 'Set to "true" to build from scratch.'
   BUILD_TARGETS:
     value: ""
-    description: 'Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built.'
+    description: "Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrix. If left empty, all available products will be built."
   KAS_RUNNER_TAG:
     value: "kas"
     description: "The runner tag to use for build jobs. Can be overridden with kas-large for more performance, e.g. when manually building from scratch"
@@ -72,7 +77,7 @@ update-non-protected-branch:
   stage: setup
   tags:
     - gp-tiny
-  image: bitnami/git:2.38.1
+  image: bitnami/git:2.49.0
   before_script:
     - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
   script:
@@ -93,6 +98,7 @@ update-non-protected-branch:
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
     USE_IDENTICAL_NAMED_BRANCHES: "true"
   stage: !reference [.trigger-kas-pipeline_template, stage]
+  interruptible: true
 
 # can be triggered by any developers on non-protected branches
 trigger-kas-pipeline:

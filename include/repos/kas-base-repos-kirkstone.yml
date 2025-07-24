@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/yoctoproject/poky"
-    commit: "7e87dc422d972e0dc98372318fcdc63a76347d16"
+    commit: "9bc0069f8b3968250c4245c8a81b65fdacabfba5"
     layers:
       meta:
       meta-poky:
@@ -40,7 +40,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "dd3d2293ffdf2559f8a433f241765a8ab50cd085"
+    commit: "45bddd258a3d1ded925faf8389e01bb948dc7f5b"
     layers:
       meta-oe:
       meta-python:
@@ -78,15 +78,28 @@ repos:
       # Add patch for Json-schema.-validator
       0011-json-schema-validator-Updrade-to-2.2.0.patch:
         path: "patches/0001-json-schema-validator-Updrade-to-2.2.0.patch"
+      # Add patches for sdbus-c++
+      0012-Revert-Googletest-Adapt-googletest-1.11.0-with-gcc11.patch:
+        path: "patches/0001-Revert-Googletest-Adapt-googletest-1.11.0-with-gcc11.patch"
+      0013-googletest-upgrade-to-1.14.0.patch:
+        path: "patches/0002-googletest-upgrade-to-1.14.0.patch"
+      0014-basu-import-recipe.patch:
+        path: "patches/0003-basu-import-recipe.patch"
+      0015-sdbus-c-upgrade-to-2.0.0-release.patch:
+        path: "patches/0004-sdbus-c-upgrade-to-2.0.0-release.patch"
+      0016-sdbus-c-Upgrade-to-2.1.0-release.patch:
+        path: "patches/0001-sdbus-c-Upgrade-to-2.1.0-release.patch"
+      0017-remove-tag-from-SRC_URI.patch:
+        path: "patches/0002-remove-tag-from-SRC_URI.patch"
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "85e0834563d46f41760e6bf0489892425dbc618f"
+    commit: "5b378a0216b8aebdb8e8c22f7882972f101e3fc5"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-osselot"
-    commit: "b4a530af5200c435d55ea4f8ff92f0f72a6ee307"
+    commit: "f11c8c6726ce136a34af05f879c0330c24270ce4"
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=kirkstone
-    url: "https://github.com/savoirfairelinux/meta-cyclonedx.git"
-    commit: "a291529e4544a196a6b6c50cb76efe44347f28b3"
+    url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
+    commit: "bb684f5eb55123564291537bdff58ef5b3c932c6"

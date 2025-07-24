@@ -13,10 +13,26 @@ This script does multiple things:
 Typically, this script is automatically called from the GitLab CI, extracting all necessary information from environment variables.
 Manually running this script is also possible, although the usefulness outside of a dry-run is limited, at heavily depends on the availability of the GitLab service.
 
-Run `test_create-gitlab_release.py --help` for more information.
-
-
 ## Development and testing
 Build requirements during development and testing are managed using [pipenv](https://pipenv.pypa.io/en/latest). After installing pipenv on your system, run `make shell` for creating and activating the python virtual environment and installing all required development packages.
 
 Running the test-suite requires a running GitLab instance on the developers machine. Run `docker-compose up -d` to start a preconfigured local GitLab instance. It will take a few minutes for GitLab to be ready for usage. Then run `make coverage` to run the test-suite.
+
+Quick reference
+```
+sudo apt install pipenv
+make shell
+
+docker-compose build
+docker-compose up -d
+
+# wait gitlab local instance (takes up to 10min)
+docker inspect create_gitlab_release_gitlab-test-instance_1 | jq '.[].State.Health'
+{
+  "Status": "healthy",
+  "FailingStreak": 0,
+...
+# 127.0.0.1:8000 will show a gitlab sign in
+
+make coverage
+```

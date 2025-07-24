@@ -2,7 +2,7 @@
 
 set -x
 
-/assets/wrapper &
+/assets/init-container &
 
 # wait for gitlab to be ready
 healthy="1"

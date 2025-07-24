@@ -1,0 +1,43 @@
+From eca38f65c4bc0914636392ac73529585b0d7b09f Mon Sep 17 00:00:00 2001
+From: Thomas Noack <thomas.noack@iris-sensing.com>
+Date: Tue, 6 May 2025 10:24:01 +0200
+Subject: [PATCH 3/5] basu: import recipe
+
+backported commits:
+- 5ad7203f: basu: Update the SRCREV to get lld fix
+- 5d7cb6ec: basu: Update to latest master
+- a645b0de: basu: import recipe from meta-wayland
+
+Upstream-Status: Backport [meta-openembedded:master, consolidated]
+---
+ meta-oe/recipes-core/basu/basu_0.2.1.bb | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100644 meta-oe/recipes-core/basu/basu_0.2.1.bb
+
+diff --git a/meta-oe/recipes-core/basu/basu_0.2.1.bb b/meta-oe/recipes-core/basu/basu_0.2.1.bb
+new file mode 100644
+index 0000000000..1b4d5a0fe5
+--- /dev/null
++++ b/meta-oe/recipes-core/basu/basu_0.2.1.bb
+@@ -0,0 +1,21 @@
++SUMMARY = "The sd-bus library, extracted from systemd."
++HOMEPAGE = "https://sr.ht/~emersion/basu"
++SECTION = "base"
++LICENSE = "LGPL-2.1-only"
++LIC_FILES_CHKSUM = "file://LICENSE.LGPL2.1;md5=4fbd65380cdd255951079008b364516c"
++
++SRC_URI = "git://git.sr.ht/~emersion/basu;protocol=https;branch=master"
++
++DEPENDS += "gperf-native"
++
++S = "${WORKDIR}/git"
++PV = "0.2.1+git"
++SRCREV = "a08cf5a575325435040d35710dbac3d0c32b1676"
++
++inherit meson pkgconfig
++
++PACKAGECONFIG ?= ""
++PACKAGECONFIG[libcap] = "-Dlibcap=enabled,-Dlibcap=disabled,libcap"
++PACKAGECONFIG[audit] = "-Daudit=enabled,-Daudit=disabled,audit"
++
++EXTRA_OEMESON += "--buildtype release"

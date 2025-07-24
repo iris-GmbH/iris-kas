@@ -1,5 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "reviewers": [
+    "jasper.orschulko",
+    "thomas.noack",
+    "parian.golchin",
+    "an.tran",
+    "michael.kirscht",
+    "erik.schumacher",
+    "paul.gieseler",
+    "marcel.plumbohm",
+    "aoife.power"
+  ],
+  "gitlabci": {
+    "fileMatch": ["\\.gitlab-ci\\.ya?ml$", "\\.gitlab/.*\\.ya?ml$"]
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -17,13 +31,17 @@
         "#\\s*renovate:\\s*depType=(?<depType>.*?)\\s+branch=(?<currentValue>.*?)\\n\\s*\"?commit\"?:\\s+\"?(?<currentDigest>.*?)\"?\\n\\s*\"?url\"?:\\s+\"?(?<depName>.*?)\"?\\n"
       ],
       "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/).*\\.(yml|yaml)$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*depType=(?<depType>.*?)\\s+gitUrl=(?<depName>.*?)\\s+branch=(?<currentValue>.*?)\\n\\s*OSSELOT_SRCREV\\s*=\\s*\"(?<currentDigest>.*?)\""
+      ],
+      "datasourceTemplate": "git-refs"
     }
   ],
   "packageRules": [
-    {
-      "matchPackageNames": ["renovate/renovate"],
-      "schedule": ["on sunday"]
-    },
     {
       "matchDatasources": ["repology"],
       "matchPackagePatterns": ["^debian_12/"],
@@ -35,7 +53,33 @@
       "matchDepTypes": ["upstream-meta-layers"],
       "groupName": "Upstream Meta Layers",
       "groupSlug": "upstream-meta-layers",
-      "additionalReviewers": ["michael.glembotzki", "ian.dannapel", "erik.schumacher"]
+      "additionalReviewers": [
+        "michael.glembotzki",
+        "ian.dannapel",
+        "erik.schumacher"
+      ],
+      "prBodyDefinitions": {
+        "Git branch": "`{{{currentValue}}}`"
+      },
+      "prBodyColumns": ["Package", "Type", "Update", "Change", "Git branch"]
+    },
+    {
+      "matchDepTypes": ["osselot-package-analysis"],
+      "groupName": "Osselot Package Analysis",
+      "groupSlug": "osselot-package-analysis",
+      "automerge": true,
+      "automergeStrategy": "rebase",
+      "ignoreTests": true,
+      "automergeType": "branch",
+      "additionalReviewers": [
+        "michael.glembotzki",
+        "ian.dannapel",
+        "erik.schumacher"
+      ],
+      "prBodyDefinitions": {
+        "Git branch": "`{{{currentValue}}}`"
+      },
+      "prBodyColumns": ["Package", "Type", "Update", "Change", "Git branch"]
     }
   ]
 }
