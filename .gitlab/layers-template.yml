@@ -46,6 +46,7 @@ variables:
   KAS_RUNNER_TAG:
     value: "kas"
     description: "The runner tag to use for build jobs. Can be overridden with kas-large for more performance, e.g. when manually building from scratch"
+  RELEASE_BRANCH: "master"
 
 stages:
   - setup
@@ -101,6 +102,8 @@ update-non-protected-branch:
 trigger-kas-pipeline:
   extends: .trigger-kas-pipeline
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'
       when: never
