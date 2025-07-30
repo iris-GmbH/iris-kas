@@ -43,9 +43,6 @@ variables:
   REPRODUCIBLE_BUILD:
     value: "false"
     description: 'Set to "true" to archive build artifacts required for making the firmware build reproducible. WARNING: We can only guarantee reproducibility for changes done to protected branches!'
-  SKIP_OCI_TESTS:
-    value: "false"
-    description: 'Set to "true" to skip the OCI tests.'
   SKIP_PTEST_TESTS:
     value: "false"
     description: 'Set to "false" to run the PTEST tests.'
@@ -245,7 +242,7 @@ job-iris-kas-container-latest-tag-merge-manifests:
   stage: generate-pipeline
   tags:
     - gp-tiny
-  image: mikefarah/yq:4.45.4
+  image: mikefarah/yq:4.47.1
   artifacts:
     paths:
       - .gitlab/build-ci-template.yml

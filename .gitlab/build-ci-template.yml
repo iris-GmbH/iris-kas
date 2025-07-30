@@ -94,6 +94,7 @@ include:
   - ".gitlab/common-template.yml"
   - ".gitlab/release-template.yml"
   - ".gitlab/develop-template.yml"
+  - ".gitlab/test-oci-ptest-template.yml"
 
 ####################
 ### YAML ANCHORS ###
@@ -261,6 +262,8 @@ develop-create-kas-lockfiles:
   parallel:
     matrix:
       - <<: *all_multi_confs
+  tags:
+    - gp
   script:
     # if USE_IDENTICAL_NAMED_BRANCHES is set to true, we attempt to checkout BRANCH_NAME in meta-iris(-base) layers.
     # If successful, we update the branch ref for the appropriate layer to BRANCH_NAME
@@ -299,7 +302,7 @@ develop-create-kas-lockfiles:
   cache:
     key: ccache-${CI_JOB_NAME_SLUG}
     paths:
-      - build/tmp/ccache
+      - ${KAS_TMPDIR}/ccache
 
 .build-maintenance-image:
   extends: .build-kas
@@ -469,7 +472,6 @@ develop-build-test-oci:
   extends: .build-test-oci
   rules:
     - !reference [.develop_template, rules]
-    - if: '$SKIP_OCI_TESTS == "false"'
     - if: '$SKIP_PTEST_TESTS == "false"'
       allow_failure: true
   script:
@@ -610,8 +612,8 @@ release-build-deploy:
 push-test-oci:
   rules:
     - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS are set to true
-    - if: '$SKIP_OCI_TESTS == "false"'
+    # skip if SKIP_PTEST_TESTS are set to true
+    - if: '$SKIP_PTEST_TESTS == "false"'
     - when: manual
       allow_failure: true
     - !reference [.develop_template, rules]
@@ -651,125 +653,48 @@ push-test-oci:
 ### TEST STAGE ###
 ##################
 
-test-oci:
-  stage: test
-  needs:
-    - job: develop-ci-build-setup
-      optional: true
-    - job: release-ci-build-setup
-      optional: true
-    - job: develop-build-test-oci
-      optional: true
-      artifacts: false
-    - job: release-build-test-oci
-      optional: true
-    - job: push-test-oci
-      artifacts: false
-  rules:
-    - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS is set to true and not release build
-    - if: '$SKIP_OCI_TESTS == "false"'
-    - when: manual
-      allow_failure: true
-    - !reference [.develop_template, rules]
-  tags:
-    - gp
-  services:
-    # Setting pull_policy for services is currently broken, see:
-    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
-    # Therefore, we use the commit short sha to ensure the correct commit is tested
-    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
-      pull_policy: always
-      alias: oci-image
-      entrypoint: ["/sbin/init"]
-  image: alpine:3.22.0
-  variables:
-    GIT_STRATEGY: none
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  before_script:
-    - apk add --no-cache openssh
-  script:
-    - echo "Waiting for SSH to become available..."
-    - TIMEOUT=0
-    - |
-      while true; do
-        if ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "cat /dev/null"; then
-          break;
-        else
-          [ $TIMEOUT -le 600 ] || { echo Error: Timeout waiting for SSH server; exit 1; }
-          echo "SSH not available yet. Waiting 5 seconds..."
-          TIMEOUT=$((TIMEOUT+5));
-          sleep 5;
-        fi;
-      done
-    - echo "Starting tests..."
-    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "TEMPDIR=/mnt test_von_count --gtest_repeat=3 --gtest_shuffle --gtest_output=xml:/tmp/gtest_results.xml"
-  after_script:
-    - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/gtest_results.xml "${MULTI_CONF}"-gtest_results.xml
-  artifacts:
-    name: "${CI_JOB_NAME}"
-    when: always
-    paths:
-      - ${MULTI_CONF}-gtest_results.xml
-    reports:
-      junit: ${MULTI_CONF}-gtest_results.xml
-
-test-oci-ptest:
-  stage: test
-  needs:
-    - job: develop-ci-build-setup
-      optional: true
-    - job: release-ci-build-setup
-      optional: true
-    - job: develop-build-test-oci
-      optional: true
-      artifacts: false
-    - job: release-build-test-oci
-      optional: true
-      artifacts: false
-    - job: push-test-oci
-      artifacts: false
+test-oci-ptest-iris:
+  extends: .test_oci_ptest_template
   rules:
     - !reference [.release_template, rules]
     # skip if SKIP_PTEST_TESTS is set to true and not release build
     - if: '$SKIP_PTEST_TESTS == "false"'
+    - when: manual
       allow_failure: true
     - !reference [.develop_template, rules]
-  allow_failure: true
-  tags:
-    - kas-large
-  services:
-    # Setting pull_policy for services is currently broken, see:
-    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/37496
-    # Therefore, we use the commit short sha to ensure the correct commit is tested
-    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
-      pull_policy: always
-      alias: oci-image
-      entrypoint: ["/sbin/init"]
-  image: alpine:3.22.0
-  variables:
-    GIT_STRATEGY: none
-    PKGS_SKIPPED: "rsyslog librelp libnl dbus bash libxml2 util-linux"
   parallel:
     matrix:
       - <<: *oci_multi_confs
-  before_script:
-    - apk add --no-cache openssh
+  variables:
+    GIT_STRATEGY: none
+    PKGS_TO_TEST: "counter-minimal irma6-webserver"
   script:
-    - echo "Starting Yocto Ptest..."
-    - ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "mkdir -p /var/volatile/tmp && ptest-runner -e '${PKGS_SKIPPED}' -t 900 -x /tmp/ptest_results.xml" > "${MULTI_CONF}-ptest-runner.log"
-  after_script:
-    - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/ptest_results.xml "${MULTI_CONF}"-ptest_results.xml
-  artifacts:
-    name: "${CI_JOB_NAME}"
-    when: always
-    paths:
-      - ${MULTI_CONF}-ptest_results.xml
-      - ${MULTI_CONF}-ptest-runner.log
-    reports:
-      junit: ${MULTI_CONF}-ptest_results.xml
+    - >-
+      ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "mkdir -p /var/volatile/tmp &&
+      ptest-runner -t 900 -x /tmp/ptest_results.xml ${PKGS_TO_TEST}" > "${MULTI_CONF}-ptest-runner.log"
+      || { echo "Error encountered while executing tests. Please check the ${MULTI_CONF}-ptest-runner.log file"; exit 1; }
+
+test-oci-ptest-full:
+  extends: .test_oci_ptest_template
+  rules:
+    - !reference [.release_template, rules]
+    - if: '$SKIP_PTEST_TESTS == "false" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - when: manual
+      allow_failure: true
+    - !reference [.develop_template, rules]
+  allow_failure: true
+  parallel:
+    matrix:
+      - <<: *oci_multi_confs
+  variables:
+    GIT_STRATEGY: none
+    PKGS_TO_SKIP: "counter-minimal irma6-webserver"
+  script:
+    - >-
+      ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "mkdir -p /var/volatile/tmp &&
+      ptest-runner -e '${PKGS_TO_SKIP}' -t 900 -x /tmp/ptest_results.xml" > "${MULTI_CONF}-ptest-runner.log"
+      || { echo "Error encountered while executing tests. Please check the ${MULTI_CONF}-ptest-runner.log file"; exit 1; }
+
 
 systemtest_smoke:
   stage: test
@@ -846,7 +771,7 @@ develop-push-maintenance-oci:
   needs:
     - job: develop-ci-build-setup
     - job: develop-build-maintenance-oci
-    - job: test-oci
+    - job: test-oci-ptest-iris
       artifacts: false
   parallel:
     matrix:
@@ -870,15 +795,8 @@ develop-push-maintenance-oci:
       oci:${OCI_IMAGE}:latest
       docker://${CI_REGISTRY_IMAGE}/maintenance-oci-${MULTI_CONF}:${OCI_TAG_SHA}
 
-develop-create-sdk-container-images:
-  rules:
-    - !reference [.develop_template, rules]
-    - when: manual
-      allow_failure: true
+.create-sdk-container-images:
   stage: upload-artifacts
-  needs:
-    - job: develop-ci-build-setup
-    - job: develop-build-sdk-maintenance
   tags:
     - gp
   parallel:
@@ -897,6 +815,24 @@ develop-create-sdk-container-images:
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile_sdk"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG}"
       --destination "${CI_REGISTRY_IMAGE}/sdk-${MULTI_CONF}:${OCI_TAG_SHA}"
+
+develop-create-sdk-container-images:
+  extends: .create-sdk-container-images
+  rules:
+    - !reference [.develop_template, rules]
+    - when: manual
+      allow_failure: true
+  needs:
+    - job: develop-ci-build-setup
+    - job: develop-build-sdk-maintenance
+
+release-create-sdk-container-images:
+  extends: .create-sdk-container-images
+  rules:
+    - !reference [.release_template, rules]
+  needs:
+    - job: release-ci-build-setup
+    - job: release-build-sdk-maintenance
 
 # upload the SDKs to the gitlab package registry for later consumption
 develop-upload-sdks:
@@ -1042,9 +978,9 @@ publish-release:
     - job: release-build-sdk-maintenance
     - job: release-build-sdk-deploy
     - job: release-archive-kas-build-environment
-    - job: test-oci
+    - job: test-oci-ptest-iris
       artifacts: false
-    - job: test-oci-ptest
+    - job: test-oci-ptest-full
       artifacts: false
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}

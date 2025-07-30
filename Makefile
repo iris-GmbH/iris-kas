@@ -46,9 +46,9 @@ export RELEASE ?= false
 ################################
 
 export KAS_WORK_DIR ?= ${MAKEFILE_DIR}
-export KAS_BUILD_DIR ?= ${KAS_WORK_DIR}/build
-export DL_DIR ?= ${KAS_BUILD_DIR}/dl_dir
-export SSTATE_DIR ?= ${KAS_BUILD_DIR}/sstate_dir
+export KAS_BUILD_DIR ?= ${KAS_WORK_DIR}/${MULTI_CONF}-build
+export DL_DIR ?= ${KAS_WORK_DIR}/dl_dir
+export SSTATE_DIR ?= ${KAS_WORK_DIR}/sstate_dir
 export KAS_TMPDIR = ${KAS_BUILD_DIR}/tmp
 
 #####################################
@@ -65,6 +65,7 @@ export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-
 	--runtime-args " \
 	--pull ${IRIS_KAS_CONTAINER_PULL} \
 	-e IRMA_DISTRO_VERSION=${IRMA_DISTRO_VERSION} \
+	-e ENABLE_PA_CCACHE=${ENABLE_PA_CCACHE} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
 export KAS_BASE_CONFIG_FILE ?= kas-${MULTI_CONF}.yml

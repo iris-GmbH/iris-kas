@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2025 iris-GmbH infrared & intelligent sensors
+
+.test_oci_ptest_template:
+  stage: test
+  needs:
+  - job: develop-ci-build-setup
+    optional: true
+  - job: release-ci-build-setup
+    optional: true
+  - job: develop-build-test-oci
+    optional: true
+    artifacts: false
+  - job: release-build-test-oci
+    optional: true
+    artifacts: false
+  - job: push-test-oci
+    artifacts: false
+  image: alpine:3.22.1
+  services:
+    - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
+      alias: oci-image
+      entrypoint: ["/sbin/init"]
+  tags:
+    - gp
+  before_script:
+    # install GNU sed to get multi-line mode
+    - apk add --no-cache openssh sed
+    - for i in 0 1 2 3; do ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "cat /dev/null" && break; sleep 5; done
+  after_script:
+    - scp -o "StrictHostKeyChecking=no" root@127.0.0.1:/tmp/ptest_results.xml "${MULTI_CONF}"-ptest_results.xml
+    # transform <duration> tags into <testcase time='...'> properties to fit junit.xml format
+    - sed -ze "s|>\s*<duration>\([0-9]*\)</duration>| time='\1'>|g" -i "${MULTI_CONF}"-ptest_results.xml
+  artifacts:
+    name: "${CI_JOB_NAME}"
+    when: always
+    paths:
+      - ${MULTI_CONF}-ptest_results.xml
+      - ${MULTI_CONF}-ptest-runner.log
+    reports:
+      junit: ${MULTI_CONF}-ptest_results.xml
