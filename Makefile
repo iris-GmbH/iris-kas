@@ -33,6 +33,7 @@ export SSH_DIR ?= ~/.ssh
 export BUILD_FROM_SCRATCH ?= false
 # use CCACHE for iris-specific code
 export ENABLE_PA_CCACHE ?= true
+export ENABLE_IRMA_SOA ?= "0"
 export INCLUDE_PROPRIETARY_LAYERS ?= true
 # Note, that building a release is usually only ever done via CI, as key
 # material is required. Theoretically it is possible to build a release
@@ -66,6 +67,7 @@ export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-
 	--pull ${IRIS_KAS_CONTAINER_PULL} \
 	-e IRMA_DISTRO_VERSION=${IRMA_DISTRO_VERSION} \
 	-e ENABLE_PA_CCACHE=${ENABLE_PA_CCACHE} \
+	-e ENABLE_IRMA_SOA=${ENABLE_IRMA_SOA} \
 	-e BRANCH_NAME=${BRANCH_NAME} \
 	" ${KAS_CONTAINER_OPTIONS}
 export KAS_BASE_CONFIG_FILE ?= kas-${MULTI_CONF}.yml
