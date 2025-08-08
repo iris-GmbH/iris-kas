@@ -419,6 +419,8 @@ develop-build-dev-deploy-image:
   rules:
     - !reference [.develop_template, rules]
     - if: '$SKIP_DEPLOY_IMAGE_BUILD == "false"'
+    # this job is required for dependencytrack
+    - if: '$FORCE_DEPENDENCYTRACK == "true"'
     - when: manual
       allow_failure: true
   script:
