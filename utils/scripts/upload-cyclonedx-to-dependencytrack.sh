@@ -83,7 +83,7 @@ if test -z "${PATH_TO_CYCLONEDX_VEX}"; then
 fi
 
 if test -z "${BOM_PROCESSING_TIMEOUT}"; then
-  BOM_PROCESSING_TIMEOUT=300
+  BOM_PROCESSING_TIMEOUT=1800
 fi
 printf "Waiting for BOM to be processed (timeout: %ss) ..." "${BOM_PROCESSING_TIMEOUT}" >&2
 timeout=0
