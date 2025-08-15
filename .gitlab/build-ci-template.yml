@@ -1005,6 +1005,9 @@ publish-release:
     - job: release-build-sdk-maintenance
     - job: release-build-sdk-deploy
     - job: release-archive-kas-build-environment
-   
+    - job: test-oci
+      artifacts: false
+    - job: test-oci-ptest
+      artifacts: false
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
