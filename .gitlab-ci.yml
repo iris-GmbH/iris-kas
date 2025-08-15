@@ -264,6 +264,10 @@ release-generate-pipeline:
           yq -i '.".target_multi_confs".MULTI_CONF = ["imx8mp-irma6r2"]' .gitlab/build-ci-template.yml
           yq -i '.".oci_multi_confs".MULTI_CONF = ["qemux86-64-r2"]' .gitlab/build-ci-template.yml
           yq -i '.".all_multi_confs".MULTI_CONF = ["imx8mp-irma6r2", "qemux86-64-r2"]' .gitlab/build-ci-template.yml
+      elif [[ "${CI_COMMIT_TAG}" =~ ^matrix-.* ]]; then
+          yq -i '.".target_multi_confs".MULTI_CONF = ["imx93-matrixup"]' .gitlab/build-ci-template.yml
+          yq -i '.".oci_multi_confs".MULTI_CONF = ["qemux86-64-matrix"]' .gitlab/build-ci-template.yml
+          yq -i '.".all_multi_confs".MULTI_CONF = ["imx93-matrixup", "qemux86-64-matrix"]' .gitlab/build-ci-template.yml
       else
         echo "No valid multi-conf tag prefix was given"
         exit 1
