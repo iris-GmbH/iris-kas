@@ -965,10 +965,7 @@ develop-build-reproducibility:
 upload-cyclonedx-to-dependencytrack:
   stage: upload-artifacts
   rules:
-    # FIXME: automatic dependencytrack uploads during release disabled
-    # due to timeout issues, see:
-    # https://github.com/DependencyTrack/dependency-track/issues/2857
-    # - !reference [.release_template, rules]
+    - !reference [.release_template, rules]
     - if: "$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH"
     - if: '$FORCE_DEPENDENCYTRACK == "true"'
   parallel:
