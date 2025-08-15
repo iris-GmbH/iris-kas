@@ -44,7 +44,7 @@ variables:
     value: "false"
     description: 'Set to "true" to archive build artifacts required for making the firmware build reproducible. WARNING: We can only guarantee reproducibility for changes done to protected branches!'
   SKIP_PTEST_TESTS:
-    value: "true"
+    value: "false"
     description: 'Set to "false" to run the PTEST tests.'
   SKIP_MAINTENANCE_IMAGE_BUILD:
     value: "false"
