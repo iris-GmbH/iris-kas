@@ -95,6 +95,9 @@ repos:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
     commit: "5b378a0216b8aebdb8e8c22f7882972f101e3fc5"
+    patches:
+      0001-AII-470-recipes-support-Add-blasfeo-0.1.4.2.patch:
+        path: "patches/0001-AII-470-recipes-support-Add-blasfeo-0.1.4.2.patch"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-osselot"

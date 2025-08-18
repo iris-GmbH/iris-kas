@@ -37,6 +37,9 @@ repos:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
     commit: "e8a639d5cffb9a5982ed3b9130da87745f80a800"
+    patches:
+      0001-AII-470-recipes-support-Add-blasfeo-0.1.4.2.patch:
+        path: "patches/0001-AII-470-recipes-support-Add-blasfeo-0.1.4.2.patch"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
