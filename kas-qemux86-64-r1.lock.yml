@@ -5,4 +5,4 @@ overrides:
         meta-iris-base:
             commit: 0e31e7dc97a00767ea6d7666ea9a62121422cb3a
         meta-iris:
-            commit: 4ab8e351f9fd035cb38061e1bd570ff59dfec821
+            commit: 6410cb71b8bd5f702f5842270eb33a590892b4f6
