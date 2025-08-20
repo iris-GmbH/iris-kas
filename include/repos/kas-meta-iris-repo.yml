@@ -7,4 +7,4 @@ header:
 repos:
   meta-iris:
     url: "git@gitlab.devops.defra01.iris-sensing.net:rd-s/generation6/meta-iris.git"
-    branch: "support/2.0.50-VAGAVENIO"
+    branch: "support/2.0.50-VAGMAN"
