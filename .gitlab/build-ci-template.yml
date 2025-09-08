@@ -684,6 +684,35 @@ test-oci-ptest-full:
       ptest-runner -e '${PKGS_TO_SKIP}' -t 900 -x /tmp/ptest_results.xml" > "${MULTI_CONF}-ptest-runner.log"
       || { echo "Error encountered while executing tests. Please check the ${MULTI_CONF}-ptest-runner.log file"; exit 1; }
 
+
+trigger-systemtests:
+  stage: test
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web" && $SKIP_SYSTEMTEST == "false"'
+    - when: manual
+  needs:
+    - job: develop-build-maintenance-image
+      optional: true
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-build-maintenance-image
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+  interruptible: false
+  allow_failure: true
+  variables:
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
+  parallel:
+    matrix:
+      - PROJECT: mtv/test-and-measurement-application/restart-device
+  trigger:
+    project: $PROJECT
+    branch: develop
+    strategy: depend
+
 ##############################
 ### UPLOAD ARTIFACTS STAGE ###
 ##############################
