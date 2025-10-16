@@ -916,9 +916,9 @@ upload-cyclonedx-to-dependencytrack:
       - script_failure
   variables:
     KAS_ARTIFACT_SUFFIX: "-dev-deploy"
-  allow_failure:
-    exit_codes:
-      - 123
+  # temporarily allow all failures when uploading to dependencytrack
+  # due to timeout issues on DT
+  allow_failure: true
   tags:
     - gp-tiny
   script:
