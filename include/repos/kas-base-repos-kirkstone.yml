@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/yoctoproject/poky"
-    commit: "962d08fb4077f44a1d2b6d6c6d29a466adebeb85"
+    commit: "d847c8aac132c557e93933c10c51a4caa397f52a"
     layers:
       meta:
       meta-poky:
@@ -94,7 +94,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "cecc513465d9b44bd5310ed9891bbefcef2c886f"
+    commit: "7e067223e175aab883532a48f0f772a942061391"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-osselot"
