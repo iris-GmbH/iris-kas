@@ -8,4 +8,4 @@ local_conf_header:
   osselot: |
     INHERIT += "osselot"
     # renovate: depType=osselot-package-analysis gitUrl=https://github.com/Open-Source-Compliance/package-analysis.git branch=main
-    OSSELOT_SRCREV = "a65d63f3ccdc21181060742028723f89d23faa28"
+    OSSELOT_SRCREV = "1e52d7e85153dab74f17447db8e289ee42cebf58"
