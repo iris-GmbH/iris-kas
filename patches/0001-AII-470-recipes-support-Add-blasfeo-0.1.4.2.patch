@@ -1,0 +1,139 @@
+From 0bb164704a6f8b2c88db29dbffabee354c415f7e Mon Sep 17 00:00:00 2001
+From: kas <kas@example.com>
+Date: Mon, 18 Aug 2025 16:53:32 +0200
+Subject: [PATCH] [AII-470] recipes-support: Add blasfeo 0.1.4.2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Philipp Schöwe <philipp.schoewe@iris-sensing.com>
+---
+ recipes-support/blasfeo/blasfeo.inc           | 30 +++++++++
+ ...d-CMakeLists.txt-install-directories.patch | 62 +++++++++++++++++++
+ recipes-support/blasfeo/blasfeo_0.1.4.2.bb    |  8 +++
+ 3 files changed, 100 insertions(+)
+ create mode 100644 recipes-support/blasfeo/blasfeo.inc
+ create mode 100644 recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch
+ create mode 100644 recipes-support/blasfeo/blasfeo_0.1.4.2.bb
+
+diff --git a/recipes-support/blasfeo/blasfeo.inc b/recipes-support/blasfeo/blasfeo.inc
+new file mode 100644
+index 0000000..1fd88be
+--- /dev/null
++++ b/recipes-support/blasfeo/blasfeo.inc
+@@ -0,0 +1,30 @@
++SUMMARY = "Basic Linear Algebra Subroutines for Embedded Optimization"
++DESCRIPTION = "BLASFEO is a dense linear algebra library providing high-performance \
++implementations of BLAS- and LAPACK-like routines for use in embedded optimization. \
++A key difference with respect to existing high-performance implementations of BLAS \
++is that the computational performance is optimized for small to medium scale matrices."
++HOMEPAGE = "https://github.com/giaf/blasfeo"
++BUGTRACKER = "https://github.com/giaf/blasfeo/issues"
++SECTION = "libs"
++LICENSE = "BSD-2-Clause"
++LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=32c816687e9a08fdeccc68f14604f6a8"
++
++SRC_URI = "git://github.com/giaf/blasfeo.git;protocol=https;branch=master"
++SRCREV = "3f4befd2abf157342a3e0759b6e9f49d56ceb998"
++
++S = "${WORKDIR}/git"
++
++FILES:${PN} += "${libdir}/libblasfeo.so \
++                ${includedir}/* \
++                ${datadir}/*"
++
++inherit pkgconfig cmake
++
++EXTRA_OECMAKE += "-DBLASFEO_EXAMPLES=OFF \
++                  -DBLAS_API=ON"
++
++EXTRA_OECMAKE:append:poky-iris-0601 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=GENERIC"
++EXTRA_OECMAKE:append:poky-iris-0602 = "-DBUILD_SHARED_LIBS=ON -DTARGET=ARMV8A_ARM_CORTEX_A53"
++EXTRA_OECMAKE:append:poky-iris-0501 = "-DBUILD_SHARED_LIBS=ON -DTARGET=ARMV8A_ARM_CORTEX_A55"
++
++BBCLASSEXTEND =+ "native nativesdk"
+diff --git a/recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch b/recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch
+new file mode 100644
+index 0000000..8b04bef
+--- /dev/null
++++ b/recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch
+@@ -0,0 +1,62 @@
++From ecc858b673b415584ba773ca4dce42d41e75f231 Mon Sep 17 00:00:00 2001
++From: =?UTF-8?q?Philipp=20Sch=C3=B6we?= <philipp.schoewe@iris-sensing.com>
++Date: Tue, 19 Aug 2025 08:52:32 +0200
++Subject: [PATCH] Fixed CMakeLists.txt install directories
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++Signed-off-by: Philipp Schöwe <philipp.schoewe@iris-sensing.com>
++---
++ CMakeLists.txt | 17 +++++++++--------
++ 1 file changed, 9 insertions(+), 8 deletions(-)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index c0d4f40b..ee5918bf 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -33,7 +33,7 @@
++ #                                                                                                 #
++ ###################################################################################################
++ 
++-cmake_minimum_required(VERSION 2.8.11)
+++cmake_minimum_required(VERSION 3.5)
++ 
++ # installation directory ( has to be before `project()` )
++ set(CMAKE_INSTALL_PREFIX "/opt/blasfeo" CACHE STRING "Installation path")
++@@ -1275,24 +1275,25 @@ if(SOC MATCHES XILINX)
++ 	target_link_libraries(blasfeo PUBLIC -Wl,--start-group ${XIL} c gcc -Wl,--end-group)
++ endif()
++ 
+++include(GNUInstallDirs)
++ target_include_directories(blasfeo
++ 	PUBLIC
++ 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
++-		$<INSTALL_INTERFACE:${BLASFEO_HEADERS_INSTALLATION_DIRECTORY}>)
+++		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/blasfeo>)
++ #		$<INSTALL_INTERFACE:include/blasfeo/include>)
++ 
++ 
++ install(TARGETS blasfeo EXPORT blasfeoConfig
++-	LIBRARY DESTINATION lib
++-	ARCHIVE DESTINATION lib
++-	RUNTIME DESTINATION bin)
+++	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+++	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+++	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+++	INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blasfeo)
++ 
++ 
++-install(EXPORT blasfeoConfig DESTINATION cmake)
+++install(EXPORT blasfeoConfig DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/blasfeo)
++ 
++ file(GLOB_RECURSE BLASFEO_HEADERS "include/*.h")
++-install(FILES ${BLASFEO_HEADERS} DESTINATION ${BLASFEO_HEADERS_INSTALLATION_DIRECTORY})
++-
+++install(FILES ${BLASFEO_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/blasfeo)
++ 
++ # XXX hard encode link to external blas installation
++ # TODO use find BLAS instead !!!
++-- 
++2.50.1
++
+diff --git a/recipes-support/blasfeo/blasfeo_0.1.4.2.bb b/recipes-support/blasfeo/blasfeo_0.1.4.2.bb
+new file mode 100644
+index 0000000..808a072
+--- /dev/null
++++ b/recipes-support/blasfeo/blasfeo_0.1.4.2.bb
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: MIT
++# Copyright (C) 2023 iris-GmbH infrared & intelligent sensors
++
++require recipes-support/blasfeo/blasfeo.inc
++
++SRCREV = "3f4befd2abf157342a3e0759b6e9f49d56ceb998"
++
++SRC_URI += "file://0001-Fixed-CMakeLists.txt-install-directories.patch"
+-- 
+2.50.1
+
