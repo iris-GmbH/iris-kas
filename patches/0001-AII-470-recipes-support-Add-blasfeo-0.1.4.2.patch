@@ -1,4 +1,4 @@
-From 681df9fe6640019eb444755e8783c62dbb794e7b Mon Sep 17 00:00:00 2001
+From b14377a2118bddd97059543d1a29204da2c1ca9c Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Philipp=20Sch=C3=B6we?= <philipp.schoewe@iris-sensing.com>
 Date: Tue, 4 Nov 2025 12:33:12 +0100
 Subject: [PATCH] [AII-470] recipes-support: Add blasfeo 0.1.4.2
@@ -18,7 +18,7 @@ Signed-off-by: Philipp Schöwe <philipp.schoewe@iris-sensing.com>
 
 diff --git a/recipes-support/blasfeo/blasfeo.inc b/recipes-support/blasfeo/blasfeo.inc
 new file mode 100644
-index 0000000..6fbaa25
+index 0000000..915dfc0
 --- /dev/null
 +++ b/recipes-support/blasfeo/blasfeo.inc
 @@ -0,0 +1,29 @@
@@ -47,8 +47,8 @@ index 0000000..6fbaa25
 +                  -DBLAS_API=ON"
 +
 +EXTRA_OECMAKE:append:poky-iris-0601 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=GENERIC"
-+EXTRA_OECMAKE:append:poky-iris-0602 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=ARMV8A_ARM_CORTEX_A53"
-+EXTRA_OECMAKE:append:poky-iris-0501 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=ARMV8A_ARM_CORTEX_A55"
++EXTRA_OECMAKE:append:poky-iris-0602 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=GENERIC"
++EXTRA_OECMAKE:append:poky-iris-0501 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=GENERIC"
 +
 +BBCLASSEXTEND =+ "native nativesdk"
 diff --git a/recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch b/recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch
