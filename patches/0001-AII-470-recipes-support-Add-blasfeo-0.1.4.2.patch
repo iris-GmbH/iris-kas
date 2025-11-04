@@ -1,6 +1,6 @@
-From 0bb164704a6f8b2c88db29dbffabee354c415f7e Mon Sep 17 00:00:00 2001
-From: kas <kas@example.com>
-Date: Mon, 18 Aug 2025 16:53:32 +0200
+From 681df9fe6640019eb444755e8783c62dbb794e7b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Philipp=20Sch=C3=B6we?= <philipp.schoewe@iris-sensing.com>
+Date: Tue, 4 Nov 2025 12:33:12 +0100
 Subject: [PATCH] [AII-470] recipes-support: Add blasfeo 0.1.4.2
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -8,20 +8,20 @@ Content-Transfer-Encoding: 8bit
 
 Signed-off-by: Philipp Schöwe <philipp.schoewe@iris-sensing.com>
 ---
- recipes-support/blasfeo/blasfeo.inc           | 30 +++++++++
+ recipes-support/blasfeo/blasfeo.inc           | 29 +++++++++
  ...d-CMakeLists.txt-install-directories.patch | 62 +++++++++++++++++++
  recipes-support/blasfeo/blasfeo_0.1.4.2.bb    |  8 +++
- 3 files changed, 100 insertions(+)
+ 3 files changed, 99 insertions(+)
  create mode 100644 recipes-support/blasfeo/blasfeo.inc
  create mode 100644 recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch
  create mode 100644 recipes-support/blasfeo/blasfeo_0.1.4.2.bb
 
 diff --git a/recipes-support/blasfeo/blasfeo.inc b/recipes-support/blasfeo/blasfeo.inc
 new file mode 100644
-index 0000000..1fd88be
+index 0000000..6fbaa25
 --- /dev/null
 +++ b/recipes-support/blasfeo/blasfeo.inc
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +SUMMARY = "Basic Linear Algebra Subroutines for Embedded Optimization"
 +DESCRIPTION = "BLASFEO is a dense linear algebra library providing high-performance \
 +implementations of BLAS- and LAPACK-like routines for use in embedded optimization. \
@@ -38,8 +38,7 @@ index 0000000..1fd88be
 +
 +S = "${WORKDIR}/git"
 +
-+FILES:${PN} += "${libdir}/libblasfeo.so \
-+                ${includedir}/* \
++FILES:${PN} += "${includedir}/* \
 +                ${datadir}/*"
 +
 +inherit pkgconfig cmake
@@ -48,8 +47,8 @@ index 0000000..1fd88be
 +                  -DBLAS_API=ON"
 +
 +EXTRA_OECMAKE:append:poky-iris-0601 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=GENERIC"
-+EXTRA_OECMAKE:append:poky-iris-0602 = "-DBUILD_SHARED_LIBS=ON -DTARGET=ARMV8A_ARM_CORTEX_A53"
-+EXTRA_OECMAKE:append:poky-iris-0501 = "-DBUILD_SHARED_LIBS=ON -DTARGET=ARMV8A_ARM_CORTEX_A55"
++EXTRA_OECMAKE:append:poky-iris-0602 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=ARMV8A_ARM_CORTEX_A53"
++EXTRA_OECMAKE:append:poky-iris-0501 = "-DBUILD_SHARED_LIBS=OFF -DTARGET=ARMV8A_ARM_CORTEX_A55"
 +
 +BBCLASSEXTEND =+ "native nativesdk"
 diff --git a/recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch b/recipes-support/blasfeo/blasfeo/0001-Fixed-CMakeLists.txt-install-directories.patch
