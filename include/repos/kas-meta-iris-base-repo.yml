@@ -8,4 +8,4 @@ header:
 repos:
   meta-iris-base:
     url: "https://github.com/iris-GmbH/meta-iris-base.git"
-    branch: "master"
+    branch: "support/2.0.31-BVGSOLARIS"
