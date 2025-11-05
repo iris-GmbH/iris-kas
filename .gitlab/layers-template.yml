@@ -47,8 +47,8 @@ variables:
     value: "kas"
     description: "The runner tag to use for build jobs. Can be overridden with kas-large for more performance, e.g. when manually building from scratch"
   ENABLE_IRMA_SOA:
-    value: "0"
-    description: 'Set to "1" to enable the service oriented architecture'
+    value: "1"
+    description: 'Set to "0" to disable the service oriented architecture'
   RELEASE_BRANCH: "master"
 
 stages:
