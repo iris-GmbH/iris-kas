@@ -600,44 +600,6 @@ release-build-deploy:
 ### PUSH TEST IMAGES STAGE ###
 ##############################
 
-push-test-oci:
-  rules:
-    - !reference [.release_template, rules]
-    # skip if SKIP_OCI_TESTS are set to true
-    - if: '$SKIP_OCI_TESTS == "false"'
-    - when: manual
-      allow_failure: true
-    - !reference [.develop_template, rules]
-  stage: push-test-images
-  needs:
-    - job: develop-ci-build-setup
-      optional: true
-    - job: release-ci-build-setup
-      optional: true
-    - job: develop-build-test-oci
-      optional: true
-  parallel:
-    matrix:
-      - <<: *oci_multi_confs
-  variables:
-    GIT_STRATEGY: none
-    KAS_ARTIFACT_SUFFIX: "-test-oci"
-  tags:
-    - gp-tiny
-  image: quay.io/skopeo/stable:v1.19.0
-  script:
-    - OCI_IMAGE=$(find "${KAS_ARTIFACT_FOLDER}" -regex ".*/deploy/.*\.rootfs-oci")
-    - >-
-      /usr/bin/skopeo copy
-      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:${OCI_IMAGE}:latest
-      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG}
-    - >-
-      /usr/bin/skopeo copy
-      --dest-creds ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}
-      oci:${OCI_IMAGE}:latest
-      docker://${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}
-
 ##################
 ### TEST STAGE ###
 ##################
