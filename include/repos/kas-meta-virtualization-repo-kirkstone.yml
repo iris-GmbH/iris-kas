@@ -8,4 +8,4 @@ repos:
   meta-virtualization:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://git.yoctoproject.org/meta-virtualization"
-    commit: "16155ae737d96f0f53721ad7270c3fe19729d496"
+    commit: "e8de051a53f979040eaa641d7b69d8fd00275b9a"
