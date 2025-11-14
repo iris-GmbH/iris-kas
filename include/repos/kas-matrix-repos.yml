@@ -7,4 +7,5 @@ header:
   includes:
     - include/repos/kas-base-repos-scarthgap.yml
     - include/repos/kas-meta-iris-base-repo.yml
+    - include/repos/kas-meta-iris-security-repo-scarthgap.yml
     - include/repos/kas-imx-repos-scarthgap.yml
