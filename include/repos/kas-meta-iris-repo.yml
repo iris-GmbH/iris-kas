@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2021 iris-GmbH infrared & intelligent sensors
 
-# this config adds the necessary layers for building the propriatary platform-application
+# this config adds the necessary layers for building the proprietary platform-application
 header:
   version: 14
 repos:
