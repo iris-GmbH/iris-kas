@@ -24,7 +24,7 @@ variables:
   KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
   DL_DIR: "${DOWNLOAD_MIRROR}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
-  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git\n^https://github\\.com/iris-GmbH/meta-iris-base\\.git$ http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git"
+  KAS_PREMIRRORS: "^https://github\\.com/iris-GmbH/(meta-iris-base|meta-iris-security)\\.git$ http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-webservice-default.gitlab:8181/public-projects/yocto/\\1.git\n^https?://[^/]*(?:/.*)?/([^/]*?)(?:\\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
   KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
   KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
   KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
