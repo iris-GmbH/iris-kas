@@ -41,14 +41,14 @@ index f6ade0c7e4..0000000000
 -SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 -
 -${SCRIPTPATH}/../tests/sdbus-c++-unit-tests 2>&1 | \
--sed -r 's/^\[\s+OK\s+\] (.*) \([0-9]+\sms\)$/OK: \1 /' | \
--sed -r 's/^\[\s+FAILED\s+\] (.*) \([0-9]+\sms\)$/FAILED: \1 /' | \
--awk '{if ($1 == "OK:" || $1 == "FAILED:") {print $0}}'
+-sed -r 's/^\[\s+OK\s+\] (.*) \([0-9]+\sms\)$/PASS: \1 /' | \
+-sed -r 's/^\[\s+FAILED\s+\] (.*) \([0-9]+\sms\)$/FAIL: \1 /' | \
+-awk '{if ($1 == "PASS:" || $1 == "FAIL:") {print $0}}'
 -
 -${SCRIPTPATH}/../tests/sdbus-c++-integration-tests 2>&1 | \
--sed -r 's/^\[\s+OK\s+\] (.*) \([0-9]+\sms\)$/OK: \1 /' | \
--sed -r 's/^\[\s+FAILED\s+\] (.*) \([0-9]+\sms\)$/FAILED: \1 /' | \
--awk '{if ($1 == "OK:" || $1 == "FAILED:") {print $0}}' 
+-sed -r 's/^\[\s+OK\s+\] (.*) \([0-9]+\sms\)$/PASS: \1 /' | \
+-sed -r 's/^\[\s+FAILED\s+\] (.*) \([0-9]+\sms\)$/FAIL: \1 /' | \
+-awk '{if ($1 == "PASS:" || $1 == "FAIL:") {print $0}}' 
 diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_1.1.0.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.0.0.bb
 similarity index 88%
 rename from meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_1.1.0.bb
