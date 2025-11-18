@@ -7,50 +7,47 @@
 #################
 
 variables:
-    REGISTRY_USER: "${CI_REGISTRY_USER}"
-    REGISTRY_PASSWORD: "${CI_REGISTRY_PASSWORD}"
-    GET_SOURCES_ATTEMPTS: 3
-    PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
-    SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
-    SSTATE_CACHE: "/mnt/yocto-sstate-cache"
-    SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
-    DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
-    # set makefile relevant variables
-    KAS_EXE: "kas"
-    KAS_WORK_DIR: "${CI_PROJECT_DIR}"
-    KAS_BUILD_DIR: "${CI_PROJECT_DIR}/build"
-    KAS_TMPDIR: "${KAS_BUILD_DIR}/tmp"
-    SSTATE_DIR: "${KAS_BUILD_DIR}/sstate_dir"
-    KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
-    DL_DIR: "${DOWNLOAD_MIRROR}"
-    # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
-    KAS_PREMIRRORS: |
-      ^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\1.git
-      ^https://github\.com/iris-GmbH/meta-iris-base\.git$ http://gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git
-    KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
-    KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
-    KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
-    RUN_MAINTENANCE: "false"
-    WIPE_SSTATE_CACHE: "false"
-    # Refspec of the systemtest_base repo to use
-    SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
-    # Set the name of the firmware to be programmed with systemtest_smoke job
-    SYSTEMTEST_SW_NAME: "sc573-gen6"
-    # Set duration of systemtest_reliability job in seconds
-    SYSTEMTEST_RELIABILITY_DURATION: "21600"
-    SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
-    SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
-    GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
-    GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
-    CYCLONEDX_EXPORT_DIR: "${KAS_TMPDIR}/deploy/cyclonedx-export"
-    CYCLONEDX_EXPORT_SBOM: "${CYCLONEDX_EXPORT_DIR}/bom.json"
-    CYCLONEDX_EXPORT_VEX: "${CYCLONEDX_EXPORT_DIR}/vex.json"
-    DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
-    # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
-    # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
-    IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
-    FORCE_DEPENDENCYTRACK: "false"
-
+  REGISTRY_USER: "${CI_REGISTRY_USER}"
+  REGISTRY_PASSWORD: "${CI_REGISTRY_PASSWORD}"
+  GET_SOURCES_ATTEMPTS: 3
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
+  SDK_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sdk"
+  SSTATE_CACHE: "/mnt/yocto-sstate-cache"
+  SSTATE_CACHE_RELEASE: "/mnt/yocto-sstate-cache-release"
+  DOWNLOAD_MIRROR: "/mnt/yocto-download-mirror"
+  # set makefile relevant variables
+  KAS_EXE: "kas"
+  KAS_WORK_DIR: "${CI_PROJECT_DIR}"
+  KAS_BUILD_DIR: "${CI_PROJECT_DIR}/build"
+  KAS_TMPDIR: "${KAS_BUILD_DIR}/tmp"
+  SSTATE_DIR: "${KAS_BUILD_DIR}/sstate_dir"
+  KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
+  DL_DIR: "${DOWNLOAD_MIRROR}"
+  # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
+  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git\n^https://github\\.com/iris-GmbH/meta-iris-base\\.git$ http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git"
+  KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
+  KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
+  KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
+  RUN_MAINTENANCE: "false"
+  WIPE_SSTATE_CACHE: "false"
+  # Refspec of the systemtest_base repo to use
+  SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
+  # Set the name of the firmware to be programmed with systemtest_smoke job
+  SYSTEMTEST_SW_NAME: "sc573-gen6"
+  # Set duration of systemtest_reliability job in seconds
+  SYSTEMTEST_RELIABILITY_DURATION: "21600"
+  SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
+  SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
+  GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
+  GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
+  CYCLONEDX_EXPORT_DIR: "${KAS_TMPDIR}/deploy/cyclonedx-export"
+  CYCLONEDX_EXPORT_SBOM: "${CYCLONEDX_EXPORT_DIR}/bom.json"
+  CYCLONEDX_EXPORT_VEX: "${CYCLONEDX_EXPORT_DIR}/vex.json"
+  DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
+  # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
+  # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
+  IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
+  FORCE_DEPENDENCYTRACK: "false"
 
 ########################
 ### DEFAULT SETTINGS ###
