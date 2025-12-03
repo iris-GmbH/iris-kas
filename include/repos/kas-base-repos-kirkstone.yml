@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/yoctoproject/poky"
-    commit: "36165cce685e0048fb7a576c009e12d718c80ea1"
+    commit: "c76f44b1da3563b8acd364ea0c632265aa3f7e83"
     layers:
       meta:
       meta-poky:
@@ -102,4 +102,4 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
-    commit: "23c372030f2bce9214974071fc099766515dd93e"
+    commit: "164a416340c2f52a202c84db2779fd55d0c1cf3e"
