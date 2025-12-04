@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2025 iris-GmbH infrared & intelligent sensors
+
+header:
+  version: 14
+repos:
+  meta-iris-security:
+    # renovate: depType=upstream-meta-layers branch=scarthgap
+    url: "https://github.com/iris-GmbH/meta-iris-security.git"
+    commit: "64e368b1bd96ecd7206fc63e91582fcca93faf9c"

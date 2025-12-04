@@ -112,7 +112,11 @@ endif
 
 ifeq (${INCLUDE_PROPRIETARY_LAYERS}, true)
 	KASFILE_EXTRA += :include/repos/kas-meta-iris-repo.yml
-	export KAS_PREMIRRORS ?= ^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
+	define KAS_PREMIRRORS
+	^https://github\.com/iris-GmbH/meta-iris-base\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-base.git
+	^https://github\.com/iris-GmbH/meta-iris-security\.git$$ git@gitlab.devops.defra01.iris-sensing.net:public-projects/yocto/meta-iris-security.git
+	endef
+	export KAS_PREMIRRORS
 endif
 
 ifeq (${BUILD_FROM_SCRATCH}, true)
