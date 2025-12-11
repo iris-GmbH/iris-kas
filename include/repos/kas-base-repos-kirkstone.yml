@@ -40,7 +40,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "07ac1890c843b374c27e150f1a2e53ad3db2a8e4"
+    commit: "97d4be2839754dadfc326c21948472c2fc2985ce"
     layers:
       meta-oe:
       meta-python:
