@@ -1,8 +1,0 @@
-header:
-    version: 14
-overrides:
-    repos:
-        meta-iris-base:
-            commit: 4672bdbd0bc1da0f0b6f6d784891dce9c6bb5dab
-        meta-iris:
-            commit: 6965e8158e3bea4fc77934fbc6d07dfee197c2cb
