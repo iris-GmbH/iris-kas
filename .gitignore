@@ -1,4 +1,7 @@
 /build/
+/*-build/
+/dl_dir/
+/sstate_dir/
 /poky/
 /meta-*/
 /lnxdsp-adi-meta/
