@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "9497778a4d756daa29c4fa8d45d1a242d63ab8cc"
+    commit: "553530a8acce3b078473c0fa512246a3e84d46bf"
     layers:
       meta:
       meta-poky:
@@ -44,4 +44,4 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
-    commit: "0d3e2980c59ffe5d08b4a265ce600981504f7f2f"
+    commit: "c726b41adb7d76ca3ea56faac0a4e2c9891f9668"
