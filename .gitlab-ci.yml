@@ -61,12 +61,9 @@ variables:
   FORCE_IRIS_KAS_CONTAINER_BUILD:
     value: "false"
     description: 'Set to "true" to force (re-)build the iris-kas build container on the current branch.'
-  SKIP_SYSTEMTEST_SMOKE:
+  SKIP_SYSTEMTEST:
     value: "true"
-    description: 'Set to "false" to add execution of systemtest_smoke job. Skipping system smoke test will also skip any additional Systemtests.'
-  SKIP_SYSTEMTEST_RELIABILITY:
-    value: "true"
-    description: 'Set to "false" to add execution of systemtest_reliability job.'
+    description: 'Set to "false" to trigger the execution of all systemtests.'
   BUILD_FROM_SCRATCH:
     value: "false"
     description: 'Set to "true" to build from scratch.'
