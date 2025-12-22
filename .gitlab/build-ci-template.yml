@@ -688,9 +688,9 @@ test-oci-ptest-full:
 trigger-systemtests:
   stage: test
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-    - if: '($CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "parent_pipeline") && $SKIP_SYSTEMTEST != "true"'
+    - if: '$ORIGIN_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+    - if: '$ORIGIN_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$SKIP_SYSTEMTEST == "false"'
     - when: manual
   needs:
     - job: develop-build-maintenance-image

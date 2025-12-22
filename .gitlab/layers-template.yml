@@ -65,6 +65,8 @@ stages:
     strategy: depend
     forward:
       pipeline_variables: true
+  variables:
+    ORIGIN_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
 
 # workaround for https://gitlab.com/gitlab-org/gitlab/-/issues/299433
 update-non-protected-branch:
