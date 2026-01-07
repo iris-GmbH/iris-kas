@@ -203,6 +203,7 @@ release-ci-build-setup:
     - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_TAG}-" >> build.env
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
     - echo "SKIP_PTEST_TESTS=false" >> build.env
+    - echo "SKIP_SYSTEMTEST=false" >> build.env
 
   artifacts:
     reports:
@@ -688,7 +689,7 @@ test-oci-ptest-full:
 trigger-systemtests:
   stage: test
   rules:
-    - if: '$ORIGIN_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+    - !reference [.develop_template, rules]
     - if: '$ORIGIN_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     - if: '$SKIP_SYSTEMTEST == "false"'
     - when: manual
