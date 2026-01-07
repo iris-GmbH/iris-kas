@@ -666,11 +666,8 @@ test-oci-ptest-iris:
 test-oci-ptest-full:
   extends: .test_oci_ptest_template
   rules:
-    - !reference [.release_template, rules]
-    - if: '$SKIP_PTEST_TESTS == "false" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     - when: manual
       allow_failure: true
-    - !reference [.develop_template, rules]
   allow_failure: true
   parallel:
     matrix:
