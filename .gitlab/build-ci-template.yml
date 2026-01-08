@@ -932,7 +932,5 @@ publish-release:
     - job: release-archive-kas-build-environment
     - job: test-oci-ptest-iris
       artifacts: false
-    - job: test-oci-ptest-full
-      artifacts: false
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
