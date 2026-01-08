@@ -184,6 +184,8 @@ develop-ci-build-setup:
         echo "SSTATE_DIR=${SSTATE_CACHE}" >> build.env
       fi
     - echo "KASFILE_EXTRA=${KASFILE_EXTRA}" >> build.env
+    - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
+
   artifacts:
     reports:
       dotenv: build.env
@@ -204,6 +206,7 @@ release-ci-build-setup:
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
     - echo "SKIP_PTEST_TESTS=false" >> build.env
     - echo "SKIP_SYSTEMTEST=false" >> build.env
+    - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
 
   artifacts:
     reports:
@@ -686,7 +689,7 @@ test-oci-ptest-full:
 trigger-systemtests:
   stage: test
   rules:
-    - !reference [.develop_template, rules]
+    - !reference [.release_template, rules]
     - if: '$ORIGIN_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     - if: '$SKIP_SYSTEMTEST == "false"'
     - when: manual
@@ -703,6 +706,7 @@ trigger-systemtests:
   allow_failure: true
   variables:
     RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
+    UPSTREAM_PIPELINE_ID: "$UPSTREAM_PIPELINE_ID"
   parallel:
     matrix:
       - PROJECT: mtv/test-and-measurement-application/restart-device
