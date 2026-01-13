@@ -7,4 +7,4 @@ repos:
   meta-iris-security:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-security.git"
-    commit: "64e368b1bd96ecd7206fc63e91582fcca93faf9c"
+    commit: "6267aa497a00eec21bfe4c454645b3055f3d0378"
