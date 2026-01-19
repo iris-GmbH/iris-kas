@@ -115,6 +115,7 @@ include:
 ###############
 
 stages:
+  - maintenance
   - ci-environment-setup
   - wipe-sstate-caches
   - kas-lockfiles
@@ -133,12 +134,20 @@ stages:
 # Unfortunately, yocto does not automatically remove these
 # which in the worst case may lead to significant longer build times.
 download-mirror-maintenance:
-  stage: ci-environment-setup
+  stage: maintenance
   rules:
     - if: '$RUN_MAINTENANCE == "true"'
   script:
     - echo "Finding and deleting faulty mirror items..."
     - find "${DOWNLOAD_MIRROR}" -name '*bad-checksum*' -exec sh -c 'echo "Found faulty mirror item {}. Deleting..."; rm -f {} $(echo {} | sed -r "s/_bad-checksum.*/.done/g")' \;
+
+shared-sstate-cache-maintenance:
+  stage: maintenance
+  rules:
+    - if: '$RUN_MAINTENANCE == "true"'
+  script:
+    - git clone https://github.com/openembedded/openembedded-core.git -b scarthgap --depth=1
+    - ./openembedded-core/scripts/sstate-cache-management.py --cache-dir ${SSTATE_CACHE} -d --remove-orphans -y
 
 # This job will do the develop build setup
 develop-ci-build-setup:
@@ -684,7 +693,6 @@ test-oci-ptest-full:
       ssh -o "StrictHostKeyChecking=no" root@127.0.0.1 "mkdir -p /var/volatile/tmp &&
       ptest-runner -e '${PKGS_TO_SKIP}' -t 900 -x /tmp/ptest_results.xml" > "${MULTI_CONF}-ptest-runner.log"
       || { echo "Error encountered while executing tests. Please check the ${MULTI_CONF}-ptest-runner.log file"; exit 1; }
-
 
 trigger-systemtests:
   stage: test
