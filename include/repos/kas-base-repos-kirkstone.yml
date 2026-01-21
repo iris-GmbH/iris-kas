@@ -40,7 +40,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "7d4507f226bd2af939d4482fb14a809867ece939"
+    commit: "8f5f5cf4b335a09313c48394c62bfb614868fc1e"
     layers:
       meta-oe:
       meta-python:
@@ -104,4 +104,4 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
-    commit: "29e9c6d7d274215b1d0277cbe597129ff4fc9c1e"
+    commit: "3b55e9b90b3cb61aeac4ffae7f401a1524db9a12"
