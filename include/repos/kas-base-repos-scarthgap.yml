@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "7e8674996b0164b07e56bc066d0fba790e627061"
+    commit: "72983ac391008ebceb45edc7a8f0f6d5f4fe715c"
     layers:
       meta:
       meta-poky:
@@ -18,7 +18,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "f1f248262d662315159ee96c604f97415d1dbe6a"
+    commit: "2b26d30fc7f478f5735d514f0c1bc28f6a4148b6"
     layers:
       meta-oe:
       meta-python:
@@ -36,7 +36,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "eac0507eb25b1afadd7fa0164ed81ad826e6f269"
+    commit: "c1f3dac7766d1d442288de4b168290c45526b3fa"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
@@ -44,4 +44,4 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
-    commit: "d5057e7c01cadd880497103a4f944b1cab5b513e"
+    commit: "c726b41adb7d76ca3ea56faac0a4e2c9891f9668"

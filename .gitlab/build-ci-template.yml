@@ -24,22 +24,12 @@ variables:
   KASFILE_EXTRA: ":include/ci/kas-ci-common.yml"
   DL_DIR: "${DOWNLOAD_MIRROR}"
   # use premirrors for cloning thirdparty meta layers. Reduces external traffic and improves download speed
-  KAS_PREMIRRORS: "^https?://[^/]*(?:/.*)?/(?!meta-iris-base)([^/]*?)(?:\\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git\n^https://github\\.com/iris-GmbH/meta-iris-base\\.git$ http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-webservice-default.gitlab:8181/public-projects/yocto/meta-iris-base.git"
+  KAS_PREMIRRORS: "^https://github\\.com/iris-GmbH/(meta-iris-base|meta-iris-security)\\.git$ http://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab-webservice-default.gitlab:8181/public-projects/yocto/\\1.git\n^https?://[^/]*(?:/.*)?/([^/]*?)(?:\\.git)?$ http://gitlab-webservice-default.gitlab:8181/MIRROR/\\1.git"
   KAS_ARTIFACT_FOLDER: "${KAS_ARTIFACT_PREFIX}${MULTI_CONF}${KAS_ARTIFACT_SUFFIX}"
   KAS_LOCK_FILE_NAME: "kas-${MULTI_CONF}.lock.yml"
   KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
-  # Refspec of the systemtest_base repo to use
-  SYSTEMTEST_BASE: "0b32bbc835af29139752847437a22e42d291de49"
-  # Set the name of the firmware to be programmed with systemtest_smoke job
-  SYSTEMTEST_SW_NAME: "sc573-gen6"
-  # Set duration of systemtest_reliability job in seconds
-  SYSTEMTEST_RELIABILITY_DURATION: "21600"
-  SYSTEMTEST_DOCKER_REG_USER: $SYSTEMTEST_DOCKER_REG_USER
-  SYSTEMTEST_DOCKER_REG_TOKEN: $SYSTEMTEST_DOCKER_REG_TOKEN
-  GEN6_TOOLS_DOCKER_REG_USER: $GEN6_TOOLS_DOCKER_REG_USER
-  GEN6_TOOLS_DOCKER_REG_TOKEN: $GEN6_TOOLS_DOCKER_REG_TOKEN
   CYCLONEDX_EXPORT_DIR: "${KAS_TMPDIR}/deploy/cyclonedx-export"
   CYCLONEDX_EXPORT_SBOM: "${CYCLONEDX_EXPORT_DIR}/bom.json"
   CYCLONEDX_EXPORT_VEX: "${CYCLONEDX_EXPORT_DIR}/vex.json"
@@ -77,7 +67,7 @@ default:
       if [ -n "${UPSTREAM_PROJECT_NAME}" ] && [ "${RELEASE}" != "true" ] && command -v git >/dev/null 2>&1; then
         echo "Trying to checkout ${BRANCH_NAME} in iris-kas"
         if git checkout ${BRANCH_NAME} 2>/dev/null; then
-          echo "Branch ${BRANCH_NAME} has been checked out in iris-kas"
+          echo "Branch ${BRANCH_NAME} has been checked out in iris-kas at commit $(git rev-parse --short HEAD)"
         else
           echo "Branch ${BRANCH_NAME} not found in iris-kas. Sticking with develop branch on iris-kas."
         fi
@@ -194,6 +184,8 @@ develop-ci-build-setup:
         echo "SSTATE_DIR=${SSTATE_CACHE}" >> build.env
       fi
     - echo "KASFILE_EXTRA=${KASFILE_EXTRA}" >> build.env
+    - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
+
   artifacts:
     reports:
       dotenv: build.env
@@ -213,6 +205,8 @@ release-ci-build-setup:
     - echo "KAS_ARTIFACT_PREFIX=${CI_COMMIT_TAG}-" >> build.env
     - echo "SSTATE_DIR=${SSTATE_CACHE_RELEASE}" >> build.env
     - echo "SKIP_PTEST_TESTS=false" >> build.env
+    - echo "SKIP_SYSTEMTEST=false" >> build.env
+    - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
 
   artifacts:
     reports:
@@ -676,11 +670,8 @@ test-oci-ptest-iris:
 test-oci-ptest-full:
   extends: .test_oci_ptest_template
   rules:
-    - !reference [.release_template, rules]
-    - if: '$SKIP_PTEST_TESTS == "false" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     - when: manual
       allow_failure: true
-    - !reference [.develop_template, rules]
   allow_failure: true
   parallel:
     matrix:
@@ -694,67 +685,35 @@ test-oci-ptest-full:
       ptest-runner -e '${PKGS_TO_SKIP}' -t 900 -x /tmp/ptest_results.xml" > "${MULTI_CONF}-ptest-runner.log"
       || { echo "Error encountered while executing tests. Please check the ${MULTI_CONF}-ptest-runner.log file"; exit 1; }
 
-systemtest_smoke:
+
+trigger-systemtests:
   stage: test
-  tags:
-    - special-test
-  resource_group: systemtest
-  variables:
-    SYSTEMTEST_PROJECT_DIR: systemtest
-    SENSOR1_IP: 172.16.127.3
-    SENSOR2_IP: 172.16.126.233
   rules:
-    # skip if SKIP_SYSTEMTEST_SMOKE is set to true
-    - if: '$SKIP_SYSTEMTEST_SMOKE == "false"'
-  before_script:
-    - !reference [.common_template, before_script, prepare-systemtest]
-  script:
-    - cp -r ${CI_PROJECT_DIR}/artifacts/images/${SYSTEMTEST_SW_NAME}/update_files/ ${CI_PROJECT_DIR}/$SYSTEMTEST_PROJECT_DIR/systemtest/resources
-    - docker --config ./.gen6tools login ${CI_REGISTRY} -u ${GEN6_TOOLS_DOCKER_REG_USER} -p ${GEN6_TOOLS_DOCKER_REG_TOKEN}
-    - echo "executing systemtest smoke tests for ${SYSTEMTEST_SW_NAME}"
-    - ./systemtest_smoke.sh
-  after_script:
-    - docker logout ${CI_REGISTRY}
-  artifacts:
-    name: "${CI_JOB_NAME}"
-    when: always
-    paths:
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/report.html
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/log.html
-    reports:
-      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/smoke_tests/output_xunit.xml
-
-##############################
-### RELIABILITY TEST STAGE ###
-##############################
-
-systemtest_reliability:
-  stage: reliability-test
-  tags:
-    - special-test
-  resource_group: systemtest
+    - !reference [.release_template, rules]
+    - if: '$ORIGIN_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$SKIP_SYSTEMTEST == "false"'
+    - when: manual
+  needs:
+    - job: develop-build-maintenance-image
+      optional: true
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-build-maintenance-image
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+  interruptible: false
+  allow_failure: true
   variables:
-    SYSTEMTEST_PROJECT_DIR: systemtest
-    SENSOR1_IP: 172.16.127.3
-    SENSOR2_IP: 172.16.126.233
-  rules:
-    # skip if SKIP_SYSTEMTEST_RELIABILITY or SKIP_SYSTEMTEST_SMOKE is set to true
-    - if: '$SKIP_SYSTEMTEST_RELIABILITY == "false" && $SKIP_SYSTEMTEST_SMOKE == "false"'
-  before_script:
-    - !reference [.common_template, before_script, prepare-systemtest]
-  script:
-    - echo "executing systemtest reliability tests for ${SYSTEMTEST_SW_NAME}"
-    - ./systemtest_reliability.sh ${SYSTEMTEST_RELIABILITY_DURATION}
-  after_script:
-    - docker logout ${CI_REGISTRY}
-  artifacts:
-    name: "${CI_JOB_NAME}"
-    when: always
-    paths:
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/report_combined.html
-      - ./${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/log_combined.html
-    reports:
-      junit: ${SYSTEMTEST_PROJECT_DIR}_products/test_suites/reliability_tests/output_xunit_combined.xml
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
+    UPSTREAM_PIPELINE_ID: "$UPSTREAM_PIPELINE_ID"
+  parallel:
+    matrix:
+      - PROJECT: mtv/test-and-measurement-application/restart-device
+  trigger:
+    project: $PROJECT
+    branch: develop
+    strategy: depend
 
 ##############################
 ### UPLOAD ARTIFACTS STAGE ###
@@ -977,8 +936,6 @@ publish-release:
     - job: release-build-sdk-deploy
     - job: release-archive-kas-build-environment
     - job: test-oci-ptest-iris
-      artifacts: false
-    - job: test-oci-ptest-full
       artifacts: false
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
