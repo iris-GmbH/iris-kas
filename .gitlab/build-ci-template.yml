@@ -718,6 +718,7 @@ trigger-systemtests:
   parallel:
     matrix:
       - PROJECT: mtv/test-and-measurement-application/restart-device
+      - PROJECT: mtv/test-and-measurement-application/systemtest-itxpt
   trigger:
     project: $PROJECT
     branch: develop
