@@ -194,6 +194,14 @@ develop-ci-build-setup:
       fi
     - echo "KASFILE_EXTRA=${KASFILE_EXTRA}" >> build.env
     - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
+    - |
+      RUN_MULTI_CONF=""
+      case "${BUILD_TARGETS:-}" in
+          *irma6r1*) RUN_MULTI_CONF="sc573-gen6" ;;
+          *irma6r2*) RUN_MULTI_CONF="imx8mp-irma6r2" ;;
+          *matrix*)  RUN_MULTI_CONF="imx93-matrixup" ;;
+      esac
+      echo "RUN_MULTI_CONF=$RUN_MULTI_CONF" >> build.env
 
   artifacts:
     reports:
@@ -216,6 +224,14 @@ release-ci-build-setup:
     - echo "SKIP_PTEST_TESTS=false" >> build.env
     - echo "SKIP_SYSTEMTEST=false" >> build.env
     - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
+    - |
+      RUN_MULTI_CONF=""
+      case "${CI_COMMIT_TAG:-}" in
+          irma6r1-*) RUN_MULTI_CONF="sc573-gen6" ;;
+          irma6r2-*) RUN_MULTI_CONF="imx8mp-irma6r2" ;;
+          matrix-*)  RUN_MULTI_CONF="imx93-matrixup" ;;
+      esac
+      echo "RUN_MULTI_CONF=$RUN_MULTI_CONF" >> build.env
 
   artifacts:
     reports:
@@ -715,6 +731,7 @@ trigger-systemtests:
   variables:
     RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
     UPSTREAM_PIPELINE_ID: "$UPSTREAM_PIPELINE_ID"
+    RUN_MULTI_CONF: "$RUN_MULTI_CONF"
   parallel:
     matrix:
       - PROJECT: mtv/test-and-measurement-application/restart-device
