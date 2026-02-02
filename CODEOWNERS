@@ -1,4 +1,4 @@
-[Gitlab] @jasper.orschulko @aoife.power @marcel.plumbohm
+[Gitlab] @jasper.orschulko @aoife.power @marcel.plumbohm @ian.dannapel @erik.schumacher @michael.glembotzki
 .gitlab-ci.y*ml
 utils/**/*
 include/ci/**/*
@@ -15,7 +15,7 @@ include/repos/**/*
 conf/**/*
 utils/scripts/generate-next-version-string.sh
 
-[Docker] @jasper.orschulko @aoife.power @marcel.plumbohm @martin.koppehel
+[Docker] @jasper.orschulko @aoife.power @marcel.plumbohm @martin.koppehel @ian.dannapel @erik.schumacher @michael.glembotzki
 Dockerfile_iris_kas
 Dockerfile_sdk
 .dockerignore
