@@ -736,6 +736,7 @@ trigger-systemtests:
     matrix:
       - PROJECT: mtv/test-and-measurement-application/restart-device
       - PROJECT: mtv/test-and-measurement-application/systemtest-itxpt
+      - PROJECT: mtv/test-and-measurement-application/firmware-update-test
   trigger:
     project: $PROJECT
     branch: develop
