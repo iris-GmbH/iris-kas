@@ -710,7 +710,7 @@ test-oci-ptest-full:
       ptest-runner -e '${PKGS_TO_SKIP}' -t 900 -x /tmp/ptest_results.xml" > "${MULTI_CONF}-ptest-runner.log"
       || { echo "Error encountered while executing tests. Please check the ${MULTI_CONF}-ptest-runner.log file"; exit 1; }
 
-trigger-systemtests:
+systemtests:
   stage: test
   rules:
     - !reference [.release_template, rules]
@@ -734,10 +734,14 @@ trigger-systemtests:
     RUN_MULTI_CONF: "$RUN_MULTI_CONF"
   parallel:
     matrix:
-      - PROJECT: mtv/test-and-measurement-application/restart-device
-      - PROJECT: mtv/test-and-measurement-application/systemtest-itxpt
-      - PROJECT: mtv/test-and-measurement-application/firmware-update-test
-      - PROJECT: mtv/test-and-measurement-application/factory-reset
+      - NAME: restart-device
+        PROJECT: mtv/test-and-measurement-application/restart-device
+      - NAME: systemtest-itxpt
+        PROJECT: mtv/test-and-measurement-application/systemtest-itxpt
+      - NAME: firmware-update-test
+        PROJECT: mtv/test-and-measurement-application/firmware-update-test
+      - NAME: factory-reset
+        PROJECT: mtv/test-and-measurement-application/factory-reset
   trigger:
     project: $PROJECT
     branch: develop
