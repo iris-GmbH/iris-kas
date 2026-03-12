@@ -630,7 +630,7 @@ release-build-deploy:
 
 mr-artifact-links:
   rules:
-    - if: '$CI_MERGE_REQUEST_IID && $SKIP_MR_COMMENT != "true"'
+    - if: '( $CI_MERGE_REQUEST_IID || $UPSTREAM_MR_IID ) && $SKIP_MR_COMMENT != "true"'
   stage: merge-request-bot
   needs:
     - job: develop-build-maintenance-image
@@ -646,6 +646,9 @@ mr-artifact-links:
   script:
     - |
       IRIS_KAS_GITLAB_URL="https://gitlab.devops.defra01.iris-sensing.net/api/v4/projects/1998"
+
+      echo "CI_MERGE_REQUEST_IID: $CI_MERGE_REQUEST_IID"
+      echo "UPSTREAM_MR_IID: $UPSTREAM_MR_IID"
 
       if [[ -z "$UPSTREAM_PIPELINE_ID" ]]; then
           echo "WARNING: UPSTREAM_PIPELINE_ID is empty" >&2
@@ -722,13 +725,29 @@ mr-artifact-links:
 
       JSON=$(jq -n --arg body "$BODY" '{body: $body}')
 
+      if [ -n "$CI_MERGE_REQUEST_IID" ]; then
+          WRITE_NOTES_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+          BOT_TOKEN=$MR_BOT_TOKEN_IRIS_KAS
+      else
+          WRITE_NOTES_URL="$CI_API_V4_URL/projects/$UPSTREAM_PROJECT_ID/merge_requests/$UPSTREAM_MR_IID/notes"
+
+          if [[ "$UPSTREAM_PROJECT_ID" == "1773" ]]; then
+              BOT_TOKEN="$MR_BOT_TOKEN_META_IRIS"
+          elif [[ "$UPSTREAM_PROJECT_ID" == "1999" ]]; then
+              BOT_TOKEN="$MR_BOT_TOKEN_META_IRIS_BASE"
+          else
+              echo "Error: Invalid UPSTREAM_PROJECT_ID: $UPSTREAM_PROJECT_ID" >&2
+              exit 1
+          fi
+      fi
+
       curl \
-        -H "PRIVATE-TOKEN: $MR_BOT_TOKEN" \
+        -H "PRIVATE-TOKEN: $BOT_TOKEN" \
         -H "Content-Type: application/json" \
         --data "$JSON" \
         -X POST \
         -v \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+        "$WRITE_NOTES_URL"
 
 ##############################
 ### PUSH TEST IMAGES STAGE ###
