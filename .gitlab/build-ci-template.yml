@@ -120,6 +120,7 @@ stages:
   - wipe-sstate-caches
   - kas-lockfiles
   - build
+  - merge-request-bot
   - push-test-images
   - test
   - reliability-test
@@ -622,6 +623,131 @@ release-build-deploy:
     - make kas-build
     - !reference [.common_template, after_script, create-kas-artifact-folder]
   artifacts: !reference [.common_template, artifacts, kas-artifacts]
+
+##############################
+### MR Bot Stage           ###
+##############################
+
+mr-artifact-links:
+  rules:
+    - if: '( $CI_MERGE_REQUEST_IID || $UPSTREAM_MR_IID ) && $SKIP_MR_COMMENT != "true"'
+  stage: merge-request-bot
+  needs:
+    - job: develop-build-maintenance-image
+      optional: true
+    - job: develop-ci-build-setup
+      optional: true
+    - job: release-build-maintenance-image
+      optional: true
+    - job: release-ci-build-setup
+      optional: true
+  image: dwdraju/alpine-curl-jq
+  allow_failure: true
+  script:
+    - |
+      IRIS_KAS_GITLAB_URL="https://gitlab.devops.defra01.iris-sensing.net/api/v4/projects/1998"
+
+      echo "CI_MERGE_REQUEST_IID: $CI_MERGE_REQUEST_IID"
+      echo "UPSTREAM_MR_IID: $UPSTREAM_MR_IID"
+
+      if [[ -z "$UPSTREAM_PIPELINE_ID" ]]; then
+          echo "WARNING: UPSTREAM_PIPELINE_ID is empty" >&2
+          exit 0
+      fi
+
+      echo "UPSTREAM_PIPELINE_ID: $UPSTREAM_PIPELINE_ID"
+
+      get_kas_artifact_job() {
+          local multi_conf="$1"
+          local result
+
+          result="$(
+              curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+                "${IRIS_KAS_GITLAB_URL}/pipelines/${UPSTREAM_PIPELINE_ID}/jobs?include_retried=true&per_page=100" |
+              jq -er --arg MULTI_CONF "$multi_conf" '
+                [ .[]
+                  | select(
+                      .stage == "build"
+                      and .status == "success"
+                      and (.name | endswith("-build-maintenance-image: [" + $MULTI_CONF + "]"))
+                    )
+                ]
+                | sort_by(.id)
+                | last?
+                | [.name, .ref, (.id|tostring)]
+                | @tsv
+              '
+          )" || return 1
+
+          IFS=$'\t' read -r BUILD_JOB_NAME VERSION_REF KAS_ARTIFACT_JOB_ID <<< "$result"
+
+          case "$VERSION_REF" in
+              irma*|matrix*) ;;
+              *) VERSION_REF=develop ;;
+          esac
+      }
+
+      get_fw_url () {
+          local MULTI_CONF="$1"
+          get_kas_artifact_job "$1"
+
+          DEPLOY_URL="${IRIS_KAS_GITLAB_URL}/jobs/${KAS_ARTIFACT_JOB_ID}/artifacts/${VERSION_REF}-${MULTI_CONF}-maintenance/deploy/images/${MULTI_CONF}"
+
+          if [[ "$MULTI_CONF" == "sc573-gen6" ]]; then
+              UPDATE_PACKAGE_SYMLINK="${DEPLOY_URL}/update_files/firmware-irma-maintenance.zip"
+          else
+              UPDATE_PACKAGE_SYMLINK="${DEPLOY_URL}/irma-maintenance-swuimage-${MULTI_CONF}.rootfs.swu"
+          fi
+
+          SYMLINK_TARGET=$(curl --header "JOB-TOKEN: $CI_JOB_TOKEN" "${UPDATE_PACKAGE_SYMLINK}")
+          echo "$(dirname $UPDATE_PACKAGE_SYMLINK)/${SYMLINK_TARGET}"
+      }
+
+      ZIP_URL_R1=$(get_fw_url sc573-gen6)
+      SWU_URL_R2=$(get_fw_url imx8mp-irma6r2)
+      SWU_URL_MX=$(get_fw_url imx93-matrixup)
+      UUU_URL_R2="$(dirname $SWU_URL_R2)/irma-maintenance-uuu-container.tar.gz"
+      UUU_URL_MX="$(dirname $SWU_URL_MX)/irma-maintenance-uuu-container.tar.gz"
+
+      echo "ZIP_URL_R1: $ZIP_URL_R1"
+      echo "SWU_URL_R2: $SWU_URL_R2"
+      echo "SWU_URL_MX: $SWU_URL_MX"
+      echo "UUU_URL_R2: $UUU_URL_R2"
+      echo "UUU_URL_MX: $UUU_URL_MX"
+
+      BODY=$(cat <<EOF
+      ##### Maintenance Firmware's
+      - [$(basename $ZIP_URL_R1)]($ZIP_URL_R1)
+      - [$(basename $SWU_URL_R2)]($SWU_URL_R2)/[$(basename $UUU_URL_R2)]($UUU_URL_R2)
+      - [$(basename $SWU_URL_MX)]($SWU_URL_MX)/[$(basename $UUU_URL_MX)]($UUU_URL_MX)
+      EOF
+      )
+
+      JSON=$(jq -n --arg body "$BODY" '{body: $body}')
+
+      if [ -n "$CI_MERGE_REQUEST_IID" ]; then
+          WRITE_NOTES_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+          BOT_TOKEN=$MR_BOT_TOKEN_IRIS_KAS
+      else
+          WRITE_NOTES_URL="$CI_API_V4_URL/projects/$UPSTREAM_PROJECT_ID/merge_requests/$UPSTREAM_MR_IID/notes"
+
+          if [[ "$UPSTREAM_PROJECT_ID" == "1773" ]]; then
+              BOT_TOKEN="$MR_BOT_TOKEN_META_IRIS"
+          elif [[ "$UPSTREAM_PROJECT_ID" == "1999" ]]; then
+              BOT_TOKEN="$MR_BOT_TOKEN_META_IRIS_BASE"
+          else
+              echo "Error: Invalid UPSTREAM_PROJECT_ID: $UPSTREAM_PROJECT_ID" >&2
+              exit 1
+          fi
+      fi
+
+      curl \
+        -H "PRIVATE-TOKEN: $BOT_TOKEN" \
+        -H "Content-Type: application/json" \
+        --data "$JSON" \
+        -X POST \
+        -v \
+        "$WRITE_NOTES_URL"
 
 ##############################
 ### PUSH TEST IMAGES STAGE ###
