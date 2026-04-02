@@ -40,7 +40,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "8a598a2bc9199a4fbb9008a32ab143fb509a0933"
+    commit: "9d8ef26a9693e2c70ae34abe1a753873d42ec588"
     layers:
       meta-oe:
       meta-python:
@@ -96,7 +96,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "dd3cd28170e3f2679239f1930394904eac72f125"
+    commit: "f796c5a5989917e27e89997ce576a7ffc2a0e5dc"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=kirkstone
     url: "https://github.com/iris-GmbH/meta-osselot"
