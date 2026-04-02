@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "b68050f511efa8c4f3b24d05c8168d1ad23e9a2e"
+    commit: "da5493bf86b3e75bbae4c5789fdfaca67b6f6a65"
     layers:
       meta:
       meta-poky:
@@ -38,7 +38,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "c1f3dac7766d1d442288de4b168290c45526b3fa"
+    commit: "0cbae8fd87bbfa84817929e47bc2ff4d3d463531"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
