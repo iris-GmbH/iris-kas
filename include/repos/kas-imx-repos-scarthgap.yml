@@ -11,7 +11,7 @@ repos:
   meta-freescale-3rdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-3rdparty"
-    commit: "70c83e96c7f75e73245cb77f1b0cada9ed4bbc6d"
+    commit: "ce10c065119c2d4e359235c77aae7e0d843533ef"
   meta-freescale-distro:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-distro"
