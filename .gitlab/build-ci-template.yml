@@ -457,9 +457,9 @@ develop-build-dev-deploy-image:
         echo "Including Osselot tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-osselot.yml"
       fi
-    # include cyclonedx tasks when R2 and default branch run
+    # Include the CycloneDX task only for IRMA 6 R2; require the default branch unless FORCE_DEPENDENCYTRACK is true
     - >
-      if ( test "${MULTI_CONF}" = "imx8mp-irma6r2" && test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" ) || test "${FORCE_DEPENDENCYTRACK}" = "true"; then
+      if test "${MULTI_CONF}" = "imx8mp-irma6r2" && ( test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" || test "${FORCE_DEPENDENCYTRACK}" = "true" ); then
         echo "Including CycloneDX SBOM tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-cyclonedx.yml"
       fi
