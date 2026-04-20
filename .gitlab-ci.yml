@@ -73,9 +73,6 @@ variables:
   ENABLE_PA_CCACHE:
     value: "true"
     description: 'Set to "false" to disable ccache for the PA'
-  ENABLE_IRMA_SOA:
-    value: "1"
-    description: 'Set to "0" to disable the service oriented architecture'
 
 ################
 ### WORKFLOW ###
