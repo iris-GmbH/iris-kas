@@ -3,8 +3,9 @@
 
 header:
   version: 14
+
   includes:
-    - include/repos/kas-base-repos-kirkstone.yml
+    - include/repos/kas-base-repos-scarthgap.yml
     - include/repos/kas-meta-iris-base-repo.yml
 
 repos:
