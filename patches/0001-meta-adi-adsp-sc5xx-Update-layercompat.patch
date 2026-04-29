@@ -1,37 +1,25 @@
-From bace4f9a95239f14664aa6809e7d2b1352ec46ea Mon Sep 17 00:00:00 2001
-From: Jasper Orschulko <jasper@fancydomain.eu>
-Date: Fri, 10 May 2024 12:35:16 +0200
+From 94c72072f815e477a56ca8fb860d4254e70f0a66 Mon Sep 17 00:00:00 2001
+From: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+Date: Wed, 29 Apr 2026 09:33:15 +0200
 Subject: [PATCH] meta-adi-adsp-sc5xx: Update layercompat
 
-Signed-off-by: Jasper Orschulko <jasper@fancydomain.eu>
+Upstream-Status: Inappropriate
+
+Signed-off-by: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
 ---
- meta-adi-adsp-sc5xx/conf/layer.conf         | 2 +-
- meta-adi-external-toolchain/conf/layer.conf | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ meta-adi-adsp-sc5xx/conf/layer.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/meta-adi-adsp-sc5xx/conf/layer.conf b/meta-adi-adsp-sc5xx/conf/layer.conf
-index 6b013c9..717eb10 100644
+index 6fcbd93..626f1a4 100644
 --- a/meta-adi-adsp-sc5xx/conf/layer.conf
 +++ b/meta-adi-adsp-sc5xx/conf/layer.conf
 @@ -11,4 +11,4 @@ BBFILE_COLLECTIONS += "adsp-sc5xx"
  BBFILE_PATTERN_adsp-sc5xx = "^${LAYERDIR}/"
  BBFILE_PRIORITY_adsp-sc5xx = "6"
  
--LAYERSERIES_COMPAT_adsp-sc5xx = "thud"
-+LAYERSERIES_COMPAT_adsp-sc5xx = "thud kirkstone scarthgap"
-diff --git a/meta-adi-external-toolchain/conf/layer.conf b/meta-adi-external-toolchain/conf/layer.conf
-index af9616e..ad80cc4 100644
---- a/meta-adi-external-toolchain/conf/layer.conf
-+++ b/meta-adi-external-toolchain/conf/layer.conf
-@@ -6,7 +6,7 @@ BBFILE_PRIORITY_external-toolchain = "1"
- BBFILE_PATTERN_external-toolchain = "^${LAYERDIR}/"
- 
- LAYERDEPENDS_external-toolchain = "core"
--LAYERSERIES_COMPAT_external-toolchain = "thud"
-+LAYERSERIES_COMPAT_external-toolchain = "thud kirkstone scarthgap"
- LAYERDIR_external-toolchain = "${LAYERDIR}"
- 
- BBFILES += "${@' '.join('${LAYERDIR}/%s/recipes*/*/*.%s' % (layer, ext) \
+-LAYERSERIES_COMPAT_adsp-sc5xx = "kirkstone"
++LAYERSERIES_COMPAT_adsp-sc5xx = "scarthgap"
 -- 
-2.45.0
+2.53.0
 
