@@ -19,3 +19,5 @@ repos:
     patches:
       0001-meta-adi-adsp-sc5xx-Update-layercompat:
         path: "patches/0001-meta-adi-adsp-sc5xx-Update-layercompat.patch"
+      0002-adsp-sc5xx-compatible-Add-sc573-gen6-as-compatible-m:
+        path: "patches/0002-adsp-sc5xx-compatible-Add-sc573-gen6-as-compatible-m.patch"

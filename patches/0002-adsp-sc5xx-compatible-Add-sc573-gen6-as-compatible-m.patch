@@ -1,0 +1,22 @@
+From 2ee15e24ac5d0f5ce1a195502683fe56c67897b3 Mon Sep 17 00:00:00 2001
+From: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+Date: Wed, 29 Apr 2026 14:01:21 +0200
+Subject: [PATCH] adsp-sc5xx-compatible: Add sc573-gen6 as compatible machine
+
+---
+ meta-adi-adsp-sc5xx/classes/adsp-sc5xx-compatible.bbclass | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta-adi-adsp-sc5xx/classes/adsp-sc5xx-compatible.bbclass b/meta-adi-adsp-sc5xx/classes/adsp-sc5xx-compatible.bbclass
+index fcd5804..de41d18 100644
+--- a/meta-adi-adsp-sc5xx/classes/adsp-sc5xx-compatible.bbclass
++++ b/meta-adi-adsp-sc5xx/classes/adsp-sc5xx-compatible.bbclass
+@@ -1,4 +1,4 @@
+-ADI_SC57X = "adsp-sc573-ezkit"
++ADI_SC57X = "adsp-sc573-ezkit|sc573-gen6"
+ ADI_SC58X = "adsp-sc584-ezkit|adsp-sc589-ezkit|adsp-sc589-mini"
+ ADI_SC594 = "adsp-sc594-som-ezkit|adsp-sc594-som-ezlite"
+ ADI_SC598 = "adsp-sc598-som-ezkit|adsp-sc598-som-ezlite"
+-- 
+2.53.0
+
