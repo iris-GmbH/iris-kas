@@ -868,6 +868,8 @@ systemtests:
         PROJECT: mtv/test-and-measurement-application/firmware-update-test
       - NAME: factory-reset
         PROJECT: mtv/test-and-measurement-application/factory-reset
+      - NAME: irma-general
+        PROJECT: mtv/test-and-measurement-application/systemtest-irma-general
   trigger:
     project: $PROJECT
     branch: develop
