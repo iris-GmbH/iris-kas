@@ -30,9 +30,6 @@ variables:
   KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
-  CYCLONEDX_EXPORT_DIR: "${KAS_TMPDIR}/deploy/cyclonedx-export"
-  CYCLONEDX_EXPORT_SBOM: "${CYCLONEDX_EXPORT_DIR}/bom.json"
-  CYCLONEDX_EXPORT_VEX: "${CYCLONEDX_EXPORT_DIR}/vex.json"
   DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
   # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
   # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
