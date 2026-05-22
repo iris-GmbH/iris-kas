@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "72983ac391008ebceb45edc7a8f0f6d5f4fe715c"
+    commit: "cb2dcb4963e5fbe449f1bcb019eae883ddecc8ec"
     layers:
       meta:
       meta-poky:
@@ -18,7 +18,7 @@ repos:
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/openembedded/meta-openembedded"
-    commit: "2b26d30fc7f478f5735d514f0c1bc28f6a4148b6"
+    commit: "5124ac4a658899158f4a7a2ddf1d2ca931ec7d0e"
     layers:
       meta-oe:
       meta-python:
@@ -31,12 +31,14 @@ repos:
       # Add patches for sdbus-c++
       0002-sdbus-c-Upgrade-to-2.1.0-release.patch:
         path: "patches/0001-sdbus-c-Upgrade-to-2.1.0-release.patch"
-      0003-remove-tag-from-SRC_URI.patch:
+      0003-sdbus-c-upgrade-to-2.2.1-release.patch:
+        path: "patches/0001-sdbus-c-upgrade-to-2.2.1-release.patch"
+      0004-remove-tag-from-SRC_URI.patch:
         path: "patches/0002-remove-tag-from-SRC_URI.patch"
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "c1f3dac7766d1d442288de4b168290c45526b3fa"
+    commit: "0cbae8fd87bbfa84817929e47bc2ff4d3d463531"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
@@ -44,4 +46,4 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
-    commit: "c726b41adb7d76ca3ea56faac0a4e2c9891f9668"
+    commit: "e0ff57acc796c559d7850fc860061f66afe951b3"

@@ -75,7 +75,7 @@ update-non-protected-branch:
   stage: setup
   tags:
     - gp-tiny
-  image: alpine/git:2.49.1
+  image: alpine/git:v2.52.0
   before_script:
     - git config --global url."https://gitlab-ci-token:${DOWNSTREAM_PIPELINE_TOKEN}@gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git".insteadOf https://gitlab.devops.defra01.iris-sensing.net/public-projects/yocto/iris-kas.git
   script:
@@ -91,6 +91,8 @@ update-non-protected-branch:
 .trigger-kas-pipeline:
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
+    UPSTREAM_PROJECT_ID: $CI_PROJECT_ID
+    UPSTREAM_MR_IID: $CI_MERGE_REQUEST_IID
     UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
     BRANCH_NAME: $CI_COMMIT_REF_NAME
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
