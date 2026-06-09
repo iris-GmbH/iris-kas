@@ -209,7 +209,7 @@ release-ci-build-setup:
   stage: ci-environment-setup
   rules:
     - !reference [.release_template, rules]
-  image: busybox:1.37.0-uclibc
+  image: busybox:1.38.0-uclibc
   tags:
     - gp-tiny
   script:
@@ -257,7 +257,7 @@ release-ensure-lockfiles-exist:
   rules:
     - !reference [.release_template, rules]
   stage: kas-lockfiles
-  image: busybox:1.37.0-uclibc
+  image: busybox:1.38.0-uclibc
   parallel:
     matrix:
       - <<: *all_multi_confs
@@ -981,7 +981,7 @@ develop-build-reproducibility:
   allow_failure: true
   variables:
     GIT_STRATEGY: none
-  image: busybox:1.37.0-uclibc
+  image: busybox:1.38.0-uclibc
   needs:
     - job: develop-ci-build-setup
     - job: develop-create-kas-lockfiles
