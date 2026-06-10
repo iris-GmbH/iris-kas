@@ -16,7 +16,7 @@
     artifacts: false
   - job: push-test-oci
     artifacts: false
-  image: alpine:3.23.4
+  image: alpine:3.24.0
   services:
     - name: "${CI_REGISTRY_IMAGE}/test-oci-${MULTI_CONF}:${OCI_TAG_SHA}"
       alias: oci-image
