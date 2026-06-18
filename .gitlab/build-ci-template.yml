@@ -607,8 +607,8 @@ release-build-deploy:
     - !reference [.release_template, rules]
   stage: build
   tags:
-    # build on release runner
-    - iris-kas-release
+    # build on product-specific release runner
+    - iris-kas-release-${MULTI_CONF}
   parallel:
     matrix:
       - <<: *target_multi_confs
