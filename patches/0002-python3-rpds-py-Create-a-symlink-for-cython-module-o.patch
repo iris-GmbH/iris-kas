@@ -1,0 +1,55 @@
+From d6f8ba6477bc4f19c9b78adb5b35af9d919ad448 Mon Sep 17 00:00:00 2001
+From: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+Date: Fri, 19 Jun 2026 20:49:39 +0200
+Subject: [PATCH] python3-rpds-py: Create a symlink for cython module on musl
+
+loader expects it to be called with 'linux-gnu' e.g
+rpds.cpython-312-x86_64-linux-musl.so is created with musl
+but loader expects it to called rpds.cpython-312-x86_64-linux-gnu.so
+
+Lets create the symlink to please the loader.
+
+Fixes
+ImportError while importing test module '/usr/lib/python3-rpds-py/ptest/tests/test_hash_trie_map.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_hash_trie_map.py:36: in <module>
+    from rpds import HashTrieMap
+../../python3.12/site-packages/rpds/__init__.py:1: in <module>
+    from .rpds import *
+E   ModuleNotFoundError: No module named 'rpds.rpds'
+ERROR: tests/test_hash_trie_map.py:tests/test_hash_trie_map.py
+
+Upstream-Status: Submitted [https://patchwork.yoctoproject.org/project/oe-core/patch/20240603162525.2940419-1-raj.khem@gmail.com/#19701]
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+Signed-off-by: Michael Glembotzki <Michael.Glembotzki@iris-sensing.com>
+---
+ .../recipes-devtools/python/python3-rpds-py_0.18.0.bb | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/meta/recipes-devtools/python/python3-rpds-py_0.18.0.bb b/meta/recipes-devtools/python/python3-rpds-py_0.18.0.bb
+index cece2cb8cc..5a3341ccff 100644
+--- a/meta/recipes-devtools/python/python3-rpds-py_0.18.0.bb
++++ b/meta/recipes-devtools/python/python3-rpds-py_0.18.0.bb
+@@ -12,4 +12,15 @@ inherit pypi cargo-update-recipe-crates python_maturin
+ 
+ PYPI_PACKAGE = "rpds_py"
+ 
++do_install:append() {
++    for f in ${D}/${PYTHON_SITEPACKAGES_DIR}/rpds/rpds.cpython*.so
++    do
++        fname=`basename $f`
++        lname=`echo $fname | sed 's/musl/gnu/'`
++        if [ "$fname" != "$lname" ]; then
++            mv $f ${D}/${PYTHON_SITEPACKAGES_DIR}/rpds/$lname
++        fi
++    done
++}
++
+ BBCLASSEXTEND = "native nativesdk"
+-- 
+2.53.0
+
