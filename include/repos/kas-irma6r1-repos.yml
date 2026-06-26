@@ -11,7 +11,7 @@ header:
 repos:
   # irma6 HWv1 repos
   lnxdsp-adi-meta:
-    # renovate: depType=upstream-meta-layers branch=main
+    # renovate: depType=upstream-meta-layers branch=dev
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta"
     commit: "07d3363b8c1266e0293b081bfff9a82df8963fc9"
     layers:
