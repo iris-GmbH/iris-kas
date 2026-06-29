@@ -6,6 +6,10 @@
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
       when: never
+    # TEMPORARY: allow testing release jobs in the generated child pipeline from this feature branch.
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && $ORIGIN_COMMIT_REF_NAME == "feature/jaor/product_specific_release_runners"'
+      when: manual
+      allow_failure: true
     - if: '$CI_COMMIT_TAG'
       variables:
         RELEASE: "true"

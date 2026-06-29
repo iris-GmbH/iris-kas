@@ -321,6 +321,7 @@ develop-generate-pipeline:
   stage: trigger-generated-pipeline
   variables:
     ORIGIN_PIPELINE_SOURCE: "$CI_PIPELINE_SOURCE"
+    ORIGIN_COMMIT_REF_NAME: "$CI_COMMIT_REF_NAME"
   trigger:
     include:
       - artifact: .gitlab/build-ci-template.yml

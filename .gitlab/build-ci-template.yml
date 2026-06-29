@@ -604,10 +604,6 @@ release-archive-kas-build-environment:
 # Build the deploy image with production keys during release
 release-build-deploy:
   rules:
-    # TEMPORARY: allow testing release runner tag selection from this feature branch.
-    - if: '$CI_COMMIT_BRANCH == "feature/jaor/product_specific_release_runners"'
-      when: manual
-      allow_failure: true
     - !reference [.release_template, rules]
   stage: build
   tags:
