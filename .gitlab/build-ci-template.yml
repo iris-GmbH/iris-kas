@@ -615,6 +615,7 @@ release-build-deploy:
   variables:
     KAS_TARGET_RECIPE: "irma-deploy-bundle"
     KAS_ARTIFACT_SUFFIX: "-deploy"
+    KAS_ARTIFACT_PREFIX: "test"
   script:
     - export KASFILE_EXTRA="${KASFILE_EXTRA}:include/ci/kas-ci-deploy-signing-${MULTI_CONF}.yml:include/kas-osselot.yml:include/kas-spdx.yml"
     - make kas-build
