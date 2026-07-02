@@ -1,8 +1,8 @@
-From 0b24bbe35ed0cf4c14bfb32d7bc82ac357786b4f Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Erik Schumacher <erik.schumacher@iris-sensing.com>
-Date: Thu, 27 Mar 2025 11:45:22 +0100
-Subject: [PATCH] image_types_verity.bbclass: Optionally create hash data in
- separate file
+Date: Thu, 27 Mar 2025 12:18:28 +0000
+Subject: [PATCH 1/4] image_types_verity.bbclass: Optionally create hash data
+ in separate file
 
 On some setups, the verity partition and the corresponding hash data are
 handled separately. To account for this, a HASHDEV_SUFFIX is introduced
@@ -13,10 +13,11 @@ appended to the verity image, like before.
 When the hash data is written to a separate file, the verity image is
 padded with zeroes until its size is a multiple of block_size.
 
-Upstream-Status: Submitted as backport for scarthgap
-[https://patchwork.yoctoproject.org/project/oe/list/?series=33108]
+Upstream-Status: Backport [meta-openembedded:master, a95982ed]
 
 Signed-off-by: Erik Schumacher <erik.schumacher@iris-sensing.com>
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+Signed-off-by: Thomas Noack <thomas.noack@iris-sensing.com>
 ---
  meta-oe/classes/image_types_verity.bbclass | 43 +++++++++++++++++++---
  1 file changed, 38 insertions(+), 5 deletions(-)
@@ -118,5 +119,5 @@ index b42217c453..d77bc20a13 100644
              os.remove(link + suffix)
          except FileNotFoundError:
 -- 
-2.48.1
+2.53.0.dirty
 

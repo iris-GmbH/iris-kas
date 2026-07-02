@@ -1,30 +1,32 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Thomas Noack <thomas.noack@iris-sensing.com>
 Date: Fri, 9 Jan 2026 12:52:46 +0100
-Subject: [PATCH] sdbus-c++: upgrade to 2.2.1 release
+Subject: [PATCH 3/4] sdbus-c++: upgrade to 2.2.1 release
 
-backported commits:
+Backported commits:
 - 8b6b188f: sdbus-c++: fix ptests
 - 9fb59818: sdbus-c++: upgrade 2.1.0 -> 2.2.1
 - aa8fd63b: sdbus-c++-tools: upgrade 2.1.0 -> 2.2.1
 - c6618c38: sdbus-c++: Ignore CreatesGenericErrorWhenErrnoIsUnknown test on non-glibc systems
 
 Upstream-Status: Backport [meta-openembedded:master, consolidated]
+
+Signed-off-by: Thomas Noack <thomas.noack@iris-sensing.com>
 ---
  ...ools_2.1.0.bb => sdbus-c++-tools_2.2.1.bb} |  2 +-
  ...actory-test-for-musl-libc-compatibil.patch | 29 +++++++++++++++++++
  .../sdbus-c++/sdbus-c++/run-ptest             |  5 ++++
  ...{sdbus-c++_2.1.0.bb => sdbus-c++_2.2.1.bb} |  3 +-
  4 files changed, 37 insertions(+), 2 deletions(-)
- rename meta-oe/recipes-core/sdbus-c++/{sdbus-c++-tools_2.1.0.bb => sdbus-c++-tools_2.2.1.bb} (89%)
+ rename meta-oe/recipes-core/sdbus-c++/{sdbus-c++-tools_2.1.0.bb => sdbus-c++-tools_2.2.1.bb} (88%)
  create mode 100644 meta-oe/recipes-core/sdbus-c++/sdbus-c++/0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch
  rename meta-oe/recipes-core/sdbus-c++/{sdbus-c++_2.1.0.bb => sdbus-c++_2.2.1.bb} (93%)
 
 diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.2.1.bb
-similarity index 89%
+similarity index 88%
 rename from meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
 rename to meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.2.1.bb
-index c55c305611..05806e5a52 100644
+index 10704a6cd3..ee1c7c311d 100644
 --- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.1.0.bb
 +++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.2.1.bb
 @@ -8,7 +8,7 @@ inherit cmake
@@ -33,7 +35,7 @@ index c55c305611..05806e5a52 100644
  
 -SRCREV = "0261d0ec60b68c1f0a6ec9acf63d1379f7d569f8"
 +SRCREV = "28b78822cfc5fbec4bd9906168493e9985f586ed"
- SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;tag=v${PV};subpath=tools"
+ SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;subpath=tools"
  
  S = "${WORKDIR}/tools"
 diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++/0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch b/meta-oe/recipes-core/sdbus-c++/sdbus-c++/0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch
@@ -91,7 +93,7 @@ diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb b/meta-oe/recipes
 similarity index 93%
 rename from meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
 rename to meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.2.1.bb
-index 9567e8e3a8..8c65f22ce0 100644
+index 057d18d7bd..b4d739f386 100644
 --- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.1.0.bb
 +++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.2.1.bb
 @@ -16,8 +16,9 @@ PACKAGECONFIG[with-tests] = "-DSDBUSCPP_BUILD_TESTS=ON -DSDBUSCPP_INSTALL_TESTS=
@@ -100,11 +102,11 @@ index 9567e8e3a8..8c65f22ce0 100644
  
 -SRCREV = "0261d0ec60b68c1f0a6ec9acf63d1379f7d569f8"
 +SRCREV = "28b78822cfc5fbec4bd9906168493e9985f586ed"
- SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;tag=v${PV} \
+ SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master \
 +           file://0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch \
             file://run-ptest"
  
  EXTRA_OECMAKE = "-DSDBUSCPP_BUILD_CODEGEN=OFF \
 -- 
-2.50.1.dirty
+2.53.0.dirty
 
