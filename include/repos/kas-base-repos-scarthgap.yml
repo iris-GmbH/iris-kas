@@ -35,6 +35,8 @@ repos:
         path: "patches/meta-openembedded/0002-sdbus-c-Upgrade-to-2.1.0-release.patch"
       0003-sdbus-c-upgrade-to-2.2.1-release.patch:
         path: "patches/meta-openembedded/0003-sdbus-c-upgrade-to-2.2.1-release.patch"
+      0004-sdbus-c-upgrade-to-2.3.1-release.patch:
+        path: "patches/meta-openembedded/0004-sdbus-c-upgrade-to-2.3.1-release.patch"
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"

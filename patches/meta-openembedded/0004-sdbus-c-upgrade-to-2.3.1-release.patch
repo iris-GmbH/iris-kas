@@ -1,0 +1,83 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Thomas Noack <Thomas.Noack@iris-sensing.com>
+Date: Fri, 12 Jun 2026 09:04:46 +0000
+Subject: [PATCH 4/4] sdbus-c++: upgrade to 2.3.1 release
+
+Backported commits:
+- 1d9f910b: sdbus-c++: upgrade 2.2.1 -> 2.3.1
+- 8d2cbef5: sdbus-c++-tools: upgrade 2.2.1 -> 2.3.1
+
+Upstream-Status: Backport [meta-openembedded:master, consolidated]
+
+Signed-off-by: Thomas Noack <thomas.noack@iris-sensing.com>
+---
+ ...bus-c++-tools_2.2.1.bb => sdbus-c++-tools_2.3.1.bb} |  2 +-
+ ...x-error-factory-test-for-musl-libc-compatibil.patch | 10 ++++++----
+ .../{sdbus-c++_2.2.1.bb => sdbus-c++_2.3.1.bb}         |  2 +-
+ 3 files changed, 8 insertions(+), 6 deletions(-)
+ rename meta-oe/recipes-core/sdbus-c++/{sdbus-c++-tools_2.2.1.bb => sdbus-c++-tools_2.3.1.bb} (88%)
+ rename meta-oe/recipes-core/sdbus-c++/{sdbus-c++_2.2.1.bb => sdbus-c++_2.3.1.bb} (97%)
+
+diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.2.1.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.3.1.bb
+similarity index 88%
+rename from meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.2.1.bb
+rename to meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.3.1.bb
+index ee1c7c311d..abbb34c9b3 100644
+--- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.2.1.bb
++++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++-tools_2.3.1.bb
+@@ -8,7 +8,7 @@ inherit cmake
+ 
+ DEPENDS += "expat"
+ 
+-SRCREV = "28b78822cfc5fbec4bd9906168493e9985f586ed"
++SRCREV = "ca073434d2c03c2b619f7e23f285cebbf32c7e46"
+ SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master;subpath=tools"
+ 
+ S = "${WORKDIR}/tools"
+diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++/0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch b/meta-oe/recipes-core/sdbus-c++/sdbus-c++/0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch
+index 118d84e290..6f366695ba 100644
+--- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++/0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch
++++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++/0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch
+@@ -1,4 +1,4 @@
+-From da0d6595c48905ec7d99f1a75878fbeb17972d75 Mon Sep 17 00:00:00 2001
++From ee1f61e7b4ac2cd5eb383e92b9e6eb1640675f72 Mon Sep 17 00:00:00 2001
+ From: Khem Raj <raj.khem@gmail.com>
+ Date: Wed, 26 Nov 2025 23:29:53 -0800
+ Subject: [PATCH] test: Fix error factory test for musl libc compatibility
+@@ -13,12 +13,14 @@ Upstream-Status: Pending
+ 
+ Signed-off-by: Khem Raj <raj.khem@gmail.com>
+ ---
+- tests/unittests/Types_test.cpp | 4 ++--
+- 1 file changed, 2 insertions(+), 2 deletions(-)
++ tests/unittests/Types_test.cpp | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
+ 
++diff --git a/tests/unittests/Types_test.cpp b/tests/unittests/Types_test.cpp
++index 7405265..7a24f0c 100644
+ --- a/tests/unittests/Types_test.cpp
+ +++ b/tests/unittests/Types_test.cpp
+-@@ -488,7 +488,7 @@ TEST(AnErrorFactory, CanCreateAnErrorFro
++@@ -551,7 +551,7 @@ TEST(AnErrorFactory, CanCreateAnErrorFromErrno)
+      EXPECT_TRUE(error.isValid());
+  }
+  
+diff --git a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.2.1.bb b/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.3.1.bb
+similarity index 97%
+rename from meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.2.1.bb
+rename to meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.3.1.bb
+index b4d739f386..9acb7f59b6 100644
+--- a/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.2.1.bb
++++ b/meta-oe/recipes-core/sdbus-c++/sdbus-c++_2.3.1.bb
+@@ -16,7 +16,7 @@ PACKAGECONFIG[with-tests] = "-DSDBUSCPP_BUILD_TESTS=ON -DSDBUSCPP_INSTALL_TESTS=
+ 
+ DEPENDS += "expat"
+ 
+-SRCREV = "28b78822cfc5fbec4bd9906168493e9985f586ed"
++SRCREV = "ca073434d2c03c2b619f7e23f285cebbf32c7e46"
+ SRC_URI = "git://github.com/Kistler-Group/sdbus-cpp.git;protocol=https;branch=master \
+            file://0001-test-Fix-error-factory-test-for-musl-libc-compatibil.patch \
+            file://run-ptest"
+-- 
+2.53.0.dirty
+

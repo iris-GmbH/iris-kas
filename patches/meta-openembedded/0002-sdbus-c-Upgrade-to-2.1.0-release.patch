@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Thomas Noack <Thomas.Noack@iris-sensing.com>
 Date: Tue, 6 May 2025 14:50:30 +0000
-Subject: [PATCH 2/3] sdbus-c++: Upgrade to 2.1.0 release
+Subject: [PATCH 2/4] sdbus-c++: Upgrade to 2.1.0 release
 
 Upstream-Status: Backport [meta-openembedded:master, af630da5]
 
