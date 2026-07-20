@@ -1,0 +1,123 @@
+From 84e84bce8f10585c18a0d0e5b12e2decb6dd929c Mon Sep 17 00:00:00 2001
+From: kas <kas@example.com>
+Date: Mon, 20 Jul 2026 09:19:19 +0200
+Subject: [PATCH] busybox: ntpd: make NTP client and server Y2036/2038-ready
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The 32-bit integer part of the NTP timestamp overflows in year 2036,
+which starts the second NTP era.
+
+Modify the timestamp conversion to shift values between 1900-1970 (in
+the first era) to the second era to enable the client to measure its
+offset correctly until year 2106 (assuming 64-bit time_t).
+
+Also update the conversion from double used when stepping the clock to
+work with 64-bit time_t after reaching the maximum 32-bit value in 2038
+and the server conversion to work correctly in the next NTP era.
+
+Upstream-Status: Backport [https://github.com/vda-linux/busybox_mirror/commit/85acf71d2579ebe4eec05c6f31901adffa700adc]
+
+Signed-off-by: Miroslav Lichvar <mlichvar@redhat.com>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Signed-off-by: Philipp Schöwe <philipp.schoewe@iris-sensing.com>
+---
+ ...P-client-and-server-Y2036-2038-ready.patch | 75 +++++++++++++++++++
+ meta/recipes-core/busybox/busybox_1.36.1.bb   |  1 +
+ 2 files changed, 76 insertions(+)
+ create mode 100644 meta/recipes-core/busybox/busybox/0001-ntpd-make-NTP-client-and-server-Y2036-2038-ready.patch
+
+diff --git a/meta/recipes-core/busybox/busybox/0001-ntpd-make-NTP-client-and-server-Y2036-2038-ready.patch b/meta/recipes-core/busybox/busybox/0001-ntpd-make-NTP-client-and-server-Y2036-2038-ready.patch
+new file mode 100644
+index 0000000000..abacf197f1
+--- /dev/null
++++ b/meta/recipes-core/busybox/busybox/0001-ntpd-make-NTP-client-and-server-Y2036-2038-ready.patch
+@@ -0,0 +1,75 @@
++From 4dbb3b27cefb46a1f04c5157528b0eab761fd165 Mon Sep 17 00:00:00 2001
++From: Miroslav Lichvar <mlichvar@redhat.com>
++Date: Fri, 16 Sep 2022 15:06:36 +0200
++Subject: [PATCH] ntpd: make NTP client and server Y2036/2038-ready
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++The 32-bit integer part of the NTP timestamp overflows in year 2036,
++which starts the second NTP era.
++
++Modify the timestamp conversion to shift values between 1900-1970 (in
++the first era) to the second era to enable the client to measure its
++offset correctly until year 2106 (assuming 64-bit time_t).
++
++Also update the conversion from double used when stepping the clock to
++work with 64-bit time_t after reaching the maximum 32-bit value in 2038
++and the server conversion to work correctly in the next NTP era.
++
++function                                             old     new   delta
++lfp_to_d                                              51      64     +13
++step_time                                            326     332      +6
++.rodata                                           105260  105264      +4
++d_to_lfp                                             100      86     -14
++------------------------------------------------------------------------------
++(add/remove: 0/0 grow/shrink: 3/1 up/down: 23/-14)              Total: 9 bytes
++
++Upstream-Status: Backport [https://github.com/vda-linux/busybox_mirror/commit/85acf71d2579ebe4eec05c6f31901adffa700adc]
++
++Signed-off-by: Miroslav Lichvar <mlichvar@redhat.com>
++Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
++Signed-off-by: Philipp Schöwe <philipp.schoewe@iris-sensing.com>
++---
++ networking/ntpd.c | 14 +++++++++++---
++ 1 file changed, 11 insertions(+), 3 deletions(-)
++
++diff --git a/networking/ntpd.c b/networking/ntpd.c
++index 6bf6c4e07..c6c6fb1a7 100644
++--- a/networking/ntpd.c
+++++ b/networking/ntpd.c
++@@ -554,7 +554,7 @@ gettime1900d(void)
++ static void
++ d_to_tv(struct timeval *tv, double d)
++ {
++-	tv->tv_sec = (long)d;
+++	tv->tv_sec = (time_t)d;
++ 	tv->tv_usec = (d - tv->tv_sec) * 1000000;
++ }
++ 
++@@ -565,6 +565,14 @@ lfp_to_d(l_fixedpt_t lfp)
++ 	lfp.int_partl = ntohl(lfp.int_partl);
++ 	lfp.fractionl = ntohl(lfp.fractionl);
++ 	ret = (double)lfp.int_partl + ((double)lfp.fractionl / UINT_MAX);
+++	/*
+++	 * Shift timestamps before 1970 to the second NTP era (2036-2106):
+++	 * int_partl value of OFFSET_1900_1970 (2208988800) is interpreted as
+++	 * the start of year 1970 and it is the minimal representable time,
+++	 * all values form the sequence 2208988800..0xffffffff,0..2208988799.
+++	 */
+++	if (lfp.int_partl < OFFSET_1900_1970)
+++		ret += (double)(1ULL << 32); /* because int_partl is 32-bit wide */
++ 	return ret;
++ }
++ static NOINLINE double
++@@ -582,8 +590,8 @@ d_to_lfp(l_fixedpt_t *lfp, double d)
++ {
++ 	uint32_t intl;
++ 	uint32_t frac;
++-	intl = (uint32_t)d;
++-	frac = (uint32_t)((d - intl) * UINT_MAX);
+++	intl = (uint32_t)(time_t)d;
+++	frac = (uint32_t)((d - (time_t)d) * UINT_MAX);
++ 	lfp->int_partl = htonl(intl);
++ 	lfp->fractionl = htonl(frac);
++ }
+diff --git a/meta/recipes-core/busybox/busybox_1.36.1.bb b/meta/recipes-core/busybox/busybox_1.36.1.bb
+index 7929d396c8..f0ad99cd17 100644
+--- a/meta/recipes-core/busybox/busybox_1.36.1.bb
++++ b/meta/recipes-core/busybox/busybox_1.36.1.bb
+@@ -66,6 +66,7 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
+            file://CVE-2026-26157-CVE-2026-26158-02.patch \
+            file://CVE-2026-29004-01.patch \
+            file://CVE-2026-29004-02.patch \
++           file://0001-ntpd-make-NTP-client-and-server-Y2036-2038-ready.patch \
+            "
+ SRC_URI:append:libc-musl = " file://musl.cfg "
+ # TODO http://lists.busybox.net/pipermail/busybox/2023-January/090078.html
