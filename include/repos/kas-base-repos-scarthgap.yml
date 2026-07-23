@@ -17,6 +17,8 @@ repos:
         path: "patches/poky/0001-Revert-avahi-handle-invalid-service-types-gracefully.patch"
       0002-python3-rpds-py-Create-a-symlink-for-cython-module-o.patch:
         path: "patches/poky/0002-python3-rpds-py-Create-a-symlink-for-cython-module-o.patch"
+      0003-busybox-ntpd-make-NTP-client-and-server-Y2036-2038-r.patch:
+        path: "patches/poky/0003-busybox-ntpd-make-NTP-client-and-server-Y2036-2038-r.patch"
   meta-openembedded:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/openembedded/meta-openembedded"
