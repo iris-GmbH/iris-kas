@@ -24,3 +24,7 @@ overrides:
             commit: 3421a7063a58e4e027130326ab3acccbe3230b30
         poky:
             commit: 200d12b6a58ad961d60a7774ca0f7a9d29498724
+local_conf_header:
+  osselot_srcrev: |
+        # Last package-analysis commit before the successful 2025-01-23 support build.
+        OSSELOT_SRCREV = "6a392193b6a47cf82be502a7caaccdbd742b169c"
