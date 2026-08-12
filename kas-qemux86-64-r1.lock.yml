@@ -7,7 +7,7 @@ overrides:
         meta-cyclonedx:
             commit: a291529e4544a196a6b6c50cb76efe44347f28b3
         meta-iris:
-            commit: d2acf3bf878ece86b9aa06efb0cca542ca4e4448
+            commit: e2c52112ca057e704b947d80eda7f4e0adb4bf6e
         meta-iris-base:
             commit: ef4dfd535b977fe9fa83cfc82bef4d9e1e1e9eae
         meta-iris-thirdparty:
