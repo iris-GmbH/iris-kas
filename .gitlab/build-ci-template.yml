@@ -836,6 +836,11 @@ test-oci-ptest-full:
 systemtests:
   stage: test
   rules:
+    # imx93-matrixup is not supported by the sensor-rack systemtest downstreams yet.
+    # Triggering them would filter out all downstream matrix jobs and fail with
+    # "Resulting pipeline is empty".
+    - if: '$RUN_MULTI_CONF == "imx93-matrixup"'
+      when: never
     - !reference [.release_template, rules]
     - if: '$ORIGIN_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
     - if: '$SKIP_SYSTEMTEST == "false"'
