@@ -848,9 +848,13 @@ systemtests:
   needs:
     - job: develop-build-maintenance-image
       optional: true
+    - job: develop-build-dev-deploy-image
+      optional: true
     - job: develop-ci-build-setup
       optional: true
     - job: release-build-maintenance-image
+      optional: true
+    - job: release-build-dev-deploy-image
       optional: true
     - job: release-ci-build-setup
       optional: true
