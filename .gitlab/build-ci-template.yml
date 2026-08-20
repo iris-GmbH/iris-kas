@@ -872,6 +872,8 @@ systemtests:
         PROJECT: mtv/test-and-measurement-application/factory-reset
       - NAME: irma-general
         PROJECT: mtv/test-and-measurement-application/systemtest-irma-general
+      - NAME: irma6-webapi
+        PROJECT: mtv/test-and-measurement-application/systemtest-irma6-webapi
   trigger:
     project: $PROJECT
     branch: develop
