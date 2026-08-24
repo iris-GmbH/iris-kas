@@ -864,19 +864,31 @@ systemtests:
     matrix:
       - NAME: restart-device
         PROJECT: mtv/test-and-measurement-application/restart-device
+        # renovate: depName=mtv/test-and-measurement-application/restart-device
+        SYSTEMTEST_REF: v1.1.7
       - NAME: systemtest-itxpt
         PROJECT: mtv/test-and-measurement-application/systemtest-itxpt
+        # renovate: depName=mtv/test-and-measurement-application/systemtest-itxpt
+        SYSTEMTEST_REF: v1.2.2
       - NAME: firmware-update-test
         PROJECT: mtv/test-and-measurement-application/firmware-update-test
+        # renovate: depName=mtv/test-and-measurement-application/firmware-update-test
+        SYSTEMTEST_REF: v1.2.2
       - NAME: factory-reset
         PROJECT: mtv/test-and-measurement-application/factory-reset
+        # renovate: depName=mtv/test-and-measurement-application/factory-reset
+        SYSTEMTEST_REF: v1.1.3
       - NAME: irma-general
         PROJECT: mtv/test-and-measurement-application/systemtest-irma-general
+        # renovate: depName=mtv/test-and-measurement-application/systemtest-irma-general
+        SYSTEMTEST_REF: v1.0.3
       - NAME: irma6-webapi
         PROJECT: mtv/test-and-measurement-application/systemtest-irma6-webapi
+        # renovate: depName=mtv/test-and-measurement-application/systemtest-irma6-webapi
+        SYSTEMTEST_REF: v1.1.8
   trigger:
     project: $PROJECT
-    branch: develop
+    branch: $SYSTEMTEST_REF
     strategy: depend
 
 ##############################

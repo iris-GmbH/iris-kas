@@ -29,6 +29,17 @@
         "#\\s*renovate:\\s*depType=(?<depType>.*?)\\s+gitUrl=(?<depName>.*?)\\s+branch=(?<currentValue>.*?)\\n\\s*OSSELOT_SRCREV\\s*=\\s*\"(?<currentDigest>.*?)\""
       ],
       "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.gitlab/build-ci-template\\.yml$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*depName=(?<depName>\\S+)\\s+SYSTEMTEST_REF:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
+      "datasourceTemplate": "gitlab-tags",
+      "depTypeTemplate": "systemtests",
+      "versioningTemplate": "semver",
+      "registryUrlTemplate": "https://gitlab.devops.defra01.iris-sensing.net"
     }
   ],
   "packageRules": [
@@ -47,13 +58,16 @@
       "prBodyColumns": ["Package", "Type", "Update", "Change", "Git branch"]
     },
     {
-      "matchDepTypes": ["osselot-package-analysis"],
-      "groupName": "Osselot Package Analysis",
-      "groupSlug": "osselot-package-analysis",
+      "matchDepTypes": ["osselot-package-analysis", "systemtests"],
       "automerge": true,
       "automergeStrategy": "rebase",
       "ignoreTests": true,
-      "automergeType": "branch",
+      "automergeType": "branch"
+    },
+    {
+      "matchDepTypes": ["osselot-package-analysis"],
+      "groupName": "Osselot Package Analysis",
+      "groupSlug": "osselot-package-analysis",
       "schedule": ["* * * * 7"],
       "additionalReviewers": [
         "michael.glembotzki",
