@@ -886,6 +886,10 @@ systemtests:
         PROJECT: mtv/test-and-measurement-application/systemtest-irma6-webapi
         # renovate: depName=mtv/test-and-measurement-application/systemtest-irma6-webapi
         SYSTEMTEST_REF: v1.1.8
+      - NAME: systemtest-qip
+        PROJECT: mtv/test-and-measurement-application/systemtest-qip
+        # renovate: depName=mtv/test-and-measurement-application/systemtest-qip
+        SYSTEMTEST_REF: v1.0.6
   trigger:
     project: $PROJECT
     branch: $SYSTEMTEST_REF
