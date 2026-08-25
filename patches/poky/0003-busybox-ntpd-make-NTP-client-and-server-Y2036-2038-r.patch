@@ -113,10 +113,10 @@ diff --git a/meta/recipes-core/busybox/busybox_1.36.1.bb b/meta/recipes-core/bus
 index 7929d396c8..f0ad99cd17 100644
 --- a/meta/recipes-core/busybox/busybox_1.36.1.bb
 +++ b/meta/recipes-core/busybox/busybox_1.36.1.bb
-@@ -66,6 +66,7 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
-            file://CVE-2026-26157-CVE-2026-26158-02.patch \
+@@ -67,6 +67,7 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
             file://CVE-2026-29004-01.patch \
             file://CVE-2026-29004-02.patch \
+            file://CVE-2026-38754.patch \
 +           file://0001-ntpd-make-NTP-client-and-server-Y2036-2038-ready.patch \
             "
  SRC_URI:append:libc-musl = " file://musl.cfg "
