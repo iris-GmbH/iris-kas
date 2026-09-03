@@ -428,6 +428,7 @@ release-build-dev-deploy-image:
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-cyclonedx.yml";
       fi
     - make kas-build
+    - echo "USE_DEV_DEPLOY=true" >> build.env
 
 develop-build-dev-deploy-image:
   extends: .build-dev-deploy-image
@@ -848,9 +849,13 @@ systemtests:
   needs:
     - job: develop-build-maintenance-image
       optional: true
+    - job: develop-build-dev-deploy-image
+      optional: true
     - job: develop-ci-build-setup
       optional: true
     - job: release-build-maintenance-image
+      optional: true
+    - job: release-build-dev-deploy-image
       optional: true
     - job: release-ci-build-setup
       optional: true
@@ -860,6 +865,7 @@ systemtests:
     RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
     UPSTREAM_PIPELINE_ID: "$UPSTREAM_PIPELINE_ID"
     RUN_MULTI_CONF: "$RUN_MULTI_CONF"
+    USE_DEV_DEPLOY: "false"
   parallel:
     matrix:
       - NAME: restart-device
@@ -894,6 +900,8 @@ systemtests:
     project: $PROJECT
     branch: $SYSTEMTEST_REF
     strategy: depend
+    forward:
+      pipeline_variables: true
 
 ##############################
 ### UPLOAD ARTIFACTS STAGE ###
