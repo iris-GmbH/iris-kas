@@ -875,7 +875,7 @@ systemtests:
       - NAME: systemtest-itxpt
         PROJECT: mtv/test-and-measurement-application/systemtest-itxpt
         # renovate: depName=mtv/test-and-measurement-application/systemtest-itxpt
-        SYSTEMTEST_REF: v1.2.2
+        SYSTEMTEST_REF: v1.2.3
       - NAME: firmware-update-test
         PROJECT: mtv/test-and-measurement-application/firmware-update-test
         # renovate: depName=mtv/test-and-measurement-application/firmware-update-test
