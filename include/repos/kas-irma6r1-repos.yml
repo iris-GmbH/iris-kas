@@ -13,7 +13,7 @@ repos:
   lnxdsp-adi-meta:
     # renovate: depType=upstream-meta-layers branch=release/yocto-3.1.2
     url: "https://github.com/analogdevicesinc/lnxdsp-adi-meta"
-    commit: "c97e77bbfc2191c66c39c883ea319dff4813f130"
+    commit: "7f9ce5c14fb83e643d329441973548715b182997"
     layers:
       meta-adi-adsp-sc5xx:
     patches:
