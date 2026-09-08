@@ -883,7 +883,7 @@ systemtests:
       - NAME: factory-reset
         PROJECT: mtv/test-and-measurement-application/factory-reset
         # renovate: depName=mtv/test-and-measurement-application/factory-reset
-        SYSTEMTEST_REF: v1.1.3
+        SYSTEMTEST_REF: v1.1.4
       - NAME: irma-general
         PROJECT: mtv/test-and-measurement-application/systemtest-irma-general
         # renovate: depName=mtv/test-and-measurement-application/systemtest-irma-general
