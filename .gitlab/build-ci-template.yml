@@ -897,7 +897,7 @@ systemtests:
       - NAME: systemtest-qip
         PROJECT: mtv/test-and-measurement-application/systemtest-qip
         # renovate: depName=mtv/test-and-measurement-application/systemtest-qip
-        SYSTEMTEST_REF: v1.0.6
+        SYSTEMTEST_REF: v1.0.7
       - NAME: systemtest-uip
         PROJECT: mtv/test-and-measurement-application/systemtest-uip
         # renovate: depName=mtv/test-and-measurement-application/systemtest-uip
