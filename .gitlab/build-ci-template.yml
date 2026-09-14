@@ -963,7 +963,7 @@ develop-push-maintenance-oci:
 .create-sdk-container-images:
   stage: upload-artifacts
   tags:
-    - gp
+    - gp-large
   parallel:
     matrix:
       - <<: *all_multi_confs
