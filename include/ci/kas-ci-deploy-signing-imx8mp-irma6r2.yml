@@ -24,3 +24,7 @@ local_conf_header:
   # override download develop keys with production keys for release
   dl_signing:
     DOWNLOAD_CRT = "/vault/secrets/download/r2.crt"
+  
+  # override service ca - for beta instance verification
+  service_ca: |
+    SERVICE_IDENTITY_CA_CERT = "/vault/secrets/service-ca.pem"
