@@ -640,6 +640,10 @@ mr-artifact-links:
       optional: true
     - job: release-ci-build-setup
       optional: true
+  tags:
+    - gp-tiny
+  variables:
+    GIT_STRATEGY: none
   image: dwdraju/alpine-curl-jq
   allow_failure: true
   script:
@@ -717,8 +721,8 @@ mr-artifact-links:
       BODY=$(cat <<EOF
       ##### Maintenance Firmware's
       - [$(basename $ZIP_URL_R1)]($ZIP_URL_R1)
-      - [$(basename $SWU_URL_R2)]($SWU_URL_R2)/[$(basename $UUU_URL_R2)]($UUU_URL_R2)
-      - [$(basename $SWU_URL_MX)]($SWU_URL_MX)/[$(basename $UUU_URL_MX)]($UUU_URL_MX)
+      - [$(basename $SWU_URL_R2)]($SWU_URL_R2) / [$(basename $UUU_URL_R2)]($UUU_URL_R2)
+      - [$(basename $SWU_URL_MX)]($SWU_URL_MX) / [$(basename $UUU_URL_MX)]($UUU_URL_MX)
       EOF
       )
 
