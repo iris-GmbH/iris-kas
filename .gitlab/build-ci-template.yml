@@ -629,7 +629,7 @@ release-build-deploy:
 
 mr-artifact-links:
   rules:
-    - if: '( $CI_MERGE_REQUEST_IID || $UPSTREAM_MR_IID ) && $SKIP_MR_COMMENT != "true"'
+    - if: '( $CI_MERGE_REQUEST_IID || $UPSTREAM_HAS_MERGE_REQUEST == "true" ) && $SKIP_MR_COMMENT != "true"'
   stage: merge-request-bot
   needs:
     - job: develop-build-maintenance-image
@@ -652,6 +652,11 @@ mr-artifact-links:
 
       echo "CI_MERGE_REQUEST_IID: $CI_MERGE_REQUEST_IID"
       echo "UPSTREAM_MR_IID: $UPSTREAM_MR_IID"
+
+      if [[ -z "$CI_MERGE_REQUEST_IID" && -z "$UPSTREAM_MR_IID" ]]; then
+          echo "No merge request is associated with this pipeline; skipping comment creation."
+          exit 0
+      fi
 
       if [[ -z "$UPSTREAM_PIPELINE_ID" ]]; then
           echo "WARNING: UPSTREAM_PIPELINE_ID is empty" >&2

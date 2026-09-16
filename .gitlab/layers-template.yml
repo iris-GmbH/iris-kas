@@ -89,7 +89,6 @@ update-non-protected-branch:
   variables:
     UPSTREAM_PROJECT_NAME: $CI_PROJECT_NAME
     UPSTREAM_PROJECT_ID: $CI_PROJECT_ID
-    UPSTREAM_MR_IID: $CI_MERGE_REQUEST_IID
     UPSTREAM_COMMIT_SHORT_SHA: $CI_COMMIT_SHORT_SHA
     BRANCH_NAME: $CI_COMMIT_REF_NAME
     BRANCH_NAME_SLUG: $CI_COMMIT_REF_SLUG
@@ -104,6 +103,9 @@ trigger-kas-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      variables:
+        UPSTREAM_HAS_MERGE_REQUEST: "true"
+        UPSTREAM_MR_IID: $CI_MERGE_REQUEST_IID
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'
       when: never
     - when: on_success
