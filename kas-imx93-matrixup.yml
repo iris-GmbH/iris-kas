@@ -5,7 +5,7 @@ header:
   version: 14
   includes:
     - include/kas-base.yml
-    - include/kas-matrix.yml
+    - include/kas-matrixup.yml
 
 target:
   - multiconfig:imx93-matrixup

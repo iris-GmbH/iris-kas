@@ -5,8 +5,8 @@ header:
   version: 14
   includes:
     - include/kas-base.yml
-    - include/kas-matrix.yml
+    - include/kas-matrixup.yml
     - include/repos/kas-meta-virtualization-repo-scarthgap.yml
 
 target:
-  - multiconfig:qemuarm64-matrix
+  - multiconfig:qemux86-64-matrixup
