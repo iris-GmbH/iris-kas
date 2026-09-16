@@ -321,6 +321,9 @@ develop-generate-pipeline:
   stage: trigger-generated-pipeline
   variables:
     ORIGIN_PIPELINE_SOURCE: "$CI_PIPELINE_SOURCE"
+    # Pass the pre-filled value explicitly when creating the dynamic child
+    # pipeline so its rules evaluate the value selected in the web UI.
+    SKIP_SYSTEMTEST: "$SKIP_SYSTEMTEST"
   trigger:
     include:
       - artifact: .gitlab/build-ci-template.yml
