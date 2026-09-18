@@ -28,3 +28,4 @@ local_conf_header:
   # override service ca - for beta instance verification
   service_ca: |
     SERVICE_IDENTITY_CA_CERT = "/vault/secrets/service-ca.pem"
+    SERVICE_IDENTITY_CA_CERT_SHA256 = "5fea3417d30080d4d96fe274b68308ab15e7ebf1b01c1fcc1db5abde1c9510d9"
