@@ -943,19 +943,29 @@ systemtests-teams-notification:
     - |
       set -eu
 
-      systemtest_jobs=$(curl --fail-with-body --silent --show-error \
+      systemtest_bridges=$(curl --fail-with-body --silent --show-error \
         --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?include_retried=true&per_page=100" |
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges?per_page=100" |
         jq '[.[] | select(
           .name == "systemtests" or
           (.name | startswith("systemtests:"))
         )]')
 
-      systemtest_count=$(printf '%s' "$systemtest_jobs" | jq 'length')
-      failed_count=$(printf '%s' "$systemtest_jobs" |
+      systemtest_count=$(printf '%s' "$systemtest_bridges" | jq 'length')
+      failed_count=$(printf '%s' "$systemtest_bridges" |
         jq '[.[] | select(.status == "failed")] | length')
-      printf 'Systemtest bridge jobs: %s\n' \
-        "$(printf '%s' "$systemtest_jobs" | jq -c '[.[] | {name, status, allow_failure}]')"
+      failed_systemtests=$(printf '%s' "$systemtest_bridges" | jq -r '
+        [ .[]
+          | select(.status == "failed")
+          | (.name | if startswith("systemtests: [") then ltrimstr("systemtests: [") | split(",")[0] else . end) as $test
+          | if .downstream_pipeline? then
+              "- " + $test + " [#" + (.downstream_pipeline.id | tostring) + "](" + .downstream_pipeline.web_url + ")"
+            else
+              "- " + $test
+            end
+        ] | join("\n")')
+      printf 'Systemtest bridges: %s\n' \
+        "$(printf '%s' "$systemtest_bridges" | jq -c '[.[] | {name, status, allow_failure, downstream_pipeline}]')"
 
       # Pipeline duty alternates weekly: Team IRMA owns odd ISO calendar weeks,
       # Team VerA owns even ISO calendar weeks.
@@ -978,10 +988,19 @@ systemtests-teams-notification:
         --arg style "$card_style" \
         --arg title "$card_title" \
         --arg pipelineDuty "- Pipeline Duty: $pipeline_duty" \
+        --arg failedSystemtests "$failed_systemtests" \
         '
         .body[0].style = $style |
         .body[0].items[0].text = $title |
-        .body[0].items[1].text = $pipelineDuty
+        .body[0].items[1].text = $pipelineDuty |
+        if $failedSystemtests == "" then . else
+          .body[0].items += [{
+            type: "TextBlock",
+            text: $failedSystemtests,
+            spacing: "None",
+            wrap: true
+          }]
+        end
         ' .gitlab/teams-notification-card.json > teams-notification-card.rendered.json
 
       jq -n --slurpfile card teams-notification-card.rendered.json '{
