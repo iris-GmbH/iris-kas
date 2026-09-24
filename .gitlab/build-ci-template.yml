@@ -936,6 +936,8 @@ systemtests-teams-notification:
   before_script:
     - apk add --no-cache curl jq
   rules:
+    - if: '$ORIGIN_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: always
     - if: '$SKIP_SYSTEMTEST == "false"'
       when: always
     - when: never
