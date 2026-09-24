@@ -932,7 +932,7 @@ systemtests-teams-notification:
       artifacts: false
   tags:
     - gp-tiny
-  image: alpine:3.22
+  image: alpine:3.24
   before_script:
     - apk add --no-cache curl jq
   rules:
