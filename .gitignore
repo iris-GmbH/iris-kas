@@ -13,3 +13,5 @@
 /tmp/
 
 .kas_shell_history
+/teams-notification-card.rendered.json
+/teams-notification-payload.json

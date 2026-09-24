@@ -120,6 +120,7 @@ stages:
   - merge-request-bot
   - push-test-images
   - test
+  - systemtest-notification
   - reliability-test
   - upload-artifacts
   - release
@@ -922,6 +923,100 @@ systemtests:
     strategy: depend
     forward:
       pipeline_variables: true
+
+systemtests-teams-notification:
+  stage: systemtest-notification
+  needs:
+    - job: systemtests
+      optional: true
+      artifacts: false
+  tags:
+    - gp-tiny
+  image: alpine:3.22
+  before_script:
+    - apk add --no-cache curl jq
+  rules:
+    - if: '$SKIP_SYSTEMTEST == "false"'
+      when: always
+    - when: never
+  script:
+    - |
+      set -eu
+
+      systemtest_bridges=$(curl --fail-with-body --silent --show-error \
+        --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges?per_page=100" |
+        jq '[.[] | select(
+          .name == "systemtests" or
+          (.name | startswith("systemtests:"))
+        )]')
+
+      systemtest_count=$(printf '%s' "$systemtest_bridges" | jq 'length')
+      failed_count=$(printf '%s' "$systemtest_bridges" |
+        jq '[.[] | select(.status == "failed")] | length')
+      failed_systemtests=$(printf '%s' "$systemtest_bridges" | jq -r '
+        [ .[]
+          | select(.status == "failed")
+          | (.name | if startswith("systemtests: [") then ltrimstr("systemtests: [") | split(",")[0] else . end) as $test
+          | if .downstream_pipeline? then
+              "- " + $test + " [#" + (.downstream_pipeline.id | tostring) + "](" + .downstream_pipeline.web_url + ")"
+            else
+              "- " + $test
+            end
+        ] | join("\n")')
+      printf 'Systemtest bridges: %s\n' \
+        "$(printf '%s' "$systemtest_bridges" | jq -c '[.[] | {name, status, allow_failure, downstream_pipeline}]')"
+
+      # Pipeline duty alternates weekly: Team IRMA owns odd ISO calendar weeks,
+      # Team VerA owns even ISO calendar weeks.
+      week_number=$(date +%V | sed 's/^0//')
+      if [ $((week_number % 2)) -eq 0 ]; then
+        pipeline_duty="Team VerA"
+      else
+        pipeline_duty="Team IRMA"
+      fi
+
+      if [ "$failed_count" -gt 0 ]; then
+        card_style="attention"
+        card_title="[iris-kas] Systemtests failed [#$CI_PIPELINE_ID]($CI_PIPELINE_URL)"
+      else
+        card_style="good"
+        card_title="[iris-kas] Systemtests passed [#$CI_PIPELINE_ID]($CI_PIPELINE_URL)"
+      fi
+
+      jq \
+        --arg style "$card_style" \
+        --arg title "$card_title" \
+        --arg pipelineDuty "- Pipeline Duty: $pipeline_duty" \
+        --arg failedSystemtests "$failed_systemtests" \
+        '
+        .body[0].style = $style |
+        .body[0].items[0].text = $title |
+        .body[0].items[1].text = $pipelineDuty |
+        if $failedSystemtests == "" then . else
+          .body[0].items += [{
+            type: "TextBlock",
+            text: $failedSystemtests,
+            spacing: "None",
+            wrap: true
+          }]
+        end
+        ' .gitlab/teams-notification-card.json > teams-notification-card.rendered.json
+
+      jq -n --slurpfile card teams-notification-card.rendered.json '{
+        type: "message",
+        attachments: [{
+          contentType: "application/vnd.microsoft.card.adaptive",
+          contentUrl: null,
+          content: $card[0]
+        }]
+      }' > teams-notification-payload.json
+
+      curl --fail-with-body --silent --show-error \
+        -H 'Content-Type: application/json' \
+        --data-binary @teams-notification-payload.json \
+        "$TEAMS_WEBHOOK_URL"
+      echo "Teams notification sent for $systemtest_count systemtest bridge job(s), $failed_count failed."
 
 ##############################
 ### UPLOAD ARTIFACTS STAGE ###
