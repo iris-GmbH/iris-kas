@@ -15,7 +15,7 @@ repos:
   meta-freescale-distro:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/Freescale/meta-freescale-distro"
-    commit: "b9d6a5d9931922558046d230c1f5f4ef6ee72345"
+    commit: "2642b34e4c66ec1419e7f3a7a77a20b09e49e26b"
   meta-swupdate:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/sbabic/meta-swupdate"
