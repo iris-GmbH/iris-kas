@@ -1199,9 +1199,11 @@ upload-cyclonedx-to-dependencytrack:
       if test -n "${CI_COMMIT_TAG}"; then
         DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}")"
       fi
-    # upload sbom and vex file
-    - SBOM_FILE="$(echo "$CYCLONEDX_EXPORT_SBOM" | sed "s%${KAS_TMPDIR}%${KAS_ARTIFACT_FOLDER}%g")"
-    - VEX_FILE="$(echo "$CYCLONEDX_EXPORT_VEX" | sed "s%${KAS_TMPDIR}%${KAS_ARTIFACT_FOLDER}%g")"
+    # meta-iris-base merges the initramfs SBOM and VEX into irma-deploy, then
+    # exports both documents using the image link name in DEPLOY_DIR_IMAGE.
+    - SBOM_FILE="$(find "${KAS_ARTIFACT_FOLDER}/deploy/images" -type f -name 'irma-deploy-*.cyclonedx.bom.json' -print -quit)"
+    - VEX_FILE="${SBOM_FILE%.bom.json}.vex.json"
+    - test -f "${SBOM_FILE}" && test -f "${VEX_FILE}"
     - ${CI_PROJECT_DIR}/utils/scripts/upload-cyclonedx-to-dependencytrack.sh -u ${DEPENDENCYTRACK_API_URL} -k ${DEPENDENCYTRACK_API_KEY} -p ${DEPENDENCYTRACK_PROJECT} -b ${SBOM_FILE} -v ${VEX_FILE}
 
 #####################
