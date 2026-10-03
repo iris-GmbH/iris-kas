@@ -30,7 +30,7 @@ variables:
   KAS_LOCK_FILE_ARTIFACT_LOCATION: "${CI_PROJECT_DIR}/${KAS_ARTIFACT_FOLDER}/${KAS_LOCK_FILE_NAME}"
   RUN_MAINTENANCE: "false"
   WIPE_SSTATE_CACHE: "false"
-  DEPENDENCYTRACK_API_URL: "http://iris-devops-dependencytrack-api.dependencytrack.svc.cluster.local/api"
+  DEPENDENCYTRACK_API_URL: "https://dependencytrack.devops.defra01.iris-sensing.net/api"
   # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
   # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
   IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
