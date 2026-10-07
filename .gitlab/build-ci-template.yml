@@ -193,6 +193,8 @@ develop-ci-build-setup:
       fi
     - echo "KASFILE_EXTRA=${KASFILE_EXTRA}" >> build.env
     - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
+    - echo "USE_DEV_DEPLOY=${USE_DEV_DEPLOY:-false}" >> build.env
+    - echo "KEEP_ROBOT_LOG_ARTIFACTS=${KEEP_ROBOT_LOG_ARTIFACTS:-false}" >> build.env
     - |
       RUN_MULTI_CONF=""
       case "${BUILD_TARGETS:-}" in
@@ -223,6 +225,8 @@ release-ci-build-setup:
     - echo "SKIP_PTEST_TESTS=false" >> build.env
     - echo "SKIP_SYSTEMTEST=false" >> build.env
     - echo "UPSTREAM_PIPELINE_ID=${CI_PIPELINE_ID}" >> build.env
+    - echo "USE_DEV_DEPLOY=${USE_DEV_DEPLOY:-true}" >> build.env
+    - echo "KEEP_ROBOT_LOG_ARTIFACTS=${KEEP_ROBOT_LOG_ARTIFACTS:-true}" >> build.env
     - |
       RUN_MULTI_CONF=""
       case "${CI_COMMIT_TAG:-}" in
@@ -429,8 +433,6 @@ release-build-dev-deploy-image:
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-cyclonedx.yml";
       fi
     - make kas-build
-    - echo "USE_DEV_DEPLOY=true" >> build.env
-    - echo "KEEP_ROBOT_LOG_ARTIFACTS=true" >> build.env
 
 develop-build-dev-deploy-image:
   extends: .build-dev-deploy-image
@@ -881,8 +883,6 @@ systemtests:
     RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
     UPSTREAM_PIPELINE_ID: "$UPSTREAM_PIPELINE_ID"
     RUN_MULTI_CONF: "$RUN_MULTI_CONF"
-    USE_DEV_DEPLOY: "false"
-    KEEP_ROBOT_LOG_ARTIFACTS: "false"
   parallel:
     matrix:
       - NAME: restart-device
