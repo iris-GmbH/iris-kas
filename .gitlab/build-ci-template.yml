@@ -917,6 +917,10 @@ systemtests:
         PROJECT: mtv/test-and-measurement-application/systemtest-uip
         # renovate: depName=mtv/test-and-measurement-application/systemtest-uip
         SYSTEMTEST_REF: v0.1.6
+      - NAME: systemtest-vlair
+        PROJECT: mtv/test-and-measurement-application/systemtest-vlair
+        # renovate: depName=mtv/test-and-measurement-application/systemtest-vlair
+        SYSTEMTEST_REF: v0.1.2
   trigger:
     project: $PROJECT
     branch: $SYSTEMTEST_REF
