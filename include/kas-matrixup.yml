@@ -7,7 +7,7 @@ header:
     - include/repos/kas-matrixup-repos.yml
 
 env:
-  IRIS_PRODUCT: matrixup
+  IRIS_PRODUCT: mxup
 
 bblayers_conf_header:
   fsl_eula: |
