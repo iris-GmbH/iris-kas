@@ -69,7 +69,7 @@ variables:
     description: 'Set to "true" to build from scratch.'
   BUILD_TARGETS:
     value: ""
-    description: "Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, matrixup, imx93-evk. If left empty, all available products (except imx93-evk) will be built."
+    description: "Specify one or more products you want to build as a space separated string. Currently supported products: irma6r2, irma6r1, mxup, imx93-evk. If left empty, all available products (except imx93-evk) will be built."
   ENABLE_PA_CCACHE:
     value: "true"
     description: 'Set to "false" to disable ccache for the PA'
@@ -258,7 +258,7 @@ release-generate-pipeline:
           yq -i '.".target_multi_confs".MULTI_CONF = ["imx8mp-irma6r2"]' .gitlab/build-ci-template.yml
           yq -i '.".oci_multi_confs".MULTI_CONF = ["qemux86-64-r2"]' .gitlab/build-ci-template.yml
           yq -i '.".all_multi_confs".MULTI_CONF = ["imx8mp-irma6r2", "qemux86-64-r2"]' .gitlab/build-ci-template.yml
-      elif [[ "${CI_COMMIT_TAG}" =~ ^matrixup-.* ]]; then
+      elif [[ "${CI_COMMIT_TAG}" =~ ^mxup-.* ]]; then
           yq -i '.".target_multi_confs".MULTI_CONF = ["imx93-matrixup"]' .gitlab/build-ci-template.yml
           yq -i '.".oci_multi_confs".MULTI_CONF = ["qemux86-64-matrixup"]' .gitlab/build-ci-template.yml
           yq -i '.".all_multi_confs".MULTI_CONF = ["imx93-matrixup", "qemux86-64-matrixup"]' .gitlab/build-ci-template.yml
