@@ -888,7 +888,7 @@ systemtests:
       - NAME: restart-device
         PROJECT: mtv/test-and-measurement-application/restart-device
         # renovate: depName=mtv/test-and-measurement-application/restart-device
-        SYSTEMTEST_REF: v1.1.7
+        SYSTEMTEST_REF: v1.1.8
       - NAME: systemtest-itxpt
         PROJECT: mtv/test-and-measurement-application/systemtest-itxpt
         # renovate: depName=mtv/test-and-measurement-application/systemtest-itxpt
