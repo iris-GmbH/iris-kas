@@ -900,7 +900,7 @@ systemtests:
       - NAME: factory-reset
         PROJECT: mtv/test-and-measurement-application/factory-reset
         # renovate: depName=mtv/test-and-measurement-application/factory-reset
-        SYSTEMTEST_REF: v1.1.5
+        SYSTEMTEST_REF: v1.1.6
       - NAME: irma-general
         PROJECT: mtv/test-and-measurement-application/systemtest-irma-general
         # renovate: depName=mtv/test-and-measurement-application/systemtest-irma-general
