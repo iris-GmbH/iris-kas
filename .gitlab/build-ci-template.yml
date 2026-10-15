@@ -908,7 +908,7 @@ systemtests:
       - NAME: irma6-webapi
         PROJECT: mtv/test-and-measurement-application/systemtest-irma6-webapi
         # renovate: depName=mtv/test-and-measurement-application/systemtest-irma6-webapi
-        SYSTEMTEST_REF: v1.1.8
+        SYSTEMTEST_REF: v1.1.9
       - NAME: systemtest-qip
         PROJECT: mtv/test-and-measurement-application/systemtest-qip
         # renovate: depName=mtv/test-and-measurement-application/systemtest-qip
