@@ -904,7 +904,7 @@ systemtests:
       - NAME: irma-general
         PROJECT: mtv/test-and-measurement-application/systemtest-irma-general
         # renovate: depName=mtv/test-and-measurement-application/systemtest-irma-general
-        SYSTEMTEST_REF: v1.0.3
+        SYSTEMTEST_REF: v1.0.4
       - NAME: irma6-webapi
         PROJECT: mtv/test-and-measurement-application/systemtest-irma6-webapi
         # renovate: depName=mtv/test-and-measurement-application/systemtest-irma6-webapi
