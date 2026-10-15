@@ -916,7 +916,7 @@ systemtests:
       - NAME: systemtest-uip
         PROJECT: mtv/test-and-measurement-application/systemtest-uip
         # renovate: depName=mtv/test-and-measurement-application/systemtest-uip
-        SYSTEMTEST_REF: v0.1.6
+        SYSTEMTEST_REF: v0.1.7
       - NAME: systemtest-vlair
         PROJECT: mtv/test-and-measurement-application/systemtest-vlair
         # renovate: depName=mtv/test-and-measurement-application/systemtest-vlair
