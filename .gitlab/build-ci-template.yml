@@ -896,7 +896,7 @@ systemtests:
       - NAME: firmware-update-test
         PROJECT: mtv/test-and-measurement-application/firmware-update-test
         # renovate: depName=mtv/test-and-measurement-application/firmware-update-test
-        SYSTEMTEST_REF: v1.2.3
+        SYSTEMTEST_REF: v1.2.4
       - NAME: factory-reset
         PROJECT: mtv/test-and-measurement-application/factory-reset
         # renovate: depName=mtv/test-and-measurement-application/factory-reset
