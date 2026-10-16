@@ -61,7 +61,7 @@ export KAS_CONTAINER_IMAGE ?= registry.devops.defra01.iris-sensing.net/public-pr
 export KAS_CONTAINER_OPTIONS ?= --ssh-dir ${SSH_DIR}
 export IRIS_KAS_CONTAINER_PULL ?= always
 export IRMA_DISTRO_VERSION ?= ${DEFAULT_IRMA_DISTRO_VERSION}
-export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas-container \
+export KAS_EXE ?= KAS_CONTAINER_IMAGE=${KAS_CONTAINER_IMAGE} ${MAKEFILE_DIR}kas/kas-container \
 	--runtime-args " \
 	--pull ${IRIS_KAS_CONTAINER_PULL} \
 	-e IRMA_DISTRO_VERSION=${IRMA_DISTRO_VERSION} \
@@ -140,17 +140,17 @@ KASFILE_GENERATED := ${KAS_BASE_CONFIG_FILE}${KASFILE_EXTRA_LIST}
 # KAS command to assign the actual value, thus overriding the default IRIS_PRODUCT value
 # set as a "env" in the product specific KAS config file.
 export _IRIS_PRODUCT ?= $(shell ${KAS_COMMAND} shell -c 'echo $${IRIS_PRODUCT}' ${KASFILE})
-ifneq (${.SHELLSTATUS}, 0)
-	$(error Could not determine IRIS_PRODUCT)
-endif
 # Re-assigning the variable with := prevents re-running the KAS command everytime the variable is referenced
 export _IRIS_PRODUCT := ${_IRIS_PRODUCT}
+ifneq (${.SHELLSTATUS}, 0)
+	$(error Could not determine IRIS_PRODUCT (KAS output: ${_IRIS_PRODUCT}))
+endif
 # Use the _IRIS_PRODUCT variable to identify the products next version if version is not explicitly set
 ifeq (${DEFAULT_IRMA_DISTRO_VERSION}, ${IRMA_DISTRO_VERSION})
 	ifneq (${CI_PIPELINE_ID},)
 		GENERATE_NEXT_VERSION_PIPELINE_ARGS := -i ${CI_PIPELINE_ID}
 	endif
-	export IRMA_DISTRO_VERSION = $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${_IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
+	export IRMA_DISTRO_VERSION := $(shell ${MAKEFILE_DIR}utils/scripts/generate-next-version-string.sh -p ${_IRIS_PRODUCT} -g ${MAKEFILE_DIR} ${GENERATE_NEXT_VERSION_PIPELINE_ARGS})
 	ifneq (${.SHELLSTATUS}, 0)
 		$(error Could not determine IRMA_DISTRO_VERSION)
 	endif
