@@ -19,4 +19,4 @@ repos:
   meta-swupdate:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/sbabic/meta-swupdate"
-    commit: "7da41c5f2eb58c95cf5b312cf0b34fdfc7bb1e4e"
+    commit: "d4208016c450295f3c8289267738905eef2f0b1a"
