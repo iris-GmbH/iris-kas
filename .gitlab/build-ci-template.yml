@@ -923,7 +923,7 @@ systemtests:
       - NAME: mdns-test
         PROJECT: mtv/test-and-measurement-application/mdns-test
         # renovate: depName=mtv/test-and-measurement-application/mdns-test
-        SYSTEMTEST_REF: v1.8.4
+        SYSTEMTEST_REF: v1.8.5
   trigger:
     project: $PROJECT
     branch: $SYSTEMTEST_REF
