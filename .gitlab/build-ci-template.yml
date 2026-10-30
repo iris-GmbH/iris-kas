@@ -919,7 +919,7 @@ systemtests:
       - NAME: systemtest-vlair
         PROJECT: mtv/test-and-measurement-application/systemtest-vlair
         # renovate: depName=mtv/test-and-measurement-application/systemtest-vlair
-        SYSTEMTEST_REF: v0.1.2
+        SYSTEMTEST_REF: v1.0.0
       - NAME: mdns-test
         PROJECT: mtv/test-and-measurement-application/mdns-test
         # renovate: depName=mtv/test-and-measurement-application/mdns-test
