@@ -34,6 +34,7 @@ variables:
   # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
   # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
   IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
+  IMX93_MATRIXUP_DEPENDENCYTRACK_PROJECT: 96d6ca69-5992-4bc1-82b9-9c0f852a4cb9
   IMX8MP_IRMA6R2_DEPENDENCYTRACK_PARENT_PROJECT: deefe32d-51f9-4a94-8c93-1b52d603023b
   IMX93_MATRIXUP_DEPENDENCYTRACK_PARENT_PROJECT: 549b0eae-6312-4905-bd42-78800a155fcf
   FORCE_DEPENDENCYTRACK: "false"
@@ -461,9 +462,9 @@ develop-build-dev-deploy-image:
         echo "Including Osselot tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-osselot.yml"
       fi
-    # Include the CycloneDX task only for IRMA 6 R2; require the default branch unless FORCE_DEPENDENCYTRACK is true
+    # Include the CycloneDX task for IRMA 6 R2 and MATRIXUP; require the default branch unless FORCE_DEPENDENCYTRACK is true
     - >
-      if test "${MULTI_CONF}" = "imx8mp-irma6r2" && ( test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" || test "${FORCE_DEPENDENCYTRACK}" = "true" ); then
+      if ( test "${MULTI_CONF}" = "imx8mp-irma6r2" || test "${MULTI_CONF}" = "imx93-matrixup" ) && ( test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" || test "${FORCE_DEPENDENCYTRACK}" = "true" ); then
         echo "Including CycloneDX SBOM tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-cyclonedx.yml"
       fi
