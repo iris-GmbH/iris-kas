@@ -127,6 +127,7 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
+  - promote-release
 
 #########################
 ### YOCTO SETUP STAGE ###
@@ -1265,3 +1266,32 @@ publish-release:
       artifacts: false
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
+
+promote-dependencytrack-release:
+  stage: promote-release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[\w\d]+-\d+\.\d+-\d+-.+$/'
+      when: never
+    - if: '$CI_COMMIT_TAG && ($MULTI_CONF == "imx8mp-irma6r2" || $MULTI_CONF == "imx93-matrixup")'
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+  resource_group: "dependencytrack-latest-release-${MULTI_CONF}"
+  tags:
+    - gp-tiny
+  script:
+    - MULTI_CONF_SANITIZED="$(echo "${MULTI_CONF}" | tr '[:lower:]-' '[:upper:]_')"
+    - DEVELOP_DEPENDENCYTRACK_PROJECT="$(printenv "${MULTI_CONF_SANITIZED}_DEPENDENCYTRACK_PROJECT")"
+    - >
+      if test -z "${DEVELOP_DEPENDENCYTRACK_PROJECT}"; then
+        echo "No DependencyTrack project configured for MULTI_CONF ${MULTI_CONF}. Skipping promotion."
+        exit 0
+      fi
+    - >
+      "${CI_PROJECT_DIR}/utils/scripts/promote-dependencytrack-release.sh"
+      -u "${DEPENDENCYTRACK_API_URL}"
+      -k "${DEPENDENCYTRACK_API_KEY}"
+      -d "${DEVELOP_DEPENDENCYTRACK_PROJECT}"
+      -n "${MULTI_CONF}-deploy"
+      -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}"
+      -t "latest-release-${MULTI_CONF}"
