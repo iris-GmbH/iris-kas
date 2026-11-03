@@ -34,6 +34,8 @@ variables:
   # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
   # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
   IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
+  IMX8MP_IRMA6R2_DEPENDENCYTRACK_PARENT_PROJECT: deefe32d-51f9-4a94-8c93-1b52d603023b
+  IMX93_MATRIXUP_DEPENDENCYTRACK_PARENT_PROJECT: 549b0eae-6312-4905-bd42-78800a155fcf
   FORCE_DEPENDENCYTRACK: "false"
 
 ########################
@@ -1207,7 +1209,13 @@ upload-cyclonedx-to-dependencytrack:
     # create and populate a seperate DT project during release, see script for more details
     - >
       if test -n "${CI_COMMIT_TAG}"; then
-        DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}")"
+        MULTI_CONF_DT_PARENT_PROJECT_VAR_NAME="${MULTI_CONF_SANITIZED}_DEPENDENCYTRACK_PARENT_PROJECT"
+        DEPENDENCYTRACK_PARENT_PROJECT="$(bash -c "printf \"${!MULTI_CONF_DT_PARENT_PROJECT_VAR_NAME}\"")"
+        if test -z "${DEPENDENCYTRACK_PARENT_PROJECT}"; then
+          echo "No DependencyTrack parent project defined for MULTI_CONF ${MULTI_CONF}. Exiting."
+          exit 123
+        fi
+        DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}" -P "${DEPENDENCYTRACK_PARENT_PROJECT}")"
       fi
     # meta-iris-base merges the initramfs SBOM and VEX into irma-deploy, then
     # exports both documents using the image link name in DEPLOY_DIR_IMAGE.
