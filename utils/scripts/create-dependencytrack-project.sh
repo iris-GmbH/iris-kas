@@ -13,15 +13,16 @@
 
 set -e
 
-usage() { echo "usage: $0: [-u DEPENDENCYTRACK_API_URL] [-p DEPENDENCYTRACK_API_KEY] [-n PROJECT_NAME] [-v PROJECT_VERSION]" >&2; }
+usage() { echo "usage: $0: [-u DEPENDENCYTRACK_API_URL] [-p DEPENDENCYTRACK_API_KEY] [-n PROJECT_NAME] [-v PROJECT_VERSION] [-P PARENT_PROJECT_UUID]" >&2; }
 
-while getopts u:p:n:v:h option
+while getopts u:p:n:v:P:h option
 do
   case $option in
     u)  DEPENDENCYTRACK_API_URL="$OPTARG";;
     p)  DEPENDENCYTRACK_API_KEY="$OPTARG";;
     n)  PROJECT_NAME="$OPTARG";;
     v)  PROJECT_VERSION="$OPTARG";;
+    P)  PARENT_PROJECT_UUID="$OPTARG";;
     h | ?) usage; exit 2;;
   esac
 done
@@ -33,7 +34,7 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 # ensure all required variables are set
-if test -z "${DEPENDENCYTRACK_API_URL}" || test -z "${DEPENDENCYTRACK_API_KEY}" || test -z "${PROJECT_NAME}" || test -z "${PROJECT_VERSION}"; then
+if test -z "${DEPENDENCYTRACK_API_URL}" || test -z "${DEPENDENCYTRACK_API_KEY}" || test -z "${PROJECT_NAME}" || test -z "${PROJECT_VERSION}" || test -z "${PARENT_PROJECT_UUID}"; then
   usage
   exit 1
 fi
@@ -69,7 +70,7 @@ else
     -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
     -X PUT \
     -H "Content-Type: application/json" \
-    --data "{\"name\": \"${PROJECT_NAME}\", \"version\": \"${PROJECT_VERSION}\", \"classifier\": \"FIRMWARE\"}" \
+    --data "{\"name\": \"${PROJECT_NAME}\", \"version\": \"${PROJECT_VERSION}\", \"classifier\": \"FIRMWARE\", \"parent\": {\"uuid\": \"${PARENT_PROJECT_UUID}\"}}" \
     "${DEPENDENCYTRACK_API_URL}/v1/project"
   DEPENDENCYTRACK_PROJECT="$(jq -r ".uuid" < "${RESP}")";
 fi
