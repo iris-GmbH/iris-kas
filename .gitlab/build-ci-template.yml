@@ -95,6 +95,11 @@ include:
     - imx8mp-irma6r2
     - imx93-matrixup
 
+.dependencytrack_multi_confs: &dependencytrack_multi_confs
+  MULTI_CONF:
+    - imx8mp-irma6r2
+    - imx93-matrixup
+
 .oci_multi_confs: &oci_multi_confs
   MULTI_CONF:
     - qemux86-64-r1
@@ -1168,7 +1173,7 @@ upload-cyclonedx-to-dependencytrack:
     - if: '$FORCE_DEPENDENCYTRACK == "true"'
   parallel:
     matrix:
-      - <<: *target_multi_confs
+      - <<: *dependencytrack_multi_confs
   needs:
     - job: develop-ci-build-setup
       optional: true
