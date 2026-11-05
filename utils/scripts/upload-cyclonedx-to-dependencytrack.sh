@@ -38,6 +38,7 @@ fi
 echo "Determinating DependencyTrack version." >&2
 resp=$(mktemp)
 curl \
+  --fail-with-body \
   -sS \
   -o "${resp}" \
   "${DEPENDENCYTRACK_API_URL}/version"
@@ -61,21 +62,26 @@ vex_api_url="${DEPENDENCYTRACK_API_URL}/v1/vex"
 
 echo "Uploading BOM ${PATH_TO_CYCLONEDX_SBOM} to project ${EXISTING_DEPENDENCYTRACK_PROJECT_ID}." >&2
 curl \
+  --fail-with-body \
   -sS \
   -H "X-API-Key: ${DEPENDENCYTRACK_API_KEY}" \
   -X POST \
   -F project="${EXISTING_DEPENDENCYTRACK_PROJECT_ID}" \
   -F bom=@"${PATH_TO_CYCLONEDX_SBOM}" \
   -o "${resp}" \
-  "${sbom_api_url}"
+  "${sbom_api_url}" || {
+    echo "Error uploading BOM file. DependencyTrack response:" >&2
+    cat "${resp}" >&2
+    exit 1
+  }
 
-token="$(jq -r '.token' "${resp}")"
-if test -n "${token}"; then
-  echo "BOM uploaded successfully." >&2
-else
-  echo "Error uploading BOM file." >&2
+if ! token="$(jq -er '.token | strings | select(length > 0)' "${resp}")"; then
+  echo "Error uploading BOM file: DependencyTrack returned no processing token." >&2
+  echo "DependencyTrack response:" >&2
+  cat "${resp}" >&2
   exit 1
 fi
+echo "BOM uploaded successfully." >&2
 
 if test -z "${PATH_TO_CYCLONEDX_VEX}"; then
   echo "No VEX file specified. Done." >&2
