@@ -34,6 +34,9 @@ variables:
   # default dependencytrack project (develop) for the specified multi_conf if not overriden during release
   # must be of the format ${MULTI_CONF}_DEPENDENCYTRACK_PROJECT | tr '[:lower:]-' '[:upper:]_'
   IMX8MP_IRMA6R2_DEPENDENCYTRACK_PROJECT: c8bcea87-ba60-45cf-a45f-51d956681850
+  IMX93_MATRIXUP_DEPENDENCYTRACK_PROJECT: 96d6ca69-5992-4bc1-82b9-9c0f852a4cb9
+  IMX8MP_IRMA6R2_DEPENDENCYTRACK_PARENT_PROJECT: deefe32d-51f9-4a94-8c93-1b52d603023b
+  IMX93_MATRIXUP_DEPENDENCYTRACK_PARENT_PROJECT: 549b0eae-6312-4905-bd42-78800a155fcf
   FORCE_DEPENDENCYTRACK: "false"
 
 ########################
@@ -124,6 +127,7 @@ stages:
   - reliability-test
   - upload-artifacts
   - release
+  - promote-release
 
 #########################
 ### YOCTO SETUP STAGE ###
@@ -459,9 +463,9 @@ develop-build-dev-deploy-image:
         echo "Including Osselot tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-osselot.yml"
       fi
-    # Include the CycloneDX task only for IRMA 6 R2; require the default branch unless FORCE_DEPENDENCYTRACK is true
+    # Include the CycloneDX task for IRMA 6 R2 and MATRIXUP; require the default branch unless FORCE_DEPENDENCYTRACK is true
     - >
-      if test "${MULTI_CONF}" = "imx8mp-irma6r2" && ( test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" || test "${FORCE_DEPENDENCYTRACK}" = "true" ); then
+      if ( test "${MULTI_CONF}" = "imx8mp-irma6r2" || test "${MULTI_CONF}" = "imx93-matrixup" ) && ( test "${BRANCH_NAME}" = "${CI_DEFAULT_BRANCH}" || test "${FORCE_DEPENDENCYTRACK}" = "true" ); then
         echo "Including CycloneDX SBOM tasks..."
         export KASFILE_EXTRA="${KASFILE_EXTRA}:include/kas-cyclonedx.yml"
       fi
@@ -1207,7 +1211,13 @@ upload-cyclonedx-to-dependencytrack:
     # create and populate a seperate DT project during release, see script for more details
     - >
       if test -n "${CI_COMMIT_TAG}"; then
-        DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}")"
+        MULTI_CONF_DT_PARENT_PROJECT_VAR_NAME="${MULTI_CONF_SANITIZED}_DEPENDENCYTRACK_PARENT_PROJECT"
+        DEPENDENCYTRACK_PARENT_PROJECT="$(bash -c "printf \"${!MULTI_CONF_DT_PARENT_PROJECT_VAR_NAME}\"")"
+        if test -z "${DEPENDENCYTRACK_PARENT_PROJECT}"; then
+          echo "No DependencyTrack parent project defined for MULTI_CONF ${MULTI_CONF}. Exiting."
+          exit 123
+        fi
+        DEPENDENCYTRACK_PROJECT="$(${CI_PROJECT_DIR}/utils/scripts/create-dependencytrack-project.sh -u "${DEPENDENCYTRACK_API_URL}" -p "${DEPENDENCYTRACK_API_KEY}" -n "${MULTI_CONF}-deploy" -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}" -P "${DEPENDENCYTRACK_PARENT_PROJECT}")"
       fi
     # meta-iris-base merges the initramfs SBOM and VEX into irma-deploy, then
     # exports both documents using the image link name in DEPLOY_DIR_IMAGE.
@@ -1256,3 +1266,32 @@ publish-release:
       artifacts: false
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
+
+promote-dependencytrack-release:
+  stage: promote-release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[\w\d]+-\d+\.\d+-\d+-.+$/'
+      when: never
+    - if: '$CI_COMMIT_TAG && ($MULTI_CONF == "imx8mp-irma6r2" || $MULTI_CONF == "imx93-matrixup")'
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+  resource_group: "dependencytrack-latest-release-${MULTI_CONF}"
+  tags:
+    - gp-tiny
+  script:
+    - MULTI_CONF_SANITIZED="$(echo "${MULTI_CONF}" | tr '[:lower:]-' '[:upper:]_')"
+    - DEVELOP_DEPENDENCYTRACK_PROJECT="$(printenv "${MULTI_CONF_SANITIZED}_DEPENDENCYTRACK_PROJECT")"
+    - >
+      if test -z "${DEVELOP_DEPENDENCYTRACK_PROJECT}"; then
+        echo "No DependencyTrack project configured for MULTI_CONF ${MULTI_CONF}. Skipping promotion."
+        exit 0
+      fi
+    - >
+      "${CI_PROJECT_DIR}/utils/scripts/promote-dependencytrack-release.sh"
+      -u "${DEPENDENCYTRACK_API_URL}"
+      -k "${DEPENDENCYTRACK_API_KEY}"
+      -d "${DEVELOP_DEPENDENCYTRACK_PROJECT}"
+      -n "${MULTI_CONF}-deploy"
+      -v "${CI_COMMIT_TAG}-${CI_COMMIT_SHORT_SHA}"
+      -t "latest-release-${MULTI_CONF}"
