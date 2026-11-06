@@ -128,7 +128,7 @@ stages:
   - merge-request-bot
   - push-test-images
   - test
-  - systemtest-notification
+  - systemtest-analysis
   - reliability-test
   - upload-artifacts
   - release
@@ -941,7 +941,7 @@ systemtests:
       pipeline_variables: true
 
 systemtests-teams-notification:
-  stage: systemtest-notification
+  stage: systemtest-analysis
   needs:
     - job: systemtests
       optional: true
@@ -1231,6 +1231,129 @@ upload-cyclonedx-to-dependencytrack:
     - test -f "${SBOM_FILE}" && test -f "${VEX_FILE}"
     - ${CI_PROJECT_DIR}/utils/scripts/upload-cyclonedx-to-dependencytrack.sh -u ${DEPENDENCYTRACK_API_URL} -k ${DEPENDENCYTRACK_API_KEY} -p ${DEPENDENCYTRACK_PROJECT} -b ${SBOM_FILE} -v ${VEX_FILE}
 
+# Collect the original systemtest evidence for a release in one immutable archive.
+# The downstream projects create the sensor-rack artifacts; a bridge job cannot
+# forward those artifacts directly, so they are downloaded through the GitLab API.
+systemtest-results-archive:
+  stage: systemtest-analysis
+  rules:
+    # imx93-matrixup has no sensor-rack systemtest downstreams yet.
+    - if: '$MULTI_CONF == "imx93-matrixup"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $RELEASE_BRANCH'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      variables:
+        RELEASE: "true"
+        ENABLE_PA_CCACHE: "false"
+        SYSTEMTEST_RESULTS_ARTIFACT_REF: "$CI_COMMIT_TAG"
+    - if: '$SKIP_SYSTEMTEST == "false"'
+      when: manual
+      allow_failure: true
+  variables:
+    SYSTEMTEST_RESULTS_ARTIFACT_REF: "$CI_COMMIT_REF_SLUG"
+  tags:
+    - gp-tiny
+  image: alpine:3.24
+  needs:
+    - job: release-ci-build-setup
+      optional: true
+    - job: develop-ci-build-setup
+      optional: true
+    - job: systemtests
+      artifacts: false
+  parallel:
+    matrix:
+      - <<: *target_multi_confs
+  before_script:
+    - apk add --no-cache curl jq python3 unzip
+  script:
+    - |
+      set -eu
+
+      # Collect one archive per matrix target, regardless of the pipeline-wide
+      # RUN_MULTI_CONF value.
+      RUN_MULTI_CONF="${MULTI_CONF}"
+      export RUN_MULTI_CONF
+      results_dir="systemtest-results"
+      work_dir="$(mktemp -d)"
+      mkdir -p "${results_dir}"
+      printf '# Systemtest summary (%s)\n' "${RUN_MULTI_CONF}" > "${results_dir}/systemtest-summary.md"
+
+      curl --fail-with-body --silent --show-error \
+        --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${CI_PIPELINE_ID}/bridges?per_page=100" \
+        | jq -c '.[] | select(
+            (.name == "systemtests" or (.name | startswith("systemtests:")))
+            and .downstream_pipeline != null
+          )' > "${work_dir}/bridges.json"
+
+      while IFS= read -r bridge; do
+        test_name=$(printf '%s' "${bridge}" | jq -r '
+          .name | if startswith("systemtests: [")
+            then ltrimstr("systemtests: [") | split(",")[0]
+            else .
+          end')
+        test_dir=$(printf '%s' "${test_name}" | tr -cs 'A-Za-z0-9._-' '_')
+        downstream_project_id=$(printf '%s' "${bridge}" | jq -er '.downstream_pipeline.project_id')
+        downstream_pipeline_id=$(printf '%s' "${bridge}" | jq -er '.downstream_pipeline.id')
+
+        curl --fail-with-body --silent --show-error \
+          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${downstream_project_id}/pipelines/${downstream_pipeline_id}/jobs?include_retried=true&per_page=100" \
+          > "${work_dir}/${test_dir}-jobs.json"
+
+        sensor_job_count=$(jq --arg multi_conf "${RUN_MULTI_CONF}" '[.[] | select(
+          .retried != true and
+          .status != "skipped" and
+          (.name | contains($multi_conf)) and
+          ((.artifacts_file.filename // "") | startswith("sensor-rack-")) and
+          ((.artifacts_file.size // 0) > 0)
+        )] | length' "${work_dir}/${test_dir}-jobs.json")
+        if [ "${sensor_job_count}" -gt 1 ]; then
+          echo "${test_name} has ${sensor_job_count} sensor-rack artifact jobs; the archive layout currently supports one." >&2
+          exit 1
+        fi
+
+        {
+          printf '\n## %s\n\n' "${test_name}"
+          printf -- '- Downstream pipeline: %s\n' "${downstream_pipeline_id}"
+          jq -r --arg multi_conf "${RUN_MULTI_CONF}" '
+            .[] | select(.retried != true and (.name | contains($multi_conf))) |
+            "- " + .name + ": " + .status
+          ' "${work_dir}/${test_dir}-jobs.json"
+        } >> "${results_dir}/systemtest-summary.md"
+
+        sensor_job_id=$(jq -r --arg multi_conf "${RUN_MULTI_CONF}" '.[] | select(
+          .retried != true and
+          .status != "skipped" and
+          (.name | contains($multi_conf)) and
+          ((.artifacts_file.filename // "") | startswith("sensor-rack-")) and
+          ((.artifacts_file.size // 0) > 0)
+        ) | .id' "${work_dir}/${test_dir}-jobs.json")
+        if [ -z "${sensor_job_id}" ]; then
+          echo "No sensor-rack artifact was produced by ${test_name}." >&2
+          continue
+        fi
+
+        mkdir -p "${results_dir}/${test_dir}"
+        curl --fail-with-body --silent --show-error --location \
+          --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          --output "${work_dir}/${test_dir}.zip" \
+          "${CI_API_V4_URL}/projects/${downstream_project_id}/jobs/${sensor_job_id}/artifacts"
+        unzip -q "${work_dir}/${test_dir}.zip" -d "${results_dir}/${test_dir}"
+      done < "${work_dir}/bridges.json"
+
+      python3 "${CI_PROJECT_DIR}/utils/scripts/create-systemtest-summary.py" "${results_dir}"
+
+      printf 'SYSTEMTEST_RESULTS_DIRECTORY=%s\n' "${results_dir}" > systemtest-results.env
+  artifacts:
+    name: "${SYSTEMTEST_RESULTS_ARTIFACT_REF}-${MULTI_CONF}-systemtest-results"
+    paths:
+      - systemtest-results/
+    reports:
+      dotenv: systemtest-results.env
+
 #####################
 ### RELEASE STAGE ###
 #####################
@@ -1269,6 +1392,7 @@ publish-release:
     - job: release-archive-kas-build-environment
     - job: test-oci-ptest-iris
       artifacts: false
+    - job: systemtest-results-archive
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
 
