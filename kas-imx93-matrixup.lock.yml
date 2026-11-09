@@ -3,6 +3,6 @@ header:
 overrides:
     repos:
         meta-iris-base:
-            commit: 957526ca33cec90782e1e4586e6fb51a261eeff3
+            commit: 06df07b02b08805fce85e75e2491123a7c81cc26
         meta-iris:
-            commit: 230a2fb45768350d74216f241ed0146ba124424d
+            commit: 5746fc4bbf5438c17ad2e80261fcae75adf70179
