@@ -5,6 +5,7 @@
 
 import os
 import tarfile
+import zipfile
 import click
 import shutil
 import logging
@@ -19,6 +20,7 @@ def prepare_release_artifacts(multi_conf: str, project_dir: str, tmpdir: tempfil
   """
   Defines required release artifacts.
   All release multi-confs must contain the artifacts 'deploy', 'dev_deploy', 'maintenance', 'dev', 'sdk_maintenance', 'sdk_deploy', 'deploy_customer' and 'kas_environment'.
+  If SYSTEMTEST_RESULTS_DIRECTORY is set by CI, its contents are packaged as an additional release artifact.
   Returns an artifacts dict, which is used throughout the script for accessing relevant artifact information.
   """
   artifacts = {
@@ -57,14 +59,37 @@ def prepare_release_artifacts(multi_conf: str, project_dir: str, tmpdir: tempfil
     }
   }
 
+  systemtest_results_directory = os.environ.get('SYSTEMTEST_RESULTS_DIRECTORY')
+  if systemtest_results_directory:
+    results_path = os.path.join(project_dir, systemtest_results_directory)
+    if not os.path.isdir(results_path):
+      raise FileNotFoundError(f"Systemtest results directory not found at {results_path}")
+    artifacts['systemtest_results'] = {
+      'description': 'Snapshot of Robot Framework artifacts from the systemtests executed for this release, including failed tests.',
+      'clearance': 'Internal',
+      'path': create_systemtest_results_archive(results_path, tmpdir, os.environ['CI_COMMIT_TAG'], multi_conf)
+    }
+
   create_deploy_customer_artifact_files(multi_conf, project_dir, tmpdir, kas_artifact_prefix, logging)
-  for artifact_type, _ in artifacts.items():
+  for artifact_type, artifact in artifacts.items():
+    if artifact_type == 'systemtest_results':
+      continue
     artifact_path = get_artifact_path(multi_conf, project_dir, artifact_type, logging)
     artifact_archive = create_artifact_archive(artifact_path, tmpdir, logging)
     artifacts[artifact_type].update({
       'path': artifact_archive
     })
   return artifacts
+
+
+def create_systemtest_results_archive(results_path: str, tmpdir: tempfile.TemporaryDirectory, release_version: str, multi_conf: str) -> str:
+  """Package the collected systemtest directory without adding an extra top-level folder."""
+  archive_path = os.path.join(tmpdir, f'{release_version}-{multi_conf}-systemtest-results.zip')
+  with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as archive:
+    for path in Path(results_path).rglob('*'):
+      if path.is_file():
+        archive.write(path, path.relative_to(results_path))
+  return archive_path
 
 
 def get_conf_var_name(multi_conf: str) -> str:
@@ -190,6 +215,10 @@ def generate_release_description(multi_conf: str, artifacts: dict, logging: logg
   """
   logging.info('Generating release description')
   release_description = '# Assets'
+  pipeline_url = os.environ.get('CI_PIPELINE_URL')
+  pipeline_id = os.environ.get('CI_PIPELINE_ID')
+  if pipeline_url and pipeline_id:
+    release_description += f'\nSource pipeline: [#{pipeline_id}]({pipeline_url})\n'
   release_description += f'\n## {multi_conf}\n | Asset Name | Description | Clearance |\n| --- | --- | --- |\n'
   for artifact_type in artifacts:
     artifact_name = os.path.basename(artifacts[artifact_type]['path'])
