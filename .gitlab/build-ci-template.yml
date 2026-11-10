@@ -1396,6 +1396,7 @@ publish-release:
     - job: test-oci-ptest-iris
       artifacts: false
     - job: systemtest-results-archive
+      optional: true
   script:
     - create_gitlab_release --debug true --gitlab-access-token ${RELEASE_TOKEN} --multi-conf ${MULTI_CONF}
 
