@@ -1345,6 +1345,9 @@ systemtest-results-archive:
       done < "${work_dir}/bridges.json"
 
       python3 "${CI_PROJECT_DIR}/utils/scripts/create-systemtest-summary.py" "${results_dir}"
+      # GitLab extracts dependency artifacts with their original permissions.
+      # Make the collected evidence readable by the later publish-release job.
+      chmod -R a+rX "${results_dir}"
 
       printf 'SYSTEMTEST_RESULTS_DIRECTORY=%s\n' "${results_dir}" > systemtest-results.env
   artifacts:
