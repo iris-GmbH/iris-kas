@@ -936,7 +936,7 @@ systemtests:
       - NAME: systemtest-ibisip
         PROJECT: mtv/test-and-measurement-application/systemtest-ibisip
         # renovate: depName=mtv/test-and-measurement-application/systemtest-ibisip
-        SYSTEMTEST_REF: v1.1.3
+        SYSTEMTEST_REF: v1.1.4
   trigger:
     project: $PROJECT
     branch: $SYSTEMTEST_REF
