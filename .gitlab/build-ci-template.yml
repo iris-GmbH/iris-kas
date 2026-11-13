@@ -932,7 +932,7 @@ systemtests:
       - NAME: mdns-test
         PROJECT: mtv/test-and-measurement-application/mdns-test
         # renovate: depName=mtv/test-and-measurement-application/mdns-test
-        SYSTEMTEST_REF: v1.8.5
+        SYSTEMTEST_REF: v1.8.6
       - NAME: systemtest-ibisip
         PROJECT: mtv/test-and-measurement-application/systemtest-ibisip
         # renovate: depName=mtv/test-and-measurement-application/systemtest-ibisip
