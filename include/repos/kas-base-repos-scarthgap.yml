@@ -8,7 +8,7 @@ repos:
   poky:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/yoctoproject/poky"
-    commit: "6b7c1066f778db5a6b3e35400617b10342988fa8"
+    commit: "86a777b24f93803dcac8950c03c55da602186af8"
     layers:
       meta:
       meta-poky:
@@ -42,7 +42,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "1b5a4450f485361757fdc431b8be036e90ecd7ff"
+    commit: "3eeb9cedbf24ea37d76a76f1b3e54f90c1f0a9bd"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
@@ -50,10 +50,10 @@ repos:
   meta-cyclonedx:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-cyclonedx.git"
-    commit: "d0d00567d5d30dc3b2c7c4dcd791dcd1202d295c"
+    commit: "a84ba1d56824c2d92e06275a56816a663a80477c"
   meta-imx:
     # renovate: depType=upstream-meta-layers branch=scarthgap-6.6.52-2.2.2
     url: "https://github.com/nxp-imx/meta-imx.git"
-    commit: "e1ec1a20d573e3913f4ad90fa36546ed2bc87715"
+    commit: "474d2b45015f73e6b0d77729e2028b00e008f730"
     layers:
       meta-imx-ml:
