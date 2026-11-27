@@ -42,7 +42,7 @@ repos:
   meta-iris-thirdparty:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-iris-thirdparty"
-    commit: "3eeb9cedbf24ea37d76a76f1b3e54f90c1f0a9bd"
+    commit: "4569f8e8eb94d0f9964e7dbe5225ed470e77ac42"
   meta-osselot:
     # renovate: depType=upstream-meta-layers branch=scarthgap
     url: "https://github.com/iris-GmbH/meta-osselot"
